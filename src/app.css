@@ -1,0 +1,110 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f8f9fa;
+    color: #212529;
+}
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+a.active {
+    font-weight: bold;
+}
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+h1, h2, h3 {
+    margin-bottom: 0.75rem;
+}
+.w-100 { width: 100%; }
+/* Layout Utilities */
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+.flex-column { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.text-center { text-align: center; }
+.text-bold { font-weight: bold; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.max-w-md { max-width: 500px; }
+
+/* Spacing Utilities */
+.pd-sm { padding: 0.5rem; }
+.pd-md { padding: 1rem; }
+.pd-lg { padding: 2rem; }
+.gap-sm { gap: 0.5rem; }
+.gap-md { gap: 1rem; }
+.gap-lg { gap: 2rem; }
+.mb-md { margin-bottom: 1rem; }
+.mb-lg { margin-bottom: 2rem; }
+.mt-md { margin-top: 1rem; }
+
+/* Grid Utilities */
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+/* Component Styles */
+.main-header {
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+}
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #212529;
+}
+.main-footer {
+    margin-top: 2rem;
+    color: #6c757d;
+}
+.bg-light { background-color: #f1f3f5; }
+.border { border: 1px solid #dee2e6; }
+.rounded { border-radius: 0.25rem; }
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+.form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+.form-group input {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+}
+.card {
+    background-color: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.3rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.section-title {
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
