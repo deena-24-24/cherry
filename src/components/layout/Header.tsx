@@ -1,10 +1,14 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import logoTitle from '../../../public/logo_title.svg'
+import { Button } from '../ui/Button'
 
 import { ROUTES } from '../../router/routes'
 
+import { usePopupStore } from '../../store/usePopupStore'
+
 export const Header: React.FC = () => {
+  const { openAuth } = usePopupStore()
   return (
     <header className="main-header pd-lg">
       <div className="container d-flex items-center justify-between">
@@ -15,10 +19,9 @@ export const Header: React.FC = () => {
           <NavLink to={ROUTES.AI_INTERVIEW}>Interview</NavLink>
           <NavLink to={ROUTES.TECH_CHAT}>Chat</NavLink>
           <NavLink to={ROUTES.COMPILER}>Compiler</NavLink>
-          {/*<NavLink to={ROUTES.AUTH}>Login</NavLink>*/}
-          <NavLink to={ROUTES.RESUME_VIEW}>My resume</NavLink>
-          {/*<NavLink to={ROUTES.RESUME_EDIT}>Edit Resume</NavLink>*/}
+          <NavLink to={ROUTES.RESUME}>My resume</NavLink>
         </nav>
+        <Button onClick={openAuth}>Войти</Button>
       </div>
     </header>
   )

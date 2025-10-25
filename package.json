@@ -1,6 +1,6 @@
 {
     "name": "cherry",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "main": "./src/index.tsx",
     "scripts": {
         "test": "exit 0",
@@ -33,9 +33,10 @@
         "@types/node": "^22.15.18",
         "@types/react": "^18.3.12",
         "@types/react-dom": "^18.3.1",
+        "bcryptjs": "^3.0.2",
         "eslint": "^9.11.0",
         "eslint-plugin-react": "^7.36.1",
-        "express": "^4.19.2",
+        "express": "5.0.0",
         "framer-motion": "^10.18.0",
         "globals": "^15.9.0",
         "langchain-gigachat": "^0.0.11",

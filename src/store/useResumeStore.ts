@@ -22,16 +22,16 @@ const initialResume: Resume = {
 }
 
 
-export const useResumeStore = create<ResumeState>((set: any) => ({
+export const useResumeStore = create<ResumeState>((set) => ({
   resume: initialResume,
-  setResume: (resume: any) => set({ resume }),
-  addExperience: () => set((state: any) => ({
+  setResume: (resume) => set({ resume }),
+  addExperience: () => set((state) => ({
     resume: {
       ...state.resume,
       experience: [...state.resume.experience, { title: 'New Role', company: 'New Company', period: 'YYYY - YYYY', description: '...' } as Experience]
     }
   })),
-  addEducation: () => set((state: any) => ({
+  addEducation: () => set((state) => ({
     resume: {
       ...state.resume,
       education: [...state.resume.education, { institution: 'New University', degree: 'New Degree', year: 'YYYY' } as Education]

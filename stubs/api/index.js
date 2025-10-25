@@ -1,128 +1,45 @@
-require('dotenv').config()
-const { detectImage } = require("gigachat");
-const { Router } = require('express')
-const { z } = require('zod')
-const { RunnableSequence } = require("@langchain/core/runnables");
-const { JsonOutputParser, StructuredOutputParser } = require("@langchain/core/output_parsers");
-const { ChatPromptTemplate } = require("@langchain/core/prompts");
-const path = require('node:path')
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+require('dotenv').config();
 
-const { getModel, gigachat } = require('./llm')
+const authRoutes = require('./routes/authRoutes');
+const candidateRoutes = require('./routes/candidateRoutes');
+const hrRoutes = require('./routes/hrRoutes');
+// const chatRoutes = require('./routes/chatRoutes'); // Раскомментируйте, когда будет готово
+// const interviewRoutes = require('./routes/interviewRoutes'); // Раскомментируйте, когда будет готово
 
-const router = Router()
+// Создаем экземпляр приложения Express
+const app = express();
 
-const timer = (time = 300) => (req, res, next) => setTimeout(next, time);
+// Настройка middleware
+app.use(cors()); // Включаем CORS для всех маршрутов, чтобы клиент мог отправлять запросы
+app.use(express.json()); // Позволяет приложению парсить JSON-тела запросов
 
-router.use(timer());
+// --- ПОДКЛЮЧЕНИЕ К БАЗЕ ДАННЫХ ---
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/careerup';
 
-const slideDataSchema = z.object({
-    title: z.string().describe("Название товара"),
-    description: z.string().describe("Описание товара. Около 100 слов"),
-    price: z.number().describe("Цена товара"),
-    rating: z.number().describe("Рейтинг товара от 0 до 5"),
-    comments: z.array(z.object({
-        name: z.string().describe("Имя комментатора"),
-        text: z.string().describe("Текст комментария"),
-        rating: z.number().describe("Оценка комментария от 0 до 5"),
-    })).describe("Комментарии к товару. Положительные и отрицательные. Минимум 3 комментария"),
-    imagePrompt: z.string().describe('Промт для генерации изображения. Перечисли объекты которые необходимо нарисовать через запятую настройки камеры и окружение. Если изображение рисоваать не требуется напиши "no image"'),
-})
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('Успешное подключение к MongoDB'))
+  .catch(err => console.error('Ошибка подключения к MongoDB:', err));
 
-const zodSchema = z.object({
-  catalogName: z.string().describe("Название каталога на латинице не более 12 символов"),
-  imagesStyle: z.string().describe("Укажи стиль изображения и цветовую гамму"),
-  cards: z.array(slideDataSchema).describe('Список карточек'),
+
+// --- ОСНОВНЫЕ МАРШРУТЫ ПРИЛОЖЕНИЯ ---
+app.use('/api/authRoutes', authRoutes);
+app.use('/api/candidate', candidateRoutes);
+app.use('/api/hr', hrRoutes);
+// app.use('/api/chat', chatRoutes);
+// app.use('/api/interview', interviewRoutes);
+
+
+app.get('/', (req, res) => {
+  res.send('Сервер CareerUp успешно запущен!');
 });
 
-const instructionsCreator = StructuredOutputParser.fromZodSchema(zodSchema);
+// --- ЗАПУСК СЕРВЕРА ---
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Сервер запущен на порту ${PORT}`);
+});
 
-const chain = RunnableSequence.from([
-  ChatPromptTemplate.fromTemplate(
-    `Создай каталог товаров.
-    Пользователь описал каталог так: {question}
-    Язык каталога {lang}
-    Количествво карточек: {count} шт.
-    {format_instructions}
-    
-    Текущая дата ${new Date().toLocaleDateString()}`
-  ),
-  getModel('GigaChat-2-Pro'),
-  new JsonOutputParser(),
-]);
-
-const main = async ({
-    title,
-    count,
-    lang
-}) => {
-    const stream = await chain.stream({
-      question: title,
-      count,
-      lang,
-      format_instructions: instructionsCreator.getFormatInstructions(),
-    });
-    
-    return stream;
-}
-
-router.get('/generate', async (req, res) => {
-  const { title, count, lang } = req.query
-
-  const stream = await main({
-    title,
-    lang,
-    count: parseInt(count),
-  })
-
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream; charset=utf-8',
-    'Cache-Control': 'no-cache'
-  });
-
-  for await (const s of stream) {
-    res.write(`data: ${JSON.stringify(s)}\n\n`);
-  }
-
-  res.write(`event: end\ndata: { "done": true }\n\n`);
-  res.end();
-})
-
-router.post('/generate-image', async (req, res) => {
-  const { imagePrompt, imagesStyle } = req.body
-
-  const chatResponse = await gigachat.chat({
-    messages: [
-      {
-        role: 'user',
-        content: `Создай изображение по запросу ${imagePrompt} в стиле ${imagesStyle}`
-      }
-    ],
-    function_call: 'auto'
-  })
-
-  const detectedImage = detectImage(chatResponse.choices[0]?.message.content ?? '');
-  if (!detectedImage || !detectedImage.uuid) {
-    console.log('Image not found')
-    console.log(chatResponse.choices[0]?.message)
-    return {}
-  }
-
-  const image = await gigachat.getImage(detectedImage.uuid);
-
-  const fs = await import('node:fs')
-  fs.writeFileSync(path.resolve(__dirname, '..', `images/${detectedImage.uuid}.png`), Uint8Array.from(Array.from(image.content) .map(
-    (letter) => letter.charCodeAt(0)
-  )))
-
-  res.send({
-    uuid: detectedImage.uuid
-  })
-})
-
-router.get('/card-image/:uuid', async (req, res) => {
-  const { uuid } = req.params
-
-  res.sendFile(path.resolve(__dirname, '..', `images/${uuid}.png`))
-})
-
-module.exports = router;
+module.exports = app;
