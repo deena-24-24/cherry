@@ -1,194 +1,164 @@
-const bcrypt = require('bcryptjs')
-const User = require('../models/User')
-const Candidate = require('../models/Candidate')
-const HR = require('../models/HR')
-const { generateToken } = require('../middleware/authMiddleware')
+const { generateToken } = require('../middleware/authMiddleware');
+const { mockDB } = require('../mockData.js');
+
+// --- БАЗА ДАННЫХ В ПАМЯТИ ---
+const users = [...mockDB.candidates, ...mockDB.hr];
+let userIdCounter = 1;
 
 /**
  * @desc    Регистрация нового кандидата
- * @route   POST /api/authRoutes/register/candidate
+ * @route   POST /api/auth/register/candidate
  * @access  Public
  */
 const registerCandidate = async (req, res) => {
-  const { email, password, firstName, lastName, phone } = req.body
+  const { email, password, firstName, lastName } = req.body;
 
   try {
-    // 1. Проверяем, существует ли пользователь
-    const existingUser = await User.findOne({ email })
-    if (existingUser) {
-      return res.status(400).json({ message: 'Пользователь с таким email уже существует' })
+    // 1. Проверяем, существует ли пользователь в нашем массиве
+    if (users.find(user => user.email === email)) {
+      return res.status(409).json({ message: 'Пользователь с таким email уже существует' });
     }
 
-    // 2. Хешируем пароль
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(password, salt)
-
-    // 3. Создаем нового пользователя
-    const newUser = new User({
+    // 2. Создаем нового пользователя
+    const newUser = {
+      _id: `user_${userIdCounter++}`,
       email,
-      password: hashedPassword,
-      role: 'candidate'
-    })
-    await newUser.save()
-
-    // 4. Создаем профиль кандидата, связанный с пользователем
-    const newCandidate = new Candidate({
-      user: newUser._id,
+      password, // В заглушке храним пароль в открытом виде
+      role: 'candidate',
       firstName,
       lastName,
-      phone
-    })
-    await newCandidate.save()
+    };
 
-    // 5. Генерируем токен и отправляем ответ
-    const token = generateToken(newUser._id, newUser.role)
+    // 3. "Сохраняем" пользователя, добавляя его в массив
+    users.push(newUser);
+    console.log('Новый кандидат зарегистрирован:', newUser);
+    console.log('Всего пользователей:', users.length);
+
+
+    // 4. Генерируем токен и отправляем ответ
+    const token = generateToken(newUser._id, newUser.role);
     res.status(201).json({
       token,
       user: {
-        id: newUser._id,
+        _id: newUser._id,
         email: newUser.email,
         role: newUser.role,
-        firstName: newCandidate.firstName,
-        lastName: newCandidate.lastName
-      }
-    })
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+      },
+    });
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Ошибка сервера при регистрации кандидата' })
+    console.error(error);
+    res.status(500).json({ message: 'Ошибка сервера при регистрации' });
   }
-}
+};
 
 /**
  * @desc    Регистрация нового HR-специалиста
- * @route   POST /api/authRoutes/register/hr
+ * @route   POST /api/auth/register/hr
  * @access  Public
  */
 const registerHr = async (req, res) => {
-  const { email, password, firstName, lastName, companyName, position, phone } = req.body
+  const { email, password, firstName, lastName, companyName } = req.body;
 
   try {
-    // 1. Проверяем, существует ли пользователь
-    const existingUser = await User.findOne({ email })
-    if (existingUser) {
-      return res.status(400).json({ message: 'Пользователь с таким email уже существует' })
+    if (users.find(user => user.email === email)) {
+      return res.status(409).json({ message: 'Пользователь с таким email уже существует' });
     }
 
-    // 2. Хешируем пароль
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(password, salt)
-
-    // 3. Создаем нового пользователя
-    const newUser = new User({
+    const newUser = {
+      _id: `user_${userIdCounter++}`,
       email,
-      password: hashedPassword,
-      role: 'hr'
-    })
-    await newUser.save()
-
-    // 4. Создаем профиль HR, связанный с пользователем
-    const newHr = new HR({
-      user: newUser._id,
+      password,
+      role: 'hr',
       firstName,
       lastName,
       companyName,
-      position,
-      phone
-    })
-    await newHr.save()
+    };
 
-    // 5. Генерируем токен и отправляем ответ
-    const token = generateToken(newUser._id, newUser.role)
+    users.push(newUser);
+    console.log('Новый HR зарегистрирован:', newUser);
+    console.log('Всего пользователей:', users.length);
+
+
+    const token = generateToken(newUser._id, newUser.role);
     res.status(201).json({
       token,
       user: {
-        id: newUser._id,
+        _id: newUser._id,
         email: newUser.email,
         role: newUser.role,
-        firstName: newHr.firstName,
-        lastName: newHr.lastName,
-        companyName: newHr.companyName
-      }
-    })
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        companyName: newUser.companyName,
+      },
+    });
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Ошибка сервера при регистрации HR' })
+    console.error(error);
+    res.status(500).json({ message: 'Ошибка сервера при регистрации' });
   }
-}
+};
+
 
 /**
- * @desc    Аутентификация пользователя и получение токена
- * @route   POST /api/authRoutes/login
+ * @desc    Аутентификация пользователя
+ * @route   POST /api/auth/login
  * @access  Public
  */
 const login = async (req, res) => {
-  const { email, password } = req.body
+  const { email, password } = req.body;
 
   try {
-    // 1. Ищем пользователя по email
-    const user = await User.findOne({ email })
-    if (!user) {
-      return res.status(400).json({ message: 'Неверные учетные данные' })
+    // 1. Ищем пользователя в массиве
+    const user = users.find(u => u.email === email);
+
+    // 2. Проверяем пользователя и пароль (прямое сравнение)
+    if (!user || user.password !== password) {
+      return res.status(401).json({ message: 'Неверные учетные данные' });
     }
 
-    // 2. Сравниваем пароли
-    const isMatch = await bcrypt.compare(password, user.password)
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Неверные учетные данные' })
-    }
-
-    // 3. Получаем дополнительные данные из профиля
-    let userProfile = {}
-    if (user.role === 'candidate') {
-      const candidate = await Candidate.findOne({ user: user._id })
-      userProfile = {
-        firstName: candidate.firstName,
-        lastName: candidate.lastName
-      }
-    } else if (user.role === 'hr') {
-      const hr = await HR.findOne({ user: user._id })
-      userProfile = {
-        firstName: hr.firstName,
-        lastName: hr.lastName,
-        companyName: hr.companyName
-      }
-    }
-
-    // 4. Генерируем токен и отправляем ответ
-    const token = generateToken(user._id, user.role)
+    // 3. Генерируем токен и отправляем ответ
+    const token = generateToken(user._id, user.role);
+    console.log('Пользователь вошел в систему:', user.email);
     res.json({
       token,
       user: {
-        id: user._id,
+        _id: user._id,
         email: user.email,
         role: user.role,
-        ...userProfile
-      }
-    })
+        firstName: user.firstName,
+        lastName: user.lastName,
+        companyName: user.companyName, // Будет undefined для кандидата, это нормально
+      },
+    });
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Ошибка сервера при входе' })
+    console.error(error);
+    res.status(500).json({ message: 'Ошибка сервера при входе' });
   }
-}
+};
 
 /**
  * @desc    Получение данных о текущем пользователе
- * @route   GET /api/authRoutes/me
+ * @route   GET /api/auth/me
  * @access  Private
  */
 const getMe = async (req, res) => {
-  // Middleware `auth` уже поместил пользователя в req.user
-  try {
-    // Можно дополнительно обогатить данные пользователя из его профиля
-    const user = await User.findById(req.user._id).select('-password')
-    res.json(user)
-  } catch (error) {
-    res.status(500).json({ message: 'Ошибка при получении данных пользователя' })
+  // В req.user у нас теперь payload из токена: { userId, role }
+  const currentUser = users.find(u => u._id === req.user.userId);
+
+  if (!currentUser) {
+    return res.status(404).json({ message: 'Пользователь не найден' });
   }
-}
+
+  // Отправляем данные без пароля
+  const { password, ...userToSend } = currentUser;
+  res.json(userToSend);
+};
+
 
 module.exports = {
   registerCandidate,
   registerHr,
   login,
-  getMe
-}
+  getMe,
+};
