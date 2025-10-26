@@ -1,6 +1,4 @@
-// middleware/authRoutes.js
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -19,35 +17,22 @@ const authMiddleware = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      return res.status(401).json({ message: 'Токен отсутствует' });
+      return res.status(401).json({ message: 'Токен отсутствует, доступ запрещен' });
     }
 
+    // Проверяем токен и извлекаем из него данные
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.userId);
 
-    if (!user) {
-      return res.status(401).json({ message: 'Пользователь не найден' });
-    }
+    // помещаем расшифрованные данные в req.user
+    req.user = decoded;
 
-    req.user = user;
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Неверный токен' });
+    res.status(401).json({ message: 'Невалидный токен' });
   }
-};
-
-// Middleware для проверки роли
-const requireRole = (roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Доступ запрещен' });
-    }
-    next();
-  };
 };
 
 module.exports = {
   generateToken,
   auth: authMiddleware,
-  requireRole
 };
