@@ -2,7 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const { auth, requireRole } = require('../middleware/authMiddleware');
-const CandidateRoutes = require('../models/Candidate');
 
 // Получение профиля кандидата
 router.get('/profile', auth, requireRole(['candidate']), async (req, res) => {

@@ -6,6 +6,7 @@ import { ROUTES } from './routes'
 import { Header } from '../components/layout/Header'
 import { Footer } from '../components/layout/Footer'
 import AuthPopup from '../components/popup/AuthPopup'
+import { ProtectedRoute } from './ProtectedRoute'
 
 // Pages
 import { LandingPage } from '../pages/common/LandingPage'
@@ -14,18 +15,16 @@ import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
 import { TechnicalChatPage } from '../pages/candidate/TechnicalChatPage'
 import { CompilerPage } from '../pages/candidate/CompilerPage'
 
-// Новый компонент интервью
-import { InterviewRoom } from '../components/interview/InterviewRoom'
-
 // Stores
 import { usePopupStore } from '../store/usePopupStore'
 import { useAuthStore } from '../store/useAuthStore'
+import { User } from '../types'
 
 export const AppRouter: React.FC = () => {
   const { isAuthOpen, closeAuth } = usePopupStore()
   const { login } = useAuthStore()
 
-  const handleLogin = (userData) => {
+  const handleLogin = (userData: { user: User; token: string }) => {
     if (userData && userData.user && userData.token) {
       login(userData.user, userData.token)
     }
@@ -38,10 +37,39 @@ export const AppRouter: React.FC = () => {
       <main className="min-h-screen">
         <Routes>
           <Route path={ROUTES.HOME} element={<LandingPage />} />
-          <Route path={ROUTES.RESUME} element={<ResumePage />} />
-          <Route path={ROUTES.AI_INTERVIEW} element={<InterviewRoom  />} />
-          <Route path={ROUTES.TECH_CHAT} element={<TechnicalChatPage />} />
-          <Route path={ROUTES.COMPILER} element={<CompilerPage />} />
+          {/* Protected Routes */}
+          <Route
+            path={ROUTES.RESUME}
+            element={
+              <ProtectedRoute>
+                <ResumePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.AI_INTERVIEW}
+            element={
+              <ProtectedRoute>
+                <AiInterviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.TECH_CHAT}
+            element={
+              <ProtectedRoute>
+                <TechnicalChatPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.COMPILER}
+            element={
+              <ProtectedRoute>
+                <CompilerPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
 

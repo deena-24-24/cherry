@@ -5,7 +5,7 @@ import { Button } from '../ui/Button'
 
 import { ROUTES } from '../../router/routes'
 
-import { usePopupStore } from '../../store/usePopupStore'
+import { usePopupStore } from '../../store'
 
 export const Header: React.FC = () => {
   const { openAuth } = usePopupStore()
