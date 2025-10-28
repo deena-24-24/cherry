@@ -1,79 +1,68 @@
-const CodeExecution = require('../models/CodeExecution');
+const { mockDB } = require('../mockData');
 
 class CodeController {
   // Выполнение кода
   async executeCode(req, res) {
     try {
-      const { sessionId, code, language } = req.body;
+      const { code, language, sessionId } = req.body;
 
       // Эмуляция выполнения кода
       const result = await this.simulateCodeExecution(code, language);
 
-      // Сохраняем результат в базу
-      const execution = new CodeExecution({
-        sessionId,
-        code,
-        language,
-        output: result.output,
-        error: result.error,
-        executionTime: result.executionTime,
-        status: result.error ? 'error' : 'success'
-      });
+      // Сохранение в "БД"
+      if (sessionId) {
+        mockDB.codeExecutions.push({
+          sessionId,
+          code,
+          language,
+          output: result.output,
+          error: result.error,
+          executionTime: result.executionTime,
+          status: result.error ? 'error' : 'success',
+          executedAt: new Date().toISOString()
+        });
+      }
 
-      await execution.save();
-
-      res.json({
-        success: true,
-        result
-      });
+      res.json({ success: true, ...result });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message, output: '' });
     }
   }
 
-  // Получение истории выполнения кода для сессии
+  // Имитация выполнения кода
+  async simulateCodeExecution(code, language) {
+    // Имитация задержки сети
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 300));
+
+    if (code.includes('error') || code.includes('throw new Error')) {
+      return {
+        output: '',
+        error: `Error: Something went wrong in ${language} execution.`,
+        executionTime: 45
+      };
+    }
+
+    const mockOutputs = {
+      javascript: `> ${eval(code)}`,
+      python: `Running python code...\nResult: ${code.split('\n').pop()}`,
+      typescript: `Type checking passed.\n> ${eval(code.replace(/let|const/g, 'var'))}`
+    };
+
+    return {
+      output: mockOutputs[language] || `Executed ${language} code successfully.`,
+      error: '',
+      executionTime: Math.floor(Math.random() * (150 - 50 + 1)) + 50
+    };
+  }
+
   async getExecutionHistory(req, res) {
     try {
       const { sessionId } = req.params;
-
-      const executions = await CodeExecution.find({ sessionId })
-        .sort({ createdAt: -1 })
-        .limit(20);
-
-      res.json({
-        success: true,
-        executions
-      });
+      const history = mockDB.codeExecutions.filter(e => e.sessionId === sessionId);
+      res.json({ success: true, history });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
-  }
-
-  // Эмуляция выполнения кода
-  async simulateCodeExecution(code, language) {
-    // Имитация задержки выполнения
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const languageOutputs = {
-      javascript: 'Hello from JavaScript!\nCode executed successfully.',
-      typescript: 'Hello from TypeScript!\nCode executed successfully.',
-      python: 'Hello from Python!\nCode executed successfully.',
-      java: 'Hello from Java!\nCode executed successfully.'
-    };
-
-    const output = languageOutputs[language] || `Code executed in ${language}\nExecution completed.`;
-
-    return {
-      output,
-      error: '',
-      executionTime: 150 + Math.floor(Math.random() * 100)
-    };
   }
 }
 

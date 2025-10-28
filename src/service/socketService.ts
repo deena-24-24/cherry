@@ -1,4 +1,4 @@
-import { AIResponse } from '../types/interview'
+import { AIResponse } from '../types'
 import { io, Socket } from 'socket.io-client'
 
 class SocketService {
@@ -64,12 +64,12 @@ class SocketService {
     console.log('📤 Sent audio chunk:', chunk.byteLength, 'bytes')
   }
 
-  sendTranscript(sessionId: string, text: string) {
+  sendTranscript(sessionId: string, text: string, position: string) {
     if (!this.socket || !this.socket.connected) {
       console.warn('Socket.io not connected')
       return
     }
-    this.socket.emit('user-transcript', { sessionId, text })
+    this.socket.emit('user-transcript', { sessionId, text, position })
     console.log('📤 Sent transcript:', text)
   }
 

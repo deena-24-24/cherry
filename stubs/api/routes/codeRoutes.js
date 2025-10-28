@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const codeController = require('../controllers/codeController');
+const { auth } = require('../middleware/authMiddleware');
 
-// Выполнение кода
+// POST /api/code/execute - Выполнение кода
 router.post('/execute', codeController.executeCode);
 
-// Получение истории выполнения кода
-router.get('/sessions/:sessionId/executions', codeController.getExecutionHistory);
+// GET /api/code/sessions/:sessionId/executions - Получение истории выполнения кода
+router.get('/sessions/:sessionId/executions', auth, codeController.getExecutionHistory);
 
 module.exports = router;

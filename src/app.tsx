@@ -8,7 +8,7 @@ import { store } from './__data__/store'
 
 const App = () => {
   return (
-    <BrowserRouter basename='cherry'>
+    <BrowserRouter basename='/cherry'>
       <ChakraProvider>
         <ReduxProvider store={store}>
           <AppRouter />

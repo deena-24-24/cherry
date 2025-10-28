@@ -15,13 +15,17 @@ export class InterviewService {
 
   async saveNotes(sessionId: string, notes: string): Promise<{ success: boolean } | void> {
     try {
-      const response = await fetch(`/api/interview/sessions/${sessionId}/notes`, {
-        method: 'POST',
+      const response = await fetch(`http://localhost:5000/api/interview/sessions/${sessionId}/notes`, {
+        method: 'POST', // Используем POST для обновления
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ notes }),
       })
+      if (!response.ok) {
+        throw new Error('Failed to save notes')
+      }
       return await response.json()
     } catch (error) {
       console.error('Error saving notes:', error)

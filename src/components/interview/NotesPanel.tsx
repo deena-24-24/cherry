@@ -1,5 +1,5 @@
 import React from 'react'
-import { useInterviewStore } from '../../store/useInterviewStore'
+import { useInterviewStore } from '../../store'
 import { interviewService } from '../../service/interview/InterviewService'
 
 export const NotesPanel: React.FC = () => {

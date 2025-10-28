@@ -1,10 +1,16 @@
 import React from 'react'
-import { useInterviewStore } from '../../store/useInterviewStore'
+import { useInterviewStore } from '../../store'
 import { useVoiceCall } from '../../pages/hooks/useVoiceCall'
+import { Button } from '../ui/Button'
 
-export const VoiceCallPanel: React.FC = () => {
+interface VoiceCallPanelProps {
+  sessionId: string;
+  position: string;
+}
+
+export const VoiceCallPanel: React.FC<VoiceCallPanelProps> = ({ sessionId, position }) => {
   const { isCallActive, startCall, endCall } = useInterviewStore()
-  const { isRecording, startRecording, stopRecording } = useVoiceCall('session-1')
+  const { isRecording, startRecording, stopRecording } = useVoiceCall(sessionId, position)
 
   const handleToggleCall = async () => {
     if (isCallActive) {
@@ -34,7 +40,7 @@ export const VoiceCallPanel: React.FC = () => {
       </div>
 
       <div className="controls flex justify-center">
-        <button
+        <Button
           onClick={handleToggleCall}
           className={`px-8 py-4 rounded-full text-lg font-medium transition-colors ${
             isCallActive
@@ -43,7 +49,7 @@ export const VoiceCallPanel: React.FC = () => {
           }`}
         >
           {isCallActive ? 'Завершить звонок' : 'Начать собеседование'}
-        </button>
+        </Button>
       </div>
 
       {isRecording && (
