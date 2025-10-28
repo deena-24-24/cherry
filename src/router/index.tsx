@@ -14,6 +14,9 @@ import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
 import { TechnicalChatPage } from '../pages/candidate/TechnicalChatPage'
 import { CompilerPage } from '../pages/candidate/CompilerPage'
 
+// Новый компонент интервью
+import { InterviewRoom } from '../components/interview/InterviewRoom'
+
 // Stores
 import { usePopupStore } from '../store/usePopupStore'
 import { useAuthStore } from '../store/useAuthStore'
@@ -36,7 +39,7 @@ export const AppRouter: React.FC = () => {
         <Routes>
           <Route path={ROUTES.HOME} element={<LandingPage />} />
           <Route path={ROUTES.RESUME} element={<ResumePage />} />
-          <Route path={ROUTES.AI_INTERVIEW} element={<AiInterviewPage />} />
+          <Route path={ROUTES.AI_INTERVIEW} element={<InterviewRoom  />} />
           <Route path={ROUTES.TECH_CHAT} element={<TechnicalChatPage />} />
           <Route path={ROUTES.COMPILER} element={<CompilerPage />} />
         </Routes>
