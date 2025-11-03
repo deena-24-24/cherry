@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(express.json());
 
 // --- ОСНОВНЫЕ МАРШРУТЫ ПРИЛОЖЕНИЯ ---
 app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.get('/', (req, res) => {
   res.send('Сервер CareerUp успешно запущен!');

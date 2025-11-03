@@ -1,0 +1,70 @@
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 80vh; /* Занимает 80% высоты экрана */
+    max-width: 800px;
+    margin: 0 auto;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden; /* Скрывает все, что выходит за пределы */
+}
+
+.chat-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+}
+
+.chat-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.chat-header .status {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.messages-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem; /* Расстояние между сообщениями */
+    background-color: #ffffff;
+}
+
+.chat-footer {
+    width: 100%;
+}
+
+/* Улучшение полосы прокрутки (для Webkit-браузеров) */
+.messages-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.messages-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.messages-list::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+}
+
+/* Анимация для индикатора "печатает" */
+.message-row.ai .message-bubble p {
+    animation: typing-blink 1.2s infinite;
+}
+
+@keyframes typing-blink {
+    0% { opacity: 0.4; }
+    50% { opacity: 1; }
+    100% { opacity: 0.4; }
+}
