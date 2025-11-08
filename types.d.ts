@@ -3,4 +3,5 @@ declare module '*.svg' {
   export default src
 }
 
-declare const __webpack_public_path__: string
+// Avoid duplicate redeclare in some toolchains
+// declare const __webpack_public_path__: string

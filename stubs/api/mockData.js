@@ -1,5 +1,5 @@
 const mockDB = {
-  candidates: [
+  users: [
     {
       _id: 'user_1',
       email: 'candidate@candidate.com',
@@ -7,10 +7,9 @@ const mockDB = {
       role: 'candidate',
       firstName: 'Кандидат',
       lastName: 'Кандидатов'
-    }
-  ],
-  hr: [
-    {  _id: 'user_2',
+    },
+    {
+      _id: 'user_2',
       email: 'hr@hr.com',
       password: 'qwerty',
       role: 'hr',
@@ -19,11 +18,21 @@ const mockDB = {
       companyName: 'Компания'
     }
   ],
-  companies: [
-    { id: 1, name: "Компания", logo: "/logos/techcorp.svg" }
+  sessions: [
+    {
+      id: 'session_1',
+      title: 'Frontend Developer Interview',
+      position: 'frontend',
+      difficulty: 'middle',
+      status: 'active',
+      candidateId: 'user_1',
+      interviewerId: 'ai_interviewer',
+      createdAt: new Date().toISOString(),
+      notes: '',
+      conversationHistory: []
+    }
   ],
-  messages: [],
-  interviews: []
+  codeExecutions: []
 };
 
 module.exports = {

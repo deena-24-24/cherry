@@ -2,7 +2,7 @@ const { generateToken } = require('../middleware/authMiddleware');
 const { mockDB } = require('../mockData.js');
 
 // --- БАЗА ДАННЫХ В ПАМЯТИ ---
-const users = [...mockDB.candidates, ...mockDB.hr];
+const users = mockDB.users;
 let userIdCounter = 1;
 
 /**

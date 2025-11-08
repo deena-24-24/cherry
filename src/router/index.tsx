@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { ROUTES } from './routes'
 
 // Layout
@@ -12,12 +12,12 @@ import { ProtectedRoute } from './ProtectedRoute'
 import { LandingPage } from '../pages/common/LandingPage'
 import { ResumePage } from '../pages/candidate/ResumePage'
 import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
-import { TechnicalChatPage } from '../pages/candidate/TechnicalChatPage'
+import { ChatPage } from '../pages/candidate/ChatPage'
 import { CompilerPage } from '../pages/candidate/CompilerPage'
 
 // Stores
-import { usePopupStore } from '../store/usePopupStore'
-import { useAuthStore } from '../store/useAuthStore'
+import { usePopupStore } from '../store'
+import { useAuthStore } from '../store'
 import { User } from '../types'
 
 export const AppRouter: React.FC = () => {
@@ -37,6 +37,13 @@ export const AppRouter: React.FC = () => {
       <main className="min-h-screen">
         <Routes>
           <Route path={ROUTES.HOME} element={<LandingPage />} />
+
+          {/* редирект для базового роута /interview */}
+          <Route
+            path="/candidate/interview"
+            element={<Navigate to={`/candidate/interview/session_1`} replace />}
+          />
+
           {/* Protected Routes */}
           <Route
             path={ROUTES.RESUME}
@@ -58,7 +65,7 @@ export const AppRouter: React.FC = () => {
             path={ROUTES.TECH_CHAT}
             element={
               <ProtectedRoute>
-                <TechnicalChatPage />
+                <ChatPage />
               </ProtectedRoute>
             }
           />
