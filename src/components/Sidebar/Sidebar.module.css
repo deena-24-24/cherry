@@ -1,0 +1,43 @@
+.sidebar {
+  width: 35%;
+  display: flex;
+  padding-top: 20px;
+  align-items: start;
+  gap: 1rem;
+  display: flex;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  background-color: #cfe1ff;
+  border-radius: 8px;
+  
+}
+
+.tabs {
+  background-color: #ffecec;
+  border-radius: 10px;
+  padding: 0.8rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.tabs button {
+  background: none;
+  border: none;
+  color: #1b1f6b;
+  font-weight: 500;
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tabs button:hover {
+  background-color: #ffd6d6;
+}

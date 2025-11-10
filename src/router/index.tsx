@@ -10,7 +10,8 @@ import { ProtectedRoute } from './ProtectedRoute'
 
 // Pages
 import { LandingPage } from '../pages/common/LandingPage'
-import { ResumePage } from '../pages/candidate/ResumePage'
+//import { ResumePage } from '../pages/candidate/ResumePage'
+import { ProfilePage } from '../pages/ProfilePage/ProfilePage'
 import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
 import { ChatPage } from '../pages/candidate/ChatPage'
 import { CompilerPage } from '../pages/candidate/CompilerPage'
@@ -49,7 +50,7 @@ export const AppRouter: React.FC = () => {
             path={ROUTES.RESUME}
             element={
               <ProtectedRoute>
-                <ResumePage />
+                <ProfilePage />
               </ProtectedRoute>
             }
           />
