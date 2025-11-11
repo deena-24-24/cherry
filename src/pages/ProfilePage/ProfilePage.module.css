@@ -1,74 +1,50 @@
+@import './styles/variables.css';
+
 .page {
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  background: #f5f7ff;
-  display: flex;
-  
+  padding-top: 67px;
+  padding-left: 90px;
+  padding-right: 90px;
+  background: var(--color-background);
+  min-height: 100vh;
 }
 
 .title {
-  font-weight: 700;
-  font-size: 20px;
-  margin-bottom: 20px;
-  color: #0f1741;
+  color: var(--color-text);
+  font-size: var(--font-size-3xl);
+  font-family: var(--font-family-title);
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: var(--line-height-lg);
+  word-wrap: break-word;
+  margin-bottom: var(--spacing-4xl);
 }
 
-.form {
+.container {
+  padding-left: 70px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 400px;
+  gap: var(--spacing-3xl);
+  align-items: flex-start;
 }
 
-.input {
-  height: 30px;
-  padding: 5px 8px;
-  border: 1px solid #c3d0f0;
-  border-radius: 4px;
-  font-size: 14px;
+.contentContainerAbout,
+.contentContainerResume {
+  flex: 1;
+  max-width: 600px;
+  position: relative;
 }
 
-.button {
-  width: 120px;
-  padding: 8px 0;
-  background: #0f1741;
-  color: white;
-  font-weight: 700;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-top: 15px;
+.contentContainerProgress {
+  flex: 1;
+  max-width: 807px;
+  position: relative;
 }
 
-.button:hover {
-  background: #0c1235;
-}
-
-.viewContainer {
-  max-width: 400px;
+.rightPanel {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  gap: var(--spacing-5xl);
+  align-items: flex-start;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-}
-
-.label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #0f1741;
-  margin-bottom: 5px;
-}
-
-.valueBox {
-  min-height: 30px;
-  border: 1px solid #c3d0f0;
-  border-radius: 4px;
-  background: #e9f0ff;
-  padding: 5px 10px;
-  font-size: 14px;
-  color: #0f1741;
+.menuWrapper {
+  margin-left: 35px;
 }

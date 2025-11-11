@@ -1,0 +1,57 @@
+/* ============================================
+   Utility Classes для ProfilePage
+   ============================================ */
+
+/* Common Flexbox utilities */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+/* Common positioning */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+/* Common text utilities */
+.uppercase {
+  text-transform: uppercase;
+}
+
+.lowercase {
+  text-transform: lowercase;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* Common transitions */
+.transition {
+  transition: var(--transition-base);
+}
+
+/* Common cursor */
+.cursor-pointer {
+  cursor: pointer;
+}
+

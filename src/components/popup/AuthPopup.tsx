@@ -131,6 +131,7 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
     e.preventDefault()
     if (!validateForm()) return
     setLoading(true)
+    setErrors({})
 
     try {
       let data
@@ -160,9 +161,29 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
             }
         data = await authService.registerUser(requestData, userType)
       }
-      onLogin(data)
-      handleClose()
+      
+      console.log('Auth response:', data)
+      
+      if (data && data.user && data.token) {
+        // Добавляем данные из формы регистрации в объект user
+        if (activeTab === 'register') {
+          const userWithFormData = {
+            ...data.user,
+            phone: formData.phone || data.user.phone || '',
+            ...(userType === 'hr' && {
+              position: formData.position || data.user.position || ''
+            })
+          }
+          onLogin({ ...data, user: userWithFormData })
+        } else {
+          onLogin(data)
+        }
+        handleClose()
+      } else {
+        throw new Error('Неверный формат ответа от сервера')
+      }
     } catch (error) {
+      console.error('Auth error:', error)
       const message =
         error instanceof Error ? error.message : 'Произошла ошибка'
       setErrors({ submit: message })

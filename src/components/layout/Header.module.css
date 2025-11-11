@@ -1,0 +1,107 @@
+/* ============================================
+   Header - Стили для нового хедера
+   ============================================ */
+
+.header {
+  width: 100%;
+  height: 99px;
+  position: relative;
+}
+
+.headerContainer {
+  width: 100%;
+  height: 99px;
+  padding: 20px;
+  left: 0px;
+  top: 0px;
+  position: absolute;
+  background: #78AAFF;
+  overflow: hidden;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  display: inline-flex;
+}
+
+.headerContent {
+  align-self: stretch;
+  justify-content: space-between;
+  align-items: center;
+  display: inline-flex;
+}
+
+.logoLink {
+  text-decoration: none;
+}
+
+.logo {
+  width: 172px;
+  height: 61px;
+  border: 1px #78AAFF solid;
+  object-fit: contain;
+  display: block;
+}
+
+.navContainer {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 60px;
+  display: flex;
+}
+
+.navLink {
+  color: #082060;
+  font-size: 15px;
+  font-family: 'Geist Mono', monospace;
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 16.50px;
+  word-wrap: break-word;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.navLink:hover {
+  opacity: 0.8;
+}
+
+.navLinkActive {
+  font-weight: 700;
+}
+
+
+.loginButton {
+  flex: 1 1 0;
+  padding-left: 17px;
+  padding-right: 17px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background: #F2C2C8;
+  border-radius: 15px;
+  justify-content: center;
+  align-items: center;
+  gap: 7.25px;
+  display: flex;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.loginButton:hover {
+  opacity: 0.9;
+}
+
+.loginButton:active {
+  opacity: 0.8;
+}
+
+.loginButtonText {
+  color: #082060;
+  font-size: 15px;
+  font-family: 'Geist Mono', monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 16.50px;
+  word-wrap: break-word;
+}

@@ -1,0 +1,100 @@
+/* ============================================
+   Footer - Стили для футера
+   ============================================ */
+
+.footer {
+  width: 100%;
+  height: 320px;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.footerBackground {
+  width: 100%;
+  height: 320px;
+  left: 0px;
+  top: 0px;
+  right: 0px;
+  position: absolute;
+  background: #78AAFF;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  z-index: 0;
+}
+
+.logoSection {
+  left: 81px;
+  top: 65px;
+  position: absolute;
+  z-index: 1;
+}
+
+.logoText {
+  color: #00438F;
+  font-size: 36px;
+  font-family: 'Anek Tamil', sans-serif;
+  font-weight: 700;
+  line-height: 32px;
+  word-wrap: break-word;
+}
+
+.section {
+  position: absolute;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 20px;
+  display: inline-flex;
+  z-index: 1;
+}
+
+.sectionLearning {
+  width: 165px;
+  height: 222px;
+  left: 592px;
+  top: 65px;
+}
+
+.sectionContact {
+  width: 165px;
+  height: 222px;
+  left: 884px;
+  top: 65px;
+}
+
+.sectionTitle {
+  color: #F5F5FF;
+  font-size: 36px;
+  font-family: 'Anek Tamil', sans-serif;
+  font-weight: 700;
+  line-height: 32px;
+  word-wrap: break-word;
+}
+
+.contactTitle {
+  color: #F5F5FF;
+  font-size: 32px;
+  font-family: 'Anek Tamil', sans-serif;
+  font-weight: 700;
+  line-height: 32px;
+  word-wrap: break-word;
+}
+
+.sectionLink {
+  color: #F5F5FF;
+  font-size: 18px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
+  line-height: 20px;
+  word-wrap: break-word;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.sectionLink:hover {
+  opacity: 0.8;
+}
+

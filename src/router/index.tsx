@@ -26,8 +26,13 @@ export const AppRouter: React.FC = () => {
   const { login } = useAuthStore()
 
   const handleLogin = (userData: { user: User; token: string }) => {
+    console.log('handleLogin called with:', userData)
     if (userData && userData.user && userData.token) {
+      console.log('Calling login with user:', userData.user, 'token:', userData.token)
       login(userData.user, userData.token)
+      console.log('Login completed')
+    } else {
+      console.error('Invalid userData:', userData)
     }
   }
 
