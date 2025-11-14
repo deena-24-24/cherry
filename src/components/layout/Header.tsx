@@ -17,7 +17,8 @@ export const Header: React.FC = () => {
         </NavLink>
         <nav className="d-flex gap-md">
           <NavLink to={ROUTES.AI_INTERVIEW}>Interview</NavLink>
-          <NavLink to={ROUTES.TECH_CHAT}>Chat</NavLink>
+          <NavLink to={ROUTES.AI_CHAT}>Chat</NavLink>
+          <NavLink to={ROUTES.HR_CHAT}>HR Chats</NavLink>
           <NavLink to={ROUTES.COMPILER}>Compiler</NavLink>
           <NavLink to={ROUTES.RESUME}>My resume</NavLink>
         </nav>

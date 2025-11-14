@@ -1,36 +1,17 @@
-// routes/hrRoutes.js
 const express = require('express');
 const router = express.Router();
-const { auth, requireRole } = require('../middleware/authMiddleware');
-const HrRoutes = require('../models/HR');
+const hrController = require('../controllers/hrController');
+const { auth } = require('../middleware/authMiddleware');
 
-// Получение профиля HR
-router.get('/profile', auth, requireRole(['hr']), async (req, res) => {
-  try {
-    const profile = await HrRoutes.findOne({ user: req.user._id });
-    res.json(profile);
-  } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+// Все маршруты ниже требуют аутентификации
 
-// Обновление профиля HR
-router.put('/profile', auth, requireRole(['hr']), async (req, res) => {
-  try {
-    const profile = await HrRoutes.findOneAndUpdate(
-      { user: req.user._id },
-      { $set: req.body },
-      { new: true }
-    );
+// Получить список всех чатов для текущего пользователя
+router.get('/chats', auth, hrController.getConversations);
 
-    if (!req.user.profileCompleted) {
-      await User.findByIdAndUpdate(req.user._id, { profileCompleted: true });
-    }
+// Получить полную историю сообщений одного чата по его ID
+router.get('/chats/:chatId', auth, hrController.getConversationById);
 
-    res.json({ message: 'Профиль обновлен', profile });
-  } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+// Отправить сообщение в чат
+router.post('/chats/:chatId/message', auth, hrController.sendMessage);
 
 module.exports = router;

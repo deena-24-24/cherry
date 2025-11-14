@@ -6,6 +6,7 @@ import { VoiceCallPanel } from '../../components/interview/VoiceCallPanel'
 import { NotesPanel } from '../../components/interview/NotesPanel'
 import { CodeConsole } from '../../components/interview/CodeConsole'
 import { ROUTES } from '../../router/routes'
+import { API_URL } from '../../config'
 
 export const AiInterviewPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -24,7 +25,7 @@ export const AiInterviewPage: React.FC = () => {
   const handleFinishInterview = async () => {
     if (!currentSession) return
     try {
-      await fetch(`http://localhost:5000/api/interview/sessions/${currentSession.id}/complete`, {
+      await fetch(`${API_URL}/api/interview/sessions/${currentSession.id}/complete`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

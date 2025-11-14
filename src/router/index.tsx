@@ -12,7 +12,8 @@ import { ProtectedRoute } from './ProtectedRoute'
 import { LandingPage } from '../pages/common/LandingPage'
 import { ResumePage } from '../pages/candidate/ResumePage'
 import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
-import { ChatPage } from '../pages/candidate/ChatPage'
+import { AiChatPage } from '../pages/candidate/AiChatPage'
+import { HrChatPage } from '../pages/candidate/HrChatPage'
 import { CompilerPage } from '../pages/candidate/CompilerPage'
 
 // Stores
@@ -62,10 +63,18 @@ export const AppRouter: React.FC = () => {
             }
           />
           <Route
-            path={ROUTES.TECH_CHAT}
+            path={ROUTES.AI_CHAT}
             element={
               <ProtectedRoute>
-                <ChatPage />
+                <AiChatPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.HR_CHAT}
+            element={
+              <ProtectedRoute>
+                <HrChatPage />
               </ProtectedRoute>
             }
           />

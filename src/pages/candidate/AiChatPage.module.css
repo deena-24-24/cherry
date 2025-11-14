@@ -1,19 +1,20 @@
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: 80vh; /* Занимает 80% высоты экрана */
+    height: 80vh;
     max-width: 800px;
     margin: 0 auto;
     border-radius: 12px;
-    background-color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    overflow: hidden; /* Скрывает все, что выходит за пределы */
+    background-color: #f5f5ff;
+    box-shadow: 0 4px 12px rgba(8, 32, 96, 0.15);
+    overflow: hidden;
 }
 
 .chat-header {
     padding: 1rem;
-    border-bottom: 1px solid #e9ecef;
-    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(120, 170, 255, 0.2);
+    background-color: #082060;
+    color: #f5f5ff;
 }
 
 .chat-header h1 {
@@ -22,7 +23,7 @@
 }
 
 .chat-header .status {
-    color: #28a745;
+    color: #78aaff;
     font-weight: bold;
 }
 
@@ -32,33 +33,32 @@
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem; /* Расстояние между сообщениями */
-    background-color: #ffffff;
+    gap: 1.25rem;
+    background-color: #f5f5ff;
 }
 
 .chat-footer {
     width: 100%;
+    background-color: #f5f5ff;
 }
 
-/* Улучшение полосы прокрутки (для Webkit-браузеров) */
 .messages-list::-webkit-scrollbar {
     width: 8px;
 }
 
 .messages-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #c8e6ff;
 }
 
 .messages-list::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: #78aaff;
     border-radius: 4px;
 }
 
 .messages-list::-webkit-scrollbar-thumb:hover {
-    background: #aaa;
+    background: #082060;
 }
 
-/* Анимация для индикатора "печатает" */
 .message-row.ai .message-bubble p {
     animation: typing-blink 1.2s infinite;
 }

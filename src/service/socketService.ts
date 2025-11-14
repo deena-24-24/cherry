@@ -1,5 +1,6 @@
 import { AIResponse } from '../types'
 import { io, Socket } from 'socket.io-client'
+import { API_URL } from '../config'
 
 class SocketService {
   private socket: Socket | null = null
@@ -7,7 +8,7 @@ class SocketService {
 
   async connect(sessionId: string): Promise<boolean> {
     try {
-      this.socket = io('http://localhost:5000', {
+      this.socket = io(API_URL, {
         transports: ['websocket'],
         autoConnect: true,
         withCredentials: false

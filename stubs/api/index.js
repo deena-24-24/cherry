@@ -9,6 +9,7 @@ const interviewRoutes = require('./routes/interviewRoutes');
 const codeRoutes = require('./routes/codeRoutes');
 const interviewAI = require('./service/interviewAI');
 const chatRoutes = require('./routes/chatRoutes');
+const hrRoutes = require('./routes/hrRoutes');
 
 // Создаем экземпляр приложения Express
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/interview', interviewRoutes);
 app.use('/api/code', codeRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/hr', hrRoutes);
 
 app.get('/', (req, res) => {
   res.send('Сервер CareerUp успешно запущен!');

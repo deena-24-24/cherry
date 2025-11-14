@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { InterviewSession, CodeExecutionResult } from '../types'
+import { API_URL } from '../config'
 
 interface InterviewState {
   currentSession: InterviewSession | null
@@ -27,7 +28,7 @@ export const useInterviewStore = create<InterviewState>((set) => ({
   fetchSession: async (sessionId: string) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await fetch(`http://localhost:5000/api/interview/sessions/${sessionId}`, {
+      const response = await fetch(`${API_URL}/api/interview/sessions/${sessionId}`, {
         headers: {
           // Если есть авторизация, добавьте токен здесь
           'Authorization': `Bearer ${localStorage.getItem('token')}`

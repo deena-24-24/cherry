@@ -1,5 +1,5 @@
 import React from 'react'
-import { Message } from '../types'
+import { Message } from '../../types'
 import { FaRobot } from 'react-icons/fa'
 import { FaUser } from 'react-icons/fa'
 import * as styles from './ChatMessage.module.css'
