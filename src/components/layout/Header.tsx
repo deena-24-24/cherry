@@ -1,5 +1,6 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import { Button } from '../ui/Button'
 import { ROUTES } from '../../router/routes'
 import { usePopupStore } from '../../store'
 import { useAuthStore } from '../../store'
@@ -42,14 +43,15 @@ export const Header: React.FC = () => {
                 <HrNavigation />
               )
             )}
-            <button
+            <Button
               className={styles["loginButton"]}
               onClick={handleAuthClick}
+              // color={pink}
             >
               <span className={styles["loginButtonText"]}>
                 {user ? 'ВЫХОД' : 'ВХОД'}
               </span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>

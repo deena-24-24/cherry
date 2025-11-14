@@ -15,12 +15,20 @@ export const CandidateNavigation: React.FC = () => {
         ИНТЕРВЬЮ
       </NavLink>
       <NavLink 
-        to={ROUTES.TECH_CHAT}
+        to={ROUTES.AI_CHAT}
         className={({ isActive }) => 
           `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
         }
       >
         ЧАТ
+      </NavLink>
+      <NavLink
+        to={ROUTES.HR_CHAT}
+        className={({ isActive }) =>
+          `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
+        }
+      >
+        HR ЧАТ
       </NavLink>
       <NavLink 
         to={ROUTES.COMPILER} 
