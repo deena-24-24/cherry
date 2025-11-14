@@ -1,4 +1,5 @@
 import { socketService } from '../socketService'
+import { API_URL } from '../../config'
 
 export interface InterviewSessionData {
   id: string
@@ -15,7 +16,7 @@ export class InterviewService {
 
   async saveNotes(sessionId: string, notes: string): Promise<{ success: boolean } | void> {
     try {
-      const response = await fetch(`http://localhost:5000/api/interview/sessions/${sessionId}/notes`, {
+      const response = await fetch(`${API_URL}/api/interview/sessions/${sessionId}/notes`, {
         method: 'POST', // Используем POST для обновления
         headers: {
           'Content-Type': 'application/json',

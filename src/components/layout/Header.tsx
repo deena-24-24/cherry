@@ -11,7 +11,7 @@ import * as styles from './Header.module.css'
 export const Header: React.FC = () => {
   const { openAuth } = usePopupStore()
   const { user, logout } = useAuthStore()
-  
+
   const handleAuthClick = () => {
     if (user) {
       logout()
@@ -19,16 +19,16 @@ export const Header: React.FC = () => {
       openAuth()
     }
   }
-  
+
   return (
     <div className={styles["header"]}>
       <div className={styles["headerContainer"]}>
         <div className={styles["headerContent"]}>
           {/* Логотип */}
           <NavLink to={ROUTES.HOME} className={styles["logoLink"]}>
-            <img 
+            <img
               src={logoTitle}
-              alt="Career Up Logo" 
+              alt="Career Up Logo"
               className={styles["logo"]}
             />
           </NavLink>
@@ -42,7 +42,7 @@ export const Header: React.FC = () => {
                 <HrNavigation />
               )
             )}
-            <button 
+            <button
               className={styles["loginButton"]}
               onClick={handleAuthClick}
             >

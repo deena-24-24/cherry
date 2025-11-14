@@ -1,9 +1,12 @@
 import { CodeExecutionResult } from '../../types'
+import { API_URL } from '../../config'
+
+const API_BASE_URL = `${API_URL}/api/code/execute`
 
 export class CompilerService {
   async executeCode(code: string, language: string, sessionId: string): Promise<CodeExecutionResult> {
     try {
-      const response = await fetch('http://localhost:5000/api/code/execute', {
+      const response = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

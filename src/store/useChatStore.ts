@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import chatService from '../service/chat/chatService'
 import { Message } from '../types'
 
-// Генератор псевдо-уникальных ID
 const generateId = () => `msg_${Date.now()}_${Math.random()}`
 
 interface ChatState {
