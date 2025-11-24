@@ -11,7 +11,10 @@ import { ProtectedRoute } from './ProtectedRoute'
 // Pages
 import { LandingPage } from '../pages/common/LandingPage'
 import { ResumePage } from '../pages/candidate/ResumePage'
-import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
+//import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
+import { InterviewHomePage } from '../pages/candidate/InterviewHomePage'
+import { InterviewCallPage } from '../pages/candidate/InterviewCallPage'
+
 import { ChatPage } from '../pages/candidate/ChatPage'
 import { CompilerPage } from '../pages/candidate/CompilerPage'
 
@@ -38,10 +41,14 @@ export const AppRouter: React.FC = () => {
         <Routes>
           <Route path={ROUTES.HOME} element={<LandingPage />} />
 
-          {/* редирект для базового роута /interview */}
+          {/* РЕДИРЕКТЫ для старых пулов */}
           <Route
             path="/candidate/interview"
-            element={<Navigate to={`/candidate/interview/session_1`} replace />}
+            element={<Navigate to={ROUTES.INTERVIEW_HOME} replace />}
+          />
+          <Route
+            path="/candidate/interview/:sessionId"
+            element={<Navigate to={ROUTES.INTERVIEW_CALL} replace />}
           />
 
           {/* Protected Routes */}
@@ -53,14 +60,38 @@ export const AppRouter: React.FC = () => {
               </ProtectedRoute>
             }
           />
+
+          {/* Главная страница интервью (лендинг) */}
           <Route
-            path={ROUTES.AI_INTERVIEW}
+            path={ROUTES.INTERVIEW_HOME}
             element={
               <ProtectedRoute>
-                <AiInterviewPage />
+                <InterviewHomePage />
               </ProtectedRoute>
             }
           />
+
+          {/* Страница звонка */}
+          <Route
+            path={ROUTES.INTERVIEW_CALL}
+            element={
+              <ProtectedRoute>
+                <InterviewCallPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.RESULTS}
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+                  <h1 className="text-2xl">Страница результатов в разработке 📊</h1>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path={ROUTES.TECH_CHAT}
             element={
@@ -69,6 +100,7 @@ export const AppRouter: React.FC = () => {
               </ProtectedRoute>
             }
           />
+
           <Route
             path={ROUTES.COMPILER}
             element={
@@ -81,12 +113,6 @@ export const AppRouter: React.FC = () => {
       </main>
 
       <Footer />
-
-      <AuthPopup
-        isOpen={isAuthOpen}
-        onClose={closeAuth}
-        onLogin={handleLogin}
-      />
     </>
   )
 }

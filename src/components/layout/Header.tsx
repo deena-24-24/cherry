@@ -16,7 +16,7 @@ export const Header: React.FC = () => {
           <img src={logoTitle} alt="Career Up Logo"/>
         </NavLink>
         <nav className="d-flex gap-md">
-          <NavLink to={ROUTES.AI_INTERVIEW}>Interview</NavLink>
+          <NavLink to={ROUTES.INTERVIEW_HOME}>Interview</NavLink>
           <NavLink to={ROUTES.TECH_CHAT}>Chat</NavLink>
           <NavLink to={ROUTES.COMPILER}>Compiler</NavLink>
           <NavLink to={ROUTES.RESUME}>My resume</NavLink>
