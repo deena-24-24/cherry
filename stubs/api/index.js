@@ -58,13 +58,10 @@ io.on('connection', (socket) => {
           sessionId: sessionId
         });
 
-        // Также отправляем в комнату для других клиентов
-        socket.to(sessionId).emit('ai-audio-response', {
-          text: greeting,
-          timestamp: new Date().toISOString()
-        });
+        console.log('✅ Initial greeting sent successfully');
+
       } else {
-        console.log(`Session ${sessionId} already initialized`);
+        console.log('❌ No greeting generated or invalid greeting format');
       }
     } catch (error) {
       console.error('Error initializing session:', error);

@@ -48,6 +48,7 @@ export const useVoiceCall = (sessionId: string, position: string) => {
 
         setIsAISpeaking(true)
         try {
+          console.log('🎵 Playing AI audio...')
           await voiceService.playAssistantResponse(data.text)
           console.log('✅ AI finished speaking')
 
@@ -84,12 +85,15 @@ export const useVoiceCall = (sessionId: string, position: string) => {
       }, 2000)
     }
 
+    console.log(`🎯 Initializing voice call: session=${sessionId}, position=${position}`)
+
     socketService.connect(sessionId, position)
     socketService.onMessage(handleAIResponse)
     socketService.onError(handleAIError)
 
     // УВЕЛИЧИВАЕМ НАЧАЛЬНУЮ ЗАДЕРЖКУ
     const timer = setTimeout(() => {
+      console.log('🎤 Starting initial recording...')
       startRecording()
     }, 2000) // Было 1000, стало 2000 мс
 
@@ -129,6 +133,10 @@ export const useVoiceCall = (sessionId: string, position: string) => {
     recognition.continuous = false
     recognition.interimResults = true
     recognition.maxAlternatives = 1
+
+    recognition.onstart = () => {
+      console.log('🎤 Speech recognition started, waiting for speech...')
+    }
 
     // ДОБАВЛЯЕМ: Увеличиваем время ожидания речи
     if (recognition.continuous === undefined) {

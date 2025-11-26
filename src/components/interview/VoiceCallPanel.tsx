@@ -9,10 +9,10 @@ import { socketService } from '../../service/socketService'
 interface VoiceCallPanelProps {
   sessionId: string;
   position: string;
-  onInterviewCompleted?: (data: any) => void;
+  onEndCall?: () => void;
 }
 
-export const VoiceCallPanel: React.FC<VoiceCallPanelProps> = ({ sessionId, position, onInterviewCompleted }) => {
+export const VoiceCallPanel: React.FC<VoiceCallPanelProps> = ({ sessionId, position, onEndCall }) => {
   const { isCallActive, startCall, endCall } = useInterviewStore()
   const {
     isRecording,
@@ -107,6 +107,11 @@ export const VoiceCallPanel: React.FC<VoiceCallPanelProps> = ({ sessionId, posit
       setVoiceActivity(0)
       setIsConnected(false)
 
+      // 6. Вызываем внешний callback для прерывания
+      if (onEndCall) {
+        onEndCall()
+      }
+
       console.log('✅ Interview call ended successfully')
 
     } catch (error) {
@@ -114,6 +119,9 @@ export const VoiceCallPanel: React.FC<VoiceCallPanelProps> = ({ sessionId, posit
       // Все равно завершаем звонок даже при ошибках
       endCall()
       socketService.disconnect()
+      if (onEndCall) {
+        onEndCall()
+      }
     }
   }, [isCallActive, isRecording, toggleRecording, endCall])
 
@@ -292,7 +300,7 @@ export const VoiceCallPanel: React.FC<VoiceCallPanelProps> = ({ sessionId, posit
           </div>
         )}
 
-        {/* Подсказка что делать после ответа AI */}
+        {/* Подсказка, что делать после ответа AI */}
         {isAISpeaking && (
           <div className="mt-2 p-2 bg-purple-500/10 rounded-lg">
             <p className="text-xs text-purple-400 text-center">
@@ -346,7 +354,7 @@ export const VoiceCallPanel: React.FC<VoiceCallPanelProps> = ({ sessionId, posit
           className="px-8 py-4 rounded-full text-lg font-medium bg-red-500 hover:bg-red-600 transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={!isCallActive}
         >
-          📞 Завершить собеседование
+          ⏸️ Прервать собеседование
         </button>
 
         {/* Дополнительные кнопки управления */}

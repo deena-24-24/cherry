@@ -1,5 +1,5 @@
 // src/pages/candidate/InterviewCallPage.tsx
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useInterviewStore } from '../../store'
 import { Button } from '../../components/ui/Button'
@@ -9,12 +9,14 @@ import { NotesPanel } from '../../components/interview/NotesPanel'
 import { interviewService } from '../../service/interview/InterviewService'
 import { ROUTES } from '../../router/routes'
 import { FinalReportPopup } from '../../components/interview/FinalReportPopup'
+import { FinalReport, SocketInterviewCompleted } from '../../types'
+import { InterviewInterruptedPopup } from '../../components/interview/InterviewInterruptedPopup'
 
 
 export const InterviewCallPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
-  const { currentSession, isLoading, error, fetchSession } = useInterviewStore()
+  const { currentSession, isLoading, error, fetchSession, endCall } = useInterviewStore()
 
   // Локальное состояние только для UI контролов
   const [showNotes, setShowNotes] = useState(false)
@@ -22,49 +24,75 @@ export const InterviewCallPage: React.FC = () => {
 
   // ДОБАВЛЯЕМ СОСТОЯНИЯ ДЛЯ ФИНАЛЬНОГО ОТЧЕТА
   const [showFinalReport, setShowFinalReport] = useState(false)
-  const [finalReport, setFinalReport] = useState<any>(null)
+  const [finalReport, setFinalReport] = useState<FinalReport | null>(null)
   const [completionReason, setCompletionReason] = useState<string>('')
   const [wasAutomatic, setWasAutomatic] = useState<boolean>(false)
+  const [showInterrupted, setShowInterrupted] = useState(false)
+  const [interruptionReason, setInterruptionReason] = useState<string>('')
 
   useEffect(() => {
     const idToFetch = sessionId || 'session_1'
     fetchSession(idToFetch)
   }, [sessionId, fetchSession])
 
-  // ПОДПИСКА НА СОБЫТИЕ ЗАВЕРШЕНИЯ ИНТЕРВЬЮ
-  useEffect(() => {
-    const handleInterviewCompleted = (data: any) => {
-      console.log('🏁 Interview completed in InterviewCallPage:', data)
+  // Строго типизированный обработчик завершения
+  const handleInterviewCompleted = useCallback((data: SocketInterviewCompleted) => {
+    console.log('🏁 Interview completed received:', data)
+
+    if (data.wasAutomatic) {
       setFinalReport(data.finalReport)
       setCompletionReason(data.completionReason)
-      setWasAutomatic(data.wasAutomatic)
+      setWasAutomatic(true)
       setShowFinalReport(true)
-
-      // Останавливаем все медиа-потоки
-      // voiceService.stopAudio()
-      // socketService.disconnect()
     }
 
-    socketService.onInterviewCompleted(handleInterviewCompleted)
+    endCall()
+  }, [endCall])
+
+  useEffect(() => {
+    interviewService.onInterviewCompleted(handleInterviewCompleted)
 
     return () => {
-      socketService.offInterviewCompleted()
+      interviewService.offInterviewCompleted(handleInterviewCompleted)
     }
-  }, [])
+  }, [handleInterviewCompleted])
 
-  // В InterviewCallPage.tsx обновите handleFinishInterview
-  const handleFinishInterview = async () => {
+  const handleManualInterruption = useCallback(async (reason: string = 'Ручное прерывание') => {
     if (!currentSession) return
+
     try {
-      // Используем InterviewService для завершения
+      console.log('🛑 Manually interrupting interview...')
       await interviewService.endInterview()
-      navigate(ROUTES.HOME)
-    } catch (e) {
-      console.error('Failed to complete interview', e)
-      // Fallback: просто переходим на главную
-      navigate(ROUTES.HOME)
+      setInterruptionReason(reason)
+      setShowInterrupted(true)
+    } catch (error) {
+      console.error('Failed to interrupt interview', error)
+      setInterruptionReason(`${reason} (с ошибкой)`)
+      setShowInterrupted(true)
     }
-  }
+  }, [currentSession])
+
+  const handleEndCallFromPanel = useCallback(() => {
+    console.log('📞 End call requested from VoiceCallPanel')
+    handleManualInterruption('Собеседование прервано пользователем')
+  }, [handleManualInterruption])
+
+  const handleCloseReport = useCallback(() => {
+    setShowFinalReport(false)
+    setFinalReport(null)
+    navigate(ROUTES.HOME)
+  }, [navigate])
+
+  const handleCloseInterruption = useCallback(() => {
+    setShowInterrupted(false)
+    setInterruptionReason('')
+    navigate(ROUTES.HOME)
+  }, [navigate])
+
+  const handleFinishInterview = useCallback(() => {
+    handleManualInterruption('Собеседование прервано')
+  }, [handleManualInterruption])
+
 
   if (isLoading) {
     return <div className="h-screen flex items-center justify-center bg-gray-900 text-white">Загрузка собеседования...</div>
@@ -96,6 +124,13 @@ export const InterviewCallPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <Button
+              onClick={handleFinishInterview}
+              variant="secondary"
+              className="px-4 py-2"
+            >
+              ⏸️ Прервать собеседование
+            </Button>
             <div className="flex items-center space-x-2 text-gray-300">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span>Connected</span>
@@ -200,6 +235,22 @@ export const InterviewCallPage: React.FC = () => {
             {showConsole && sessionId && <CodeConsole sessionId={sessionId} />}
           </div>
         </div>
+      )}
+      {showFinalReport && (
+        <FinalReportPopup
+          report={finalReport}
+          completionReason={completionReason}
+          wasAutomatic={wasAutomatic}
+          onClose={handleCloseReport}
+        />
+      )}
+
+      {/* Попап для прерванного собеседования */}
+      {showInterrupted && (
+        <InterviewInterruptedPopup
+          reason={interruptionReason}
+          onClose={handleCloseInterruption}
+        />
       )}
     </div>
   )

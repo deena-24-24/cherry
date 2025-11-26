@@ -1,7 +1,7 @@
 // frontend/services/InterviewService.ts
 import { socketService } from '../socketService'
 import { voiceService } from './voiceService'
-import { AIResponse, InterviewSession, CodeExecutionResult } from '../../types/interview'
+import { AIResponse, InterviewSession, CodeExecutionResult, SocketInterviewCompleted } from '../../types/interview'
 
 export interface ConversationMessage {
   role: 'assistant' | 'user'
@@ -13,6 +13,7 @@ export class InterviewService {
   private currentSessionId: string | null = null
   private isConnected: boolean = false
   private aiMessageCallbacks: ((data: AIResponse) => void)[] = []
+  private interviewCompletedCallbacks: ((data: SocketInterviewCompleted) => void)[] = []
 
   async startInterview(sessionId: string, position: string): Promise<{
     success: boolean;
@@ -32,6 +33,11 @@ export class InterviewService {
       // Настраиваем обработчик ответов от AI
       socketService.onMessage((data: AIResponse) => {
         this.handleAIResponse(data)
+      })
+
+      // Настраиваем обработчик завершения интервью
+      socketService.onInterviewCompleted((data: SocketInterviewCompleted) => {
+        this.handleInterviewCompleted(data)
       })
 
       return {
@@ -64,13 +70,26 @@ export class InterviewService {
     }
   }
 
+  // Обработчик завершения интервью
+  private handleInterviewCompleted(data: SocketInterviewCompleted) {
+    console.log('🏁 Interview completed event received:', data)
+
+    // Уведомляем всех подписчиков
+    this.interviewCompletedCallbacks.forEach(callback => {
+      callback(data)
+    })
+  }
+
   // Отправка транскрипта пользователя
   async sendTranscript(text: string, position: string = 'frontend'): Promise<void> {
     if (!this.isConnected || !this.currentSessionId) {
       throw new Error('Socket not connected or no active session')
     }
 
-    socketService.sendTranscript(this.currentSessionId, text, position)
+    const success = socketService.sendTranscript(this.currentSessionId, text, position)
+    if (!success) {
+      throw new Error('Failed to send transcript via socket')
+    }
     console.log('📤 Sent transcript:', text)
   }
 
@@ -80,17 +99,51 @@ export class InterviewService {
       throw new Error('Socket not connected or no active session')
     }
 
-    socketService.sendAudioChunk(this.currentSessionId, chunk)
+    const success = socketService.sendAudioChunk(this.currentSessionId, chunk)
+    if (!success) {
+      throw new Error('Failed to send audio chunk via socket')
+    }
   }
 
-  // Подписка на сообщения от AI (множественные подписчики)
+  // Подписка на сообщения от AI
   onAIMessage(callback: (data: AIResponse) => void): void {
     this.aiMessageCallbacks.push(callback)
   }
 
-  // Отписка от сообщений
+  // Подписка на завершение интервью
+  onInterviewCompleted(callback: (data: SocketInterviewCompleted) => void): void {
+    this.interviewCompletedCallbacks.push(callback)
+  }
+
+  // Отписка от сообщений AI
   offAIMessage(callback: (data: AIResponse) => void): void {
     this.aiMessageCallbacks = this.aiMessageCallbacks.filter(cb => cb !== callback)
+  }
+
+  // Отписка от событий завершения
+  offInterviewCompleted(callback: (data: SocketInterviewCompleted) => void): void {
+    this.interviewCompletedCallbacks = this.interviewCompletedCallbacks.filter(cb => cb !== callback)
+  }
+
+  // Ручное завершение интервью с генерацией отчета
+  async completeInterview(): Promise<{ success: boolean }> {
+    if (!this.currentSessionId) {
+      return { success: false }
+    }
+
+    try {
+      // Отправляем запрос на завершение через сокет
+      const success = socketService.sendCompleteInterview(this.currentSessionId)
+      if (!success) {
+        throw new Error('Failed to send complete-interview via socket')
+      }
+
+      console.log('✅ Complete interview request sent')
+      return { success: true }
+    } catch (error) {
+      console.error('Error completing interview:', error)
+      return { success: false }
+    }
   }
 
   // Сохранение заметок
@@ -120,7 +173,7 @@ export class InterviewService {
     }
   }
 
-  // HTTP fallback для отправки сообщений (если сокеты не работают)
+  // HTTP fallback для отправки сообщений
   async sendMessageHTTP(message: string, position: string = 'frontend'): Promise<{
     success: boolean;
     assistantResponse: string;
@@ -171,7 +224,7 @@ export class InterviewService {
     }
   }
 
-  // Завершение интервью
+  // Завершение интервью (прерывание без отчета)
   async endInterview(): Promise<{ success: boolean }> {
     try {
       // Отключаем WebSocket
@@ -198,6 +251,7 @@ export class InterviewService {
       // Очищаем состояние
       this.currentSessionId = null
       this.aiMessageCallbacks = []
+      this.interviewCompletedCallbacks = []
 
       return { success: true }
     } catch (error) {
@@ -232,15 +286,22 @@ export class InterviewService {
   // Очистка
   cleanup(): void {
     this.offAllAIMessages()
+    this.offAllInterviewCompleted()
     socketService.disconnect()
     this.currentSessionId = null
     this.isConnected = false
   }
 
-  // Отписка от всех сообщений
+  // Отписка от всех AI сообщений
   private offAllAIMessages(): void {
     this.aiMessageCallbacks = []
     socketService.offMessage()
+  }
+
+  // Отписка от всех событий завершения
+  private offAllInterviewCompleted(): void {
+    this.interviewCompletedCallbacks = []
+    socketService.offInterviewCompleted()
   }
 }
 
