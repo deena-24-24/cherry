@@ -1,7 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button'
+import { Header } from '../../components/layout/Header'
 import { ROUTES } from '../../router/routes'
+import './InterviewHomePage.css'
 
 export const InterviewHomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -17,46 +19,61 @@ export const InterviewHomePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-      <div className="container mx-auto px-6 py-16">
-        {/* Хедер */}
-        <header className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-white mb-4">
+    <div className="ihp-wrapper">
+      <div className="ihp-container">
+        {/* Хедер
+        <header className="ihp-header">
+          <h1>
             AI Interview Assistant
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p>
             Подготовьтесь к собеседованию с искусственным интеллектом
           </p>
-        </header>
+        </header> */}
 
-        {/* Карточки фич */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {/* ... существующие карточки ... */}
-        </div>
+        {/* HERO БЛОК → как на макете */}
+        <section className="ihp-hero">
+          <div className="ihp-hero-text">
+            <h2>
+              Подготовьтесь к техническому<br />
+              интервью с ИИ-собеседующим
+            </h2>
+            <p>
+              Практикуйтесь на реальных вопросах и получайте<br />
+              отзыв незамедлительно
+            </p>
 
-        {/* Кнопки действий */}
-        <div className="text-center space-y-4 max-w-md mx-auto">
-          {/* ЭТА КНОПКА ПЕРЕВОДИТ НА СТРАНИЦУ ЗВОНКА */}
-          <Button
-            onClick={handleStartInterview}
-            className="w-full py-4 text-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-          >
-            🎤 Начать новое собеседование
-          </Button>
+            {/* ЭТА КНОПКА ПЕРЕВОДИТ НА СТРАНИЦУ ЗВОНКА */}
+            <Button className="ihp-hero-btn" onClick={handleStartInterview}>
+              ПРИСТУПИТЬ К ИНТЕРВЬЮ
+            </Button>
+          </div>
 
-          <Button
-            onClick={handleViewResults}
-            variant="secondary"
-            className="w-full py-4 text-lg"
-          >
-            📊 Посмотреть результаты
-          </Button>
-        </div>
+          <div className="ihp-hero-image">
+            <img />
+          </div>
+        </section>
 
         {/* Дополнительная информация */}
-        <div className="mt-16 text-center text-gray-300">
+        <div className="ihp-bottom-info">
           <p>После нажатия кнопки вы попадете в виртуальную комнату собеседования</p>
         </div>
+
+        {/* Карточки фич */}
+        <h3 className="ihp-section-title">ВАШИ ИНТЕРВЬЮ</h3>
+
+        <div className="ihp-interview-card">
+          <div className="ihp-interview-title">FULLSTACK<br />INTERVIEW</div>
+
+          <div className="ihp-interview-date">
+            <span className="ihp-calendar">📅</span> 18/10/2025
+          </div>
+
+          <button className="ihp-interview-btn" onClick={handleViewResults}>
+            ПОСМОТРЕТЬ ФИДБЕК
+          </button>
+        </div>
+
       </div>
     </div>
   )

@@ -2,6 +2,7 @@
 import React from 'react'
 import { Button } from '../ui/Button'
 import { FinalReport } from '../../types'
+import './FinalReportPopup.css'
 
 interface FinalReportPopupProps {
   report: FinalReport | null
@@ -11,11 +12,11 @@ interface FinalReportPopupProps {
 }
 
 export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
-  report,
-  completionReason,
-  wasAutomatic,
-  onClose
-}) => {
+                                                                    report,
+                                                                    completionReason,
+                                                                    wasAutomatic,
+                                                                    onClose
+                                                                  }) => {
   if (!report) return null
 
   const {
@@ -48,67 +49,57 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="frp-overlay">
+      <div className="frp-container">
         {/* Хедер */}
-        <div className="bg-gray-900 px-6 py-4 rounded-t-2xl border-b border-gray-700">
+        <div className="frp-header-wrapper">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-white">🎯 Финальный отчет по собеседованию</h2>
-              <div className="flex items-center space-x-4 mt-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${recommendation.color} bg-opacity-20`}>
+              <h2 className="frp-title">🎯 Финальный отчет по собеседованию</h2>
+              <div className="frp-recommendation-row">
+                <span className={`frp-recommendation ${recommendation.color}`}>
                   {recommendation.text}
                 </span>
-                <span className="text-sm text-gray-400">
+                <span className="frp-finish-type">
                   {wasAutomatic ? '🤖 Автоматическое завершение' : '👤 Ручное завершение'}
                 </span>
               </div>
             </div>
-            <Button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white"
-            >
-              ✕
-            </Button>
+            <Button onClick={onClose} className="frp-close-btn">✕</Button>
           </div>
-          <p className="text-gray-400 mt-2">
-            {completionReason}
-          </p>
+          <p className="frp-reason-text">{completionReason}</p>
         </div>
 
         {/* Контент */}
-        <div className="p-6 space-y-6">
+        <div className="frp-content">
           {/* Общая оценка */}
-          <div className="bg-gray-700 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">📊 Общая оценка</h3>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-400">
-                  {overall_assessment.final_score}/10
-                </div>
-                <div className="text-gray-400">Общий балл</div>
+          <div className="frp-section-box">
+            <h3 className="frp-section-title">📊 Общая оценка</h3>
+            <div className="frp-two-cols">
+              <div className="frp-score-col">
+                <div className="frp-score-main">{overall_assessment.final_score}/10 </div>
+                <div className="frp-score-label">Общий балл</div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">
-                  {overall_assessment.level}
-                </div>
-                <div className="text-gray-400">Уровень</div>
+              <div className="frp-score-col">
+                <div className="frp-score-level">{overall_assessment.level}</div>
+                <div className="frp-score-label">Уровень</div>
               </div>
             </div>
 
             {/* Сильные стороны и улучшения */}
-            <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="frp-two-cols mt-20">
               <div>
-                <h4 className="text-green-400 font-medium mb-2">✅ Сильные стороны:</h4>
-                <ul className="list-disc list-inside text-gray-300 text-sm">
+                <h4 className="frp-section-title">✅ Сильные стороны:</h4>
+                <ul className="frp-list">
                   {overall_assessment.strengths?.map((strength, index: number) => (
                     <li key={index}>{ renderStrength(strength) }</li>
                   ))}
                 </ul>
               </div>
               <div>
-                <h4 className="text-yellow-400 font-medium mb-2">📈 Улучшения:</h4>
-                <ul className="list-disc list-inside text-gray-300 text-sm">
+                <h4 className="frp-section-title">📈 Улучшения:</h4>
+                {/*<ul className=" list-disc list-inside text-gray-300 text-sm">*/}
+                <ul className="frp-list">
                   {overall_assessment.improvements?.map((improvement: string, index: number) => (
                     <li key={index}>{improvement}</li>
                   ))}
@@ -118,14 +109,14 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
           </div>
 
           {/* Технические навыки */}
-          <div className="bg-gray-700 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">💻 Технические навыки</h3>
+          <div className="frp-section-box">
+            <h3 className="frp-section-title">💻 Технические навыки</h3>
             <div className="space-y-4">
-              <div>
-                <h4 className="text-green-400 font-medium">Освоенные темы:</h4>
-                <div className="flex flex-wrap gap-2 mt-2">
+              <div className="">
+                <h4 className="frp-section-title green">Освоенные темы:</h4>
+                <div className="frp-badges-row">
                   {technical_skills.topics_covered?.map((topic: string, index: number) => (
-                    <span key={index} className="px-3 py-1 bg-green-500/20 text-green-300 rounded-full text-sm">
+                    <span key={index} className="frp-badge green">
                       {topic}
                     </span>
                   ))}
@@ -134,10 +125,10 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
 
               {technical_skills.strong_areas && technical_skills.strong_areas.length > 0 && (
                 <div>
-                  <h4 className="text-blue-400 font-medium">Сильные области:</h4>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <h4 className="frp-section-title">Сильные области:</h4>
+                  <div className="frp-badges-row">
                     {technical_skills.strong_areas.map((area: string, index: number) => (
-                      <span key={index} className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm">
+                      <span key={index} className="frp-badge blue">
                         {area}
                       </span>
                     ))}
@@ -147,10 +138,10 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
 
               {technical_skills.weak_areas && technical_skills.weak_areas.length > 0 && (
                 <div>
-                  <h4 className="text-yellow-400 font-medium">Зоны роста:</h4>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <h4 className="frp-section-title">Зоны роста:</h4>
+                  <div className="frp-section-title">
                     {technical_skills.weak_areas.map((area: string, index: number) => (
-                      <span key={index} className="px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-full text-sm">
+                      <span key={index} className="frp-badge yellow">
                         {area}
                       </span>
                     ))}
@@ -162,24 +153,23 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
 
           {/* Поведенческий анализ */}
           {behavioral_analysis && (
-            <div className="bg-gray-700 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">🧠 Поведенческий анализ</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">
-                    {behavioral_analysis.communication_skills?.score}/10
-                  </div>
-                  <div className="text-gray-400 text-sm">Коммуникация</div>
-                  <p className="text-xs text-gray-500 mt-1">
+            <div className="frp-section-box">
+              <h3 className="frp-section-title">🧠 Поведенческий анализ</h3>
+              <div className="frp-two-cols">
+                <div className="frp-score-col">
+                  <div className="frp-score-purple">
+                    {behavioral_analysis.communication_skills?.score}/10</div>
+                  <div className="frp-score-label">Коммуникация</div>
+                  <p className="frp-small-text">
                     {behavioral_analysis.communication_skills?.feedback}
                   </p>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">
+                <div className="frp-score-col">
+                  <div className="frp-score-purple">
                     {behavioral_analysis.problem_solving?.score}/10
                   </div>
-                  <div className="text-gray-400 text-sm">Решение проблем</div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <div className="frp-score-label">Решение проблем</div>
+                  <p className="frp-small-text">
                     {behavioral_analysis.problem_solving?.feedback}
                   </p>
                 </div>
@@ -189,48 +179,48 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
 
           {/* Аналитика интервью */}
           {interview_analytics && (
-            <div className="bg-gray-700 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4">📈 Аналитика интервью</h3>
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-blue-400">
+            <div className="frp-section-box">
+              <h3 className="frp-section-title">📈 Аналитика интервью</h3>
+              <div className="frp-four-grid">
+                <div className="frp-analytic-item">
+                  <div className="frp-analytic-value blue">
                     {interview_analytics.total_questions}
                   </div>
-                  <div className="text-gray-400 text-sm">Всего вопросов</div>
+                  <div className="frp-analytic-label">Всего вопросов</div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-green-400">
+                <div className="frp-analytic-item">
+                  <div className="frp-analytic-value green">
                     {interview_analytics.topics_covered_count}
                   </div>
-                  <div className="text-gray-400 text-sm">Тем покрыто</div>
+                  <div className="frp-analytic-label">Тем покрыто</div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-purple-400">
+                <div className="frp-analytic-item">
+                  <div className="frp-analytic-value purple">
                     {interview_analytics.average_response_quality}/10
                   </div>
-                  <div className="text-gray-400 text-sm">Средняя оценка</div>
+                  <div className="frp-analytic-label">Средняя оценка</div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-yellow-400">
+                <div className="frp-analytic-item">
+                  <div className="frp-analytic-value yellow">
                     {interview_analytics.total_duration}
                   </div>
-                  <div className="text-gray-400 text-sm">Продолжительность</div>
+                  <div className="frp-analytic-label">Продолжительность</div>
                 </div>
               </div>
             </div>
           )}
 
           {/* Детальный фидбек */}
-          <div className="bg-gray-700 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">📝 Детальный фидбек</h3>
-            <p className="text-gray-300 leading-relaxed">
+          <div className="frp-section-box">
+            <h3 className="frp-section-title">📝 Детальный фидбек</h3>
+            <p className="frp-detailed-text">
               {detailed_feedback}
             </p>
           </div>
 
           {/* Следующие шаги */}
-          <div className="bg-gray-700 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">🎯 Следующие шаги</h3>
+          <div className="frp-section-box">
+            <h3 className="frp-section-title">🎯 Следующие шаги</h3>
             <ul className="space-y-2">
               {next_steps?.map((step: string, index: number) => (
                 <li key={index} className="flex items-start text-gray-300">
