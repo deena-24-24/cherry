@@ -4,6 +4,7 @@ import { FeatureCard } from '../../components/ui/FeatureCard/FeatureCard'
 import { FaqItem } from '../../components/ui/FaqItem/FaqItem'
 import * as styles from './LandingPage.module.css'
 import heroImage from '../../assets/im1.jpg'
+import { HomeFeatures } from '../../components/layout/CandidateHomeFeatures'
 
 export const LandingPage: React.FC = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(3)
@@ -50,7 +51,9 @@ export const LandingPage: React.FC = () => {
         </div>
       </div>
 
+      <HomeFeatures />
       {/* Features Section */}
+      {/*
       <div className={styles["featuresSection"]}>
         <div className={styles["featuresTitle"]}>наши возможности</div>
         
@@ -110,7 +113,7 @@ export const LandingPage: React.FC = () => {
           buttonBorderColor="#082060"
         />
       </div>
-
+*/}
       {/* Interview Section */}
       <div className={styles["interviewSection"]}>
         <div className={styles["interviewTitle"]}>
