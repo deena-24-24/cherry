@@ -1,134 +1,23 @@
+:root {
+  --cloud: #fffcf5;
+  --lavand: #bac5e2;
+  --peach: #dfaea1;
+  --maroon: #95525b;
+  --navy: #36447c;
+}
+
 .landingContainer {
-  background: #F5F5FF;
+  background: var(--cloud);/*#F5F5FF;*/
   display: flex;
   flex-direction: column;
   gap: 40px;
-  padding: 20px;
+  padding: 0;
   width: 100%;
   margin: 0 auto;
   overflow-x: hidden;
   max-width: 100%;
 }
 
-/* Hero Section */
-.heroSection {
-  width: 100%;
-  height: 672px;
-  position: relative;
-  margin-left: -20px;
-  margin-right: -20px;
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-.heroImageWrapper {
-  width: 100%;
-  height: 477px;
-  left: 0px;
-  top: 149px;
-  position: absolute;
-  background: #F5F5FF;
-}
-
-.heroImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  opacity: 0.9;
-  mix-blend-mode: multiply;
-}
-
-.startButton {
-  left: 50%;
-  transform: translateX(-50%);
-  top: 610px;
-  position: absolute;
-}
-
-.heroSubtitle {
-  width: 710px;
-  height: 78px;
-  left: 360px;
-  top: 70px;
-  position: absolute;
-  text-align: center;
-  color: #082060;
-  font-size: 24px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 500;
-  text-transform: uppercase;
-  line-height: 24px;
-  letter-spacing: 1.20px;
-  word-wrap: break-word;
-}
-
-.heroTitle {
-  width: calc(100% - 40px);
-  height: 95px;
-  left: 20px;
-  top: 0px;
-  gap: 5px;
-  position: absolute;
-  text-align: center;
-  justify-content: center;
-  display: flex;
-  max-width: 100%;
-}
-
-.titlePart1 {
-  color: #082060;
-  font-size: 50px;
-  font-family: 'Anek Tamil', sans-serif;
-  font-weight: 800;
-  text-transform: uppercase;
-  line-height: 58.30px;
-  word-wrap: break-word;
-}
-
-.titlePart2 {
-  color: black;
-  font-size: 50px;
-  font-family: 'Anek Tamil', sans-serif;
-  font-weight: 800;
-  text-transform: uppercase;
-  line-height: 58.30px;
-  word-wrap: break-word;
-}
-
-.titlePart3 {
-  color: #83BCFF;
-  font-size: 50px;
-  font-family: 'Anek Tamil', sans-serif;
-  font-weight: 800;
-  text-transform: uppercase;
-  line-height: 58.30px;
-  word-wrap: break-word;
-}
-
-/* Features Section */
-.featuresSection {
-  margin-left: 150px;
-  width: 1143px;
-  max-width: calc(100% - 140px);
-  height: 494px;
-  position: relative;
-}
-
-.featuresTitle {
-  width: 516.19px;
-  height: 33.41px;
-  left: 3.88px;
-  top: 0px;
-  position: absolute;
-  color: #082060;
-  font-size: 36px;
-  font-family: 'Anek Tamil', sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  line-height: 32.76px;
-  word-wrap: break-word;
-}
 
 /* Interview Section */
 .interviewSection {
@@ -151,7 +40,7 @@
   top: 0px;
   position: absolute;
   text-align: center;
-  color: #082060;
+  color: var(--navy);
   font-size: 45px;
   font-family: 'Anek Tamil', sans-serif;
   font-weight: 700;
@@ -192,7 +81,7 @@
   left: 778.21px;
   top: 106px;
   position: absolute;
-  background: #F5F5FF;
+  background: var(--cloud);/*#F5F5FF;*/
 }
 
 .interviewOverlay2 {
@@ -203,7 +92,7 @@
   position: absolute;
   transform: rotate(91deg);
   transform-origin: top left;
-  background: #F5F5FF;
+  background: var(--cloud);/*#F5F5FF;*/
 }
 
 .interviewOverlay3 {
@@ -214,7 +103,7 @@
   position: absolute;
   transform: rotate(91deg);
   transform-origin: top left;
-  background: #F5F5FF;
+  background: var(--cloud);/*#F5F5FF;*/
 }
 
 /* Subscription Section */
@@ -231,7 +120,7 @@
   left: 0px;
   top: 0px;
   position: absolute;
-  background: #83BCFF;
+  background: var(--peach);
   border-radius: 25px;
 }
 
@@ -240,7 +129,7 @@
   left: 47px;
   top: 37px;
   position: absolute;
-  color: #F2FAFC;
+  color: var(--navy);
   font-size: 45px;
   font-family: 'Anek Tamil', sans-serif;
   font-weight: 700;

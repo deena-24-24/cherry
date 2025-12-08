@@ -3,32 +3,32 @@
    ============================================ */
 
 .header {
-  width: 100%;
+  width: 100vw;
   height: 99px;
   position: relative;
 }
 
 .headerContainer {
-  width: 100%;
-  height: 99px;
-  padding: 20px;
+  width: 100vw;
+  height: 80px;
+  padding: 10px 60px;
   left: 0px;
   top: 0px;
   position: absolute;
-  background: #78AAFF;
+  background: var(--lavand);
   overflow: hidden;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  display: inline-flex;
+  display: flex;
 }
 
 .headerContent {
   align-self: stretch;
   justify-content: space-between;
   align-items: center;
-  display: inline-flex;
+  display: flex;
 }
 
 .logoLink {
@@ -38,12 +38,11 @@
 .logo {
   width: 172px;
   height: 61px;
-  border: 1px #78AAFF solid;
   object-fit: contain;
   display: block;
 }
 
-.navContainer {
+.navDesktop {
   justify-content: flex-start;
   align-items: center;
   gap: 60px;
@@ -51,7 +50,7 @@
 }
 
 .navLink {
-  color: #082060;
+  color: var(--navy);
   font-size: 15px;
   font-family: 'Geist Mono', monospace;
   font-weight: 400;
@@ -70,6 +69,37 @@
   font-weight: 700;
 }
 
+/* по умолчанию бургер скрыт, показывается только на мобилках */
+.burgerButton {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 10px;
+  z-index: 200;
+}
+
+.burgerLine,
+.burgerLineOpen {
+  width: 26px;
+  height: 3px;
+  background: white;
+  border-radius: 3px;
+  transition: 0.3s ease;
+}
+
+/* анимация превращения в крестик */
+.burgerLineOpen:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+.burgerLineOpen:nth-child(2) {
+  opacity: 0;
+}
+.burgerLineOpen:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
 
 .loginButton {
   flex: 1 1 0;
@@ -77,7 +107,7 @@
   padding-right: 17px;
   padding-top: 12px;
   padding-bottom: 12px;
-  background: #F2C2C8;
+  background: var(--maroon);
   border-radius: 15px;
   justify-content: center;
   align-items: center;
@@ -97,7 +127,7 @@
 }
 
 .loginButtonText {
-  color: #082060;
+  color: var(--cloud);
   font-size: 15px;
   font-family: 'Geist Mono', monospace;
   font-weight: 700;
@@ -110,11 +140,91 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100vw;
   z-index: 999;
   height: 80px;
 
   /* Чтобы GSAP-transform работал красиво */
   will-change: transform, opacity;
   transition: none;
+}
+
+@media (max-width: 850px) {
+  .navDesktop {
+    display: none; /* прячем десктопное меню */
+  }
+
+  .burgerButton {
+    display: flex; /* показываем бургер */
+  }
+
+  /* ЗАДНИЙ ПОЛУПРОЗРАЧНЫЙ ФОН */
+  .mobileMenuWrapper {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.35s ease;
+    z-index: 190;
+  }
+
+  /* Активное состояние (фон включён) */
+  .mobileMenuWrapper.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ПАНЕЛЬ МЕНЮ СПРАВА */
+  .mobileMenu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 280px;
+    height: 100vh;
+    background: var(--lavand) !important;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+
+    /* выезжает справа */
+    transform: translateX(100%);
+    transition: 0.35s ease;
+    z-index: 200;
+  }
+
+  .mobileMenuWrapper.open .mobileMenu {
+    transform: translateX(0%);
+  }
+
+  /* Контент меню — вертикальный столбец */
+  .mobileMenuContent {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: 100px 30px;
+
+  }
+
+  .navLink{
+    font-size: 3vh;
+  }
+
+  /* Стиль кнопки ВХОД/ВЫХОД */
+  .mobileLoginButton {
+    margin-top: 10px;
+    padding: 12px;
+    background: #95525b;
+    color: #fff;
+    border-radius: 8px;
+    border: none;
+    font-size: 18px;
+    text-align: center;
+  }
+
+  /* Чтобы CandidateNavigation элементы шли вертикально */
+  .mobileMenuContent nav,
+  .mobileMenuContent div {
+    display: flex;
+    flex-direction: column !important;
+    gap: 14px;
+  }
 }

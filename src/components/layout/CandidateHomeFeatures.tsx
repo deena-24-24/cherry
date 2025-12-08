@@ -112,25 +112,25 @@ export const HomeFeatures: React.FC = () => {
   const cards = [
     {
       title: "ИИ-СОБЕСЕДОВАНИЕ",
-      text: "Practice your interview skills with an animated AI assistant that asks relevant questions.",
+      text: "Оттачивайте навыки прохождения технического интервью с нашим ИИ-ассистентом",
       color: "pink",
       route: "/interview",
     },
     {
       title: "ЧАТ",
-      text: "Hone your knowledge by answering technical questions in a chat with our AI expert.",
+      text: "Изучайте новое и повторяйте известное в чате с искусственным интеллектом",
       color: "blue",
       route: "/chat",
     },
     {
-      title: "АНАЛИЗ РЕЗЮМЕ",
-      text: "Easily create and update a professional resume with our intuitive editor.",
+      title: "РЕЗЮМЕ",
+      text: "Заполняйте резюме, которое увидят HR-специалисты из реальных компаний",
       color: "blue",
       route: "/resume",
     },
     {
       title: "ОНЛАЙН-КОМПИЛЯТОР",
-      text: "Solve coding problems in real-time with our integrated compiler for popular languages.",
+      text: "Решайте реальные задачи в интегрированном онлайн-компиляторе",
       color: "pink",
       route: "/compiler",
     },

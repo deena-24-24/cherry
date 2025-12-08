@@ -18,7 +18,7 @@
   top: 0px;
   right: 0px;
   position: absolute;
-  background: #78AAFF;
+  background: var(--lavand);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -33,7 +33,7 @@
 }
 
 .logoText {
-  color: #00438F;
+  color: var(--navy);
   font-size: 36px;
   font-family: 'Anek Tamil', sans-serif;
   font-weight: 700;
@@ -41,13 +41,16 @@
   word-wrap: break-word;
 }
 
+.info {
+  display: flex;
+}
 .section {
   position: absolute;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
   gap: 20px;
-  display: inline-flex;
+  display: flex;
   z-index: 1;
 }
 
@@ -66,7 +69,7 @@
 }
 
 .sectionTitle {
-  color: #F5F5FF;
+  color: var(--maroon);
   font-size: 36px;
   font-family: 'Anek Tamil', sans-serif;
   font-weight: 700;
@@ -75,7 +78,7 @@
 }
 
 .contactTitle {
-  color: #F5F5FF;
+  color: var(--maroon);
   font-size: 32px;
   font-family: 'Anek Tamil', sans-serif;
   font-weight: 700;
@@ -84,7 +87,7 @@
 }
 
 .sectionLink {
-  color: #F5F5FF;
+  color: var(--cloud);
   font-size: 18px;
   font-family: 'Geist', sans-serif;
   font-weight: 500;
@@ -96,5 +99,9 @@
 
 .sectionLink:hover {
   opacity: 0.8;
+}
+
+@media (max-width: 900px) {
+
 }
 
