@@ -1,0 +1,7 @@
+.formSection {
+  position: relative;
+}
+
+.fieldGroupTextarea {
+  margin-bottom: var(--spacing-3xl);
+}

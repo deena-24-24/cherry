@@ -10,11 +10,11 @@ import { ProtectedRoute } from './ProtectedRoute'
 
 // Pages
 import { LandingPage } from '../pages/common/LandingPage'
-import { ResumePage } from '../pages/candidate/ResumePage'
+//import { ResumePage } from '../pages/candidate/ResumePage'
+import { ProfilePage } from '../pages/ProfilePage/ProfilePage'
 //import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
 import { InterviewHomePage } from '../pages/candidate/InterviewHomePage'
 import { InterviewCallPage } from '../pages/candidate/InterviewCallPage'
-
 import { ChatPage } from '../pages/candidate/ChatPage'
 import { CompilerPage } from '../pages/candidate/CompilerPage'
 
@@ -28,8 +28,13 @@ export const AppRouter: React.FC = () => {
   const { login } = useAuthStore()
 
   const handleLogin = (userData: { user: User; token: string }) => {
+    console.log('handleLogin called with:', userData)
     if (userData && userData.user && userData.token) {
+      console.log('Calling login with user:', userData.user, 'token:', userData.token)
       login(userData.user, userData.token)
+      console.log('Login completed')
+    } else {
+      console.error('Invalid userData:', userData)
     }
   }
 
@@ -56,7 +61,7 @@ export const AppRouter: React.FC = () => {
             path={ROUTES.RESUME}
             element={
               <ProtectedRoute>
-                <ResumePage />
+                <ProfilePage />
               </ProtectedRoute>
             }
           />
@@ -113,6 +118,12 @@ export const AppRouter: React.FC = () => {
       </main>
 
       <Footer />
+
+      <AuthPopup
+        isOpen={isAuthOpen}
+        onClose={closeAuth}
+        onLogin={handleLogin}
+      />
     </>
   )
 }

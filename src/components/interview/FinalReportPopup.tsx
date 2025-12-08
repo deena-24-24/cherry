@@ -12,11 +12,11 @@ interface FinalReportPopupProps {
 }
 
 export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
-                                                                    report,
-                                                                    completionReason,
-                                                                    wasAutomatic,
-                                                                    onClose
-                                                                  }) => {
+  report,
+  completionReason,
+  wasAutomatic,
+  onClose
+}) => {
   if (!report) return null
 
   const {

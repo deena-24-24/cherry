@@ -29,7 +29,7 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
   const [isRunning, setIsRunning] = useState(false)
   const [language, setLanguage] = useState('javascript')
   const [currentTask, setCurrentTask] = useState<CodeTask | null>(null)
-  const [testResults, setTestResults] = useState<{passed: boolean, message: string}[]>([])
+  const [testResults, setTestResults] = useState<{ passed: boolean, message: string }[]>([])
   const { addCodeResult } = useInterviewStore()
 
   // Моковые задачи
@@ -58,105 +58,105 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
         { input: 'isPalindrome("a")', expected: 'true' }
       ]
     }
-  ];
+  ]
 
   useEffect(() => {
     if (codeTasks.length > 0) {
-      loadTask(codeTasks[0]);
+      loadTask(codeTasks[0])
     }
-  }, []);
+  }, [])
 
   const loadTask = (task: CodeTask) => {
-    setCurrentTask(task);
-    setCode(task.initialCode);
-    setLanguage(task.language);
-    setOutput('');
-    setTestResults([]);
-  };
+    setCurrentTask(task)
+    setCode(task.initialCode)
+    setLanguage(task.language)
+    setOutput('')
+    setTestResults([])
+  }
 
   const handleRunCode = async () => {
-    setIsRunning(true);
-    setOutput('🔄 Выполнение кода...');
-    setTestResults([]);
+    setIsRunning(true)
+    setOutput('🔄 Выполнение кода...')
+    setTestResults([])
 
     try {
-      console.log('🚀 Sending code to execution:', { code, language, sessionId });
-      const result = await compilerService.executeCode(code, language, sessionId);
+      console.log('🚀 Sending code to execution:', { code, language, sessionId })
+      const result = await compilerService.executeCode(code, language, sessionId)
 
-      console.log('📨 Received result:', result);
-      setOutput(result.error ? `❌ ${result.error}` : result.output);
+      console.log('📨 Received result:', result)
+      setOutput(result.error ? `❌ ${result.error}` : result.output)
 
       addCodeResult({
         output: result.output,
         error: result.error,
         executionTime: result.executionTime
-      });
+      })
 
       // Запускаем тесты если нет ошибок
       if (!result.error && currentTask) {
-        runTests(result.output);
+        runTests(result.output)
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('❌ Execution error:', error);
-      setOutput(`❌ Ошибка: ${errorMessage}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('❌ Execution error:', error)
+      setOutput(`❌ Ошибка: ${errorMessage}`)
     } finally {
-      setIsRunning(false);
+      setIsRunning(false)
     }
-  };
+  }
 
   const runTests = (executionOutput: string) => {
-    if (!currentTask) return;
+    if (!currentTask) return
 
     const results = currentTask.tests.map(test => {
       // Простая проверка - ищем ожидаемый результат в выводе
-      const passed = executionOutput.includes(test.expected);
+      const passed = executionOutput.includes(test.expected)
       return {
         passed,
         message: passed
           ? `✅ ${test.input} → ${test.expected}`
           : `❌ ${test.input} → Ожидалось: ${test.expected}`
-      };
-    });
+      }
+    })
 
-    setTestResults(results);
-  };
+    setTestResults(results)
+  }
 
   const highlightCode = (code: string) => {
     try {
       return hljs.highlight(code, {
         language: language === 'typescript' ? 'javascript' : language
-      }).value;
+      }).value
     } catch (error) {
-      return hljs.highlightAuto(code).value;
+      return hljs.highlightAuto(code).value
     }
-  };
+  }
 
   const formatOutput = (text: string) => {
     if (!text) {
-      return <div className="text-gray-500 italic">Результат выполнения появится здесь...</div>;
+      return <div className="text-gray-500 italic">Результат выполнения появится здесь...</div>
     }
 
-    const lines = text.split('\n');
+    const lines = text.split('\n')
     return lines.map((line, index) => {
-      let className = 'text-green-300';
+      let className = 'text-green-300'
       if (line.includes('❌') || line.toLowerCase().includes('error')) {
-        className = 'text-red-400 font-medium';
+        className = 'text-red-400 font-medium'
       } else if (line.includes('✅') || line.includes('→')) {
-        className = 'text-green-400';
+        className = 'text-green-400'
       } else if (line.includes('🔄')) {
-        className = 'text-yellow-400';
+        className = 'text-yellow-400'
       }
       return (
         <div key={index} className={className}>
           {line}
         </div>
-      );
-    });
-  };
+      )
+    })
+  }
 
-  const passedTests = testResults.filter(r => r.passed).length;
-  const totalTests = testResults.length;
+  const passedTests = testResults.filter(r => r.passed).length
+  const totalTests = testResults.length
 
   return (
     <div className="code-console bg-gray-900 rounded-lg h-full flex flex-col border border-gray-700 overflow-hidden">
@@ -285,5 +285,5 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

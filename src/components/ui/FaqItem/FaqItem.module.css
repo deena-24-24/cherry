@@ -1,0 +1,65 @@
+.faqItem {
+  position: absolute;
+  left: 28px;
+  width: 100%;
+}
+
+.faqQuestion {
+  color: #082060;
+  font-size: 24px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
+  line-height: 24px;
+  word-wrap: break-word;
+}
+
+.faqAnswer {
+  color: #082060;
+  font-size: 20px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
+  line-height: 20px;
+  word-wrap: break-word;
+}
+
+.faqDivider {
+  width: 95%;
+  height: 1px;
+  left: 4px;
+  position: absolute;
+  top: 40px;
+  background: #83BCFF;
+}
+
+.faqButton {
+  width: 35px;
+  height: 35px;
+  left: 887px;
+  position: absolute;
+  top: 0;
+  background: #78AAFF;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.faqButton:hover {
+  opacity: 0.9;
+}
+
+.faqButtonActive {
+  background: #F2C2C8;
+}
+
+.faqButtonText {
+  color: #F5F5FF;
+  font-size: 24px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
+  line-height: 24px;
+}
+

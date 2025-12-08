@@ -8,6 +8,9 @@ body {
     line-height: 1.6;
     background-color: #f8f9fa;
     color: #212529;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
 }
 a {
     color: #007bff;

@@ -1,31 +1,71 @@
-import React from 'react'
-import { Button } from '../../components/ui/Button'
+import React, { useState } from 'react'
+import { Button } from '../../components/ui/Button/Button'
+import { FaqItem } from '../../components/ui/FaqItem/FaqItem'
+import * as styles from './LandingPage.module.css'
+import { HomeFeatures } from '../../components/layout/CandidateHomeFeatures'
+import { HeroBanner } from '../../components/layout/HeroBanner'
 
 export const LandingPage: React.FC = () => {
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(3)
+
+  const handleFaqToggle = (index: number) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index)
+  }
+
   return (
-    <div className="container pd-lg">
-      <h1 className="mb-md">Welcome to CareerUp</h1>
-      <p className="mb-lg" style={{ fontSize: '1.2rem', color: '#6c757d' }}>
-        Your personal AI-powered career assistant to help you build a resume, practice interviews, and ace technical challenges.
-      </p>
-      <Button>Get Started</Button>
+    <div className={styles["landingContainer"]}>
 
-      <div className="mt-md pd-lg">
-        <h2 className="text-center section-title" style={{ display: 'inline-block', width: '100%' }}>Our Features</h2>
-        <div className="d-grid grid-cols-2 gap-lg mt-md">
+      <HeroBanner />
+      <HomeFeatures />
 
-          <h3>Resume Builder</h3>
-          <p>Easily create and update a professional resume with our intuitive editor.</p>
-
-          <h3>AI-Powered Interview</h3>
-          <p>Practice your interview skills with an animated AI assistant that asks relevant questions.</p>
-
-          <h3>Technical Chat</h3>
-          <p>Hone your knowledge by answering technical questions in a chat with our AI expert.</p>
-
-          <h3>Online Compiler</h3>
-          <p>Solve coding problems in real-time with our integrated compiler for popular languages.</p>
+      {/* Interview Section */}
+      <div className={styles["interviewSection"]}>
+        <div className={styles["interviewTitle"]}>
+          готовьтесь к реальным собеседованиям с нашим ии-интервьюером
         </div>
+        
+      </div>
+
+      {/* Subscription Section */}
+      <div className={styles["subscriptionSection"]}>
+        <div className={styles["subscriptionBackground"]}></div>
+        <div className={styles["subscriptionTitle"]}>
+          получите неограниченный доступ к ресурсам
+        </div>
+        <Button
+          variant="custom"
+          styleProps={{
+            width: '271px',
+            height: '54px',
+            backgroundColor: '#fffcf5',
+            textColor: '#36447c',
+            borderRadius: '15px',
+            fontSize: '20px',
+            fontFamily: 'Geist Mono',
+            padding: '12px 17px',
+            gap: '7.25px'
+          }}
+          className={styles["subscriptionButton"]}
+        >
+          Оформить подписку
+        </Button>
+      </div>
+
+      {/* FAQ Section */}
+      <div className={styles["faqSection"]}>
+        <div className={styles["faqBackground"]}></div>
+        <FaqItem
+          question="Тут можно придумать вопросы"
+          isOpen={openFaqIndex === 0}
+          onToggle={() => handleFaqToggle(0)}
+          top="23px"
+        />
+        <FaqItem
+          question="Тут можно придумать вопросы"
+          isOpen={openFaqIndex === 1}
+          onToggle={() => handleFaqToggle(1)}
+          top="86px"
+        />
       </div>
     </div>
   )
