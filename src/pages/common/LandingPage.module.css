@@ -106,63 +106,7 @@
   background: var(--cloud);/*#F5F5FF;*/
 }
 
-/* Subscription Section */
-.subscriptionSection {
-  margin-left: 240px;
-  width: 966px;
-  height: 237px;
-  position: relative;
-}
 
-.subscriptionBackground {
-  width: 966px;
-  height: 237px;
-  left: 0;
-  top: 0;
-  position: absolute;
-  background: var(--peach);
-  border-radius: 25px;
-}
 
-.subscriptionTitle {
-  width: 774px;
-  left: 47px;
-  top: 37px;
-  position: absolute;
-  color: var(--navy);
-  font-size: 45px;
-  font-family: 'Anek Tamil', sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  line-height: 40.95px;
-  word-wrap: break-word;
-}
-
-.subscriptionButton {
-  left: 666px;
-  top: 156px;
-  position: absolute;
-}
-
-/* FAQ Section */
-.faqSection {
-  width: 966px;
-  margin-left: 240px;
-  margin-bottom: 100px;
-  margin-top: 50px;
-  height: 335px;
-  position: relative;
-}
-
-.faqBackground {
-  width: 966px;
-  height: 335px;
-  left: 0;
-  top: 0;
-  position: absolute;
-  background: #F5F5FF;
-  border-radius: 15px;
-  border: 1px #082060 solid;
-}
 
 
