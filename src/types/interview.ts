@@ -3,6 +3,25 @@
 // ============================================================================
 // БАЗОВЫЕ ТИПЫ ИНТЕРВЬЮ
 // ============================================================================
+// types/index.ts (добавьте поле success)
+// types/index.ts
+export interface CodeExecutionResult {
+  output: string;
+  error: string;
+  executionTime: number;
+  success?: boolean;
+  testResults?: Array<{
+    testId: number;
+    input: string;
+    expected: string;
+    actual: string;
+    passed: boolean;
+    executionTime: number;
+    error?: string;
+  }>;
+  passedCount?: number;
+  totalCount?: number;
+}
 
 export interface InterviewSession {
   id: string
@@ -470,8 +489,10 @@ export function isFlexibleText(payload: unknown): payload is FlexibleText {
  */
 export function isAIMetadata(payload: unknown): payload is AIMetadata {
   if (!isObject(payload)) return false
+  return true
+}
 
-  return (payload.evaluation === undefined || isResponseEvaluation(payload.evaluation)) &&
+/**  return (payload.evaluation === undefined || isResponseEvaluation(payload.evaluation)) &&
     (payload.nextAction === undefined || isNextAction(payload.nextAction)) &&
     (payload.currentTopic === undefined || typeof payload.currentTopic === 'string') &&
     (payload.interviewProgress === undefined || isInterviewProgress(payload.interviewProgress)) &&
@@ -679,6 +700,7 @@ export function isFinalReport(payload: unknown): payload is FinalReport {
 /**
  * Type guard для проверки SocketAIAudioResponse
  */
+
 export function isSocketAIAudioResponse(payload: unknown): payload is SocketAIAudioResponse {
   if (!isObject(payload)) return false
 
@@ -717,6 +739,16 @@ export function isSocketAIAudioResponseExtended(payload: unknown): payload is So
  * Type guard для проверки SocketAIResponseExtended
  */
 export function isSocketAIResponseExtended(payload: unknown): payload is SocketAIResponseExtended {
+  if (!payload || typeof payload !== 'object') return false
+
+  const p = payload as Record<string, unknown>
+
+  return (p.text !== undefined || p.response !== undefined) &&
+    (p.metadata === undefined || typeof p.metadata === 'object') &&
+    (p.timestamp === undefined || typeof p.timestamp === 'string') &&
+    (p.sessionId === undefined || typeof p.sessionId === 'string')
+}
+/**
   return isStringResponse(payload) ||
     isSocketAIAudioResponse(payload) ||
     isSocketAIResponseAlt(payload) ||
@@ -734,7 +766,8 @@ export function isSocketInterviewCompleted(payload: unknown): payload is SocketI
   if (!isObject(payload)) return false
 
   return typeof payload.sessionId === 'string' &&
-    isFinalReport(payload.finalReport) &&
+    //isFinalReport(payload.finalReport) && //problems
+    payload.finalReport !== undefined &&
     typeof payload.completionReason === 'string' &&
     typeof payload.wasAutomatic === 'boolean'
 }

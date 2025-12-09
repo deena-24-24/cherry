@@ -1,7 +1,7 @@
 import { socketService } from '../socketService'
 import { API_URL } from '../../config'
 import { voiceService } from './voiceService'
-import { AIResponse, InterviewSession, CodeExecutionResult, SocketInterviewCompleted } from '../../types/interview'
+import { AIResponse, InterviewSession, CodeExecutionResult, SocketInterviewCompleted } from '../../types'
 
 export interface ConversationMessage {
   role: 'assistant' | 'user'

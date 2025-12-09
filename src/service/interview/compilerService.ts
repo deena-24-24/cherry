@@ -2,23 +2,47 @@
 import { CodeExecutionResult } from '../../types'
 import { API_URL } from '../../config'
 
-const API_BASE_URL = `${API_URL}/api/code/execute`
-
 export class CompilerService {
-  async executeCode(code: string, language: string, sessionId: string): Promise<CodeExecutionResult> {
+  private apiBaseUrl: string
+
+  constructor() {
+    this.apiBaseUrl = `${API_URL}/api/code`
+  }
+
+  async executeCode(
+    code: string,
+    language: string,
+    sessionId: string,
+    testCases?: Array<{ input: string, expected: string }>
+  ): Promise<CodeExecutionResult> {
     console.log('🚀 CompilerService.executeCode called', {
       language,
       sessionId,
-      codePreview: code.substring(0, 100)
+      codeLength: code.length,
+      testCasesCount: testCases?.length || 0
     })
 
     try {
-      const response = await fetch(API_BASE_URL, {
+      const body: any = {
+        code,
+        language,
+        sessionId
+      }
+
+      // Если есть тест-кейсы, отправляем их
+      if (testCases && testCases.length > 0) {
+        body.testCases = testCases
+      } else {
+        // Иначе отправляем пустой stdin
+        body.stdin = ''
+      }
+
+      const response = await fetch(`${this.apiBaseUrl}/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code, language, sessionId }),
+        body: JSON.stringify(body)
       })
 
       console.log('📨 Server response status:', response.status)
@@ -42,7 +66,11 @@ export class CompilerService {
       return {
         output: result.output || '',
         error: result.error || '',
-        executionTime: result.executionTime || 0
+        executionTime: result.executionTime || 0,
+        success: result.success || false,
+        testResults: result.testResults,
+        passedCount: result.passedCount,
+        totalCount: result.totalCount
       }
     } catch (error) {
       console.error('❌ Error executing code:', error)
@@ -51,8 +79,23 @@ export class CompilerService {
       return {
         output: '',
         error: `❌ ${errorMessage}`,
-        executionTime: 0
+        executionTime: 0,
+        success: false
       }
+    }
+  }
+
+  async getExecutionHistory(sessionId: string): Promise<any[]> {
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/sessions/${sessionId}/executions`)
+      if (response.ok) {
+        const data = await response.json()
+        return data.history || []
+      }
+      return []
+    } catch (error) {
+      console.error('Error fetching history:', error)
+      return []
     }
   }
 }

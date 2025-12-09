@@ -208,7 +208,6 @@ export const VoiceCallPanel: React.FC<VoiceCallPanelProps> = ({ sessionId, posit
     <div className="voice-call-panel bg-gray-800 rounded-lg p-6 h-full flex flex-col">
       {/* Заголовок с индикаторами */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-white">Голосовое интервью</h3>
         <div className="flex items-center space-x-4">
           {/* Индикатор соединения WebSocket */}
           <div className="flex items-center space-x-2">

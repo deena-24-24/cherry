@@ -5,7 +5,9 @@ import { compilerService } from '../../service/interview/compilerService'
 import { Button } from '../ui/Button/Button'
 import Editor from 'react-simple-code-editor'
 import hljs from 'highlight.js'
-import 'highlight.js/styles/github-dark.css'
+import 'highlight.js/styles/atom-one-dark.css'
+import 'highlight.js/lib/languages/python'
+import 'highlight.js/lib/languages/javascript'
 
 interface CodeConsoleProps {
   sessionId: string;
@@ -30,13 +32,13 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
   const [language, setLanguage] = useState('javascript')
   const [currentTask, setCurrentTask] = useState<CodeTask | null>(null)
   const [testResults, setTestResults] = useState<{ passed: boolean, message: string }[]>([])
+  const [history, setHistory] = useState<any[]>([])
   const { addCodeResult } = useInterviewStore()
 
-  // Моковые задачи
   const codeTasks: CodeTask[] = [
     {
       id: '1',
-      title: 'Сумма двух чисел',
+      title: 'Сумма двух чисел (JS)',
       description: 'Напишите функцию sum(a, b), которая возвращает сумму двух чисел',
       initialCode: `function sum(a, b) {\n  // Ваш код здесь\n  \n}\n\n// Пример использования\nconsole.log(sum(2, 3)); // Должно быть 5\nconsole.log(sum(5, 7)); // Должно быть 12`,
       language: 'javascript',
@@ -48,7 +50,7 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
     },
     {
       id: '2',
-      title: 'Палиндром',
+      title: 'Палиндром (JS)',
       description: 'Напишите функцию isPalindrome(str), которая проверяет, является ли строка палиндромом',
       initialCode: `function isPalindrome(str) {\n  // Ваш код здесь\n  \n}\n\n// Пример использования\nconsole.log(isPalindrome("racecar")); // true\nconsole.log(isPalindrome("hello"));   // false`,
       language: 'javascript',
@@ -57,12 +59,53 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
         { input: 'isPalindrome("hello")', expected: 'false' },
         { input: 'isPalindrome("a")', expected: 'true' }
       ]
+    },
+    {
+      id: '3',
+      title: 'Сумма двух чисел (Python)',
+      description: 'Напишите функцию sum(a, b), которая возвращает сумму двух чисел',
+      language: 'python',
+      initialCode: `def sum(a, b):
+    # Ваш код здесь
+    return a + b
+
+# Для тестирования на платформе
+if __name__ == "__main__":
+    # Тестовые случаи
+    test_cases = [
+        (2, 3),
+        (5, 7),
+        (-1, 1)
+    ]
+    
+    for a, b in test_cases:
+        result = sum(a, b)
+        print(result)`,
+      tests: [
+        { input: '', expected: '5\n12\n0' }
+      ]
+    },
+    {
+      id: '4',
+      title: 'Факториал (Python)',
+      description: 'Напишите функцию factorial(n), которая вычисляет факториал числа',
+      initialCode: `def factorial(n):
+    # Ваш код здесь
+    
+# Пример использования
+print(factorial(5))  # Должно быть 120
+print(factorial(0))  # Должно быть 1`,
+      language: 'python',
+      tests: [
+        { input: '', expected: '120\n1\n1' }
+      ]
     }
   ]
 
   useEffect(() => {
     if (codeTasks.length > 0) {
       loadTask(codeTasks[0])
+      loadHistory()
     }
   }, [])
 
@@ -74,32 +117,46 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
     setTestResults([])
   }
 
+  const loadHistory = async () => {
+    const historyData = await compilerService.getExecutionHistory(sessionId)
+    setHistory(historyData)
+  }
+
   const handleRunCode = async () => {
     setIsRunning(true)
     setOutput('🔄 Выполнение кода...')
     setTestResults([])
 
     try {
-      console.log('🚀 Sending code to execution:', { code, language, sessionId })
-      const result = await compilerService.executeCode(code, language, sessionId)
+      const testCases = currentTask?.tests || []
+
+      const result = await compilerService.executeCode(
+        code,
+        language,
+        sessionId,
+        testCases
+      )
 
       console.log('📨 Received result:', result)
-      setOutput(result.error ? `❌ ${result.error}` : result.output)
 
-      addCodeResult({
-        output: result.output,
-        error: result.error,
-        executionTime: result.executionTime
-      })
+      if (result.success) {
+        setOutput(result.output)
 
-      // Запускаем тесты если нет ошибок
-      if (!result.error && currentTask) {
-        runTests(result.output)
+        if (result.testResults) {
+          setTestResults(result.testResults.map((test: any) => ({
+            passed: test.passed,
+            message: test.passed
+              ? `✅ Тест ${test.testId}: ${test.input} → ${test.expected}`
+              : `❌ Тест ${test.testId}: ${test.input} → Получено: ${test.actual}, Ожидалось: ${test.expected}`
+          })))
+        }
+      } else {
+        setOutput(`❌ ${result.error}`)
       }
+
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error('❌ Execution error:', error)
-      setOutput(`❌ Ошибка: ${errorMessage}`)
+      setOutput(`❌ Ошибка: ${error.message}`)
     } finally {
       setIsRunning(false)
     }
@@ -109,7 +166,6 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
     if (!currentTask) return
 
     const results = currentTask.tests.map(test => {
-      // Простая проверка - ищем ожидаемый результат в выводе
       const passed = executionOutput.includes(test.expected)
       return {
         passed,
@@ -125,12 +181,16 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
   const highlightCode = (code: string) => {
     try {
       return hljs.highlight(code, {
-        language: language === 'typescript' ? 'javascript' : language
+        language: language === 'typescript' ? 'typescript' : language
       }).value
     } catch (error) {
-      return hljs.highlightAuto(code).value
+      try {
+        return hljs.highlightAuto(code).value
+      } catch {
+        return hljs.highlight(code, { language: 'plaintext' }).value
+      }
     }
-  }
+  };
 
   const formatOutput = (text: string) => {
     if (!text) {
@@ -146,6 +206,8 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
         className = 'text-green-400'
       } else if (line.includes('🔄')) {
         className = 'text-yellow-400'
+      } else if (line.includes('Traceback')) {
+        className = 'text-red-300'
       }
       return (
         <div key={index} className={className}>
@@ -155,135 +217,194 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
     })
   }
 
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage)
+    const filteredTasks = codeTasks.filter(task => task.language === newLanguage)
+    if (filteredTasks.length > 0) {
+      loadTask(filteredTasks[0])
+    } else {
+      setCurrentTask(null)
+      setCode('')
+      setOutput('')
+    }
+  }
+
   const passedTests = testResults.filter(r => r.passed).length
   const totalTests = testResults.length
 
   return (
-    <div className="code-console bg-gray-900 rounded-lg h-full flex flex-col border border-gray-700 overflow-hidden">
-      {/* Заголовок */}
-      <div className="px-4 py-3 bg-gray-800 border-b border-gray-700">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-white text-lg">💻 Редактор кода</h3>
-          <div className="flex items-center gap-3">
+    <div className="container mx-auto px-4 py-6">
+      <h1 className="text-center text-2xl font-bold text-gray-800 mb-6">Online Compiler</h1>
+
+      {/* Верхняя панель с выбором языка и кнопкой запуска */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col">
+            <label htmlFor="language" className="text-sm font-medium text-gray-700 mb-1">
+              Язык программирования:
+            </label>
             <select
+              id="language"
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="bg-gray-700 text-white text-sm px-3 py-1.5 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="javascript">JavaScript</option>
-              <option value="typescript">TypeScript</option>
               <option value="python">Python</option>
+              <option value="typescript">TypeScript</option>
             </select>
-            <Button
-              onClick={handleRunCode}
-              disabled={isRunning}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isRunning ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Выполняется...
-                </span>
-              ) : (
-                '🚀 Запустить код'
-              )}
-            </Button>
+          </div>
+
+          {/* Выбор задачи */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              Задача:
+            </label>
+            <div className="flex gap-2">
+              {codeTasks
+                .filter(task => task.language === language)
+                .map(task => (
+                  <button
+                    key={task.id}
+                    onClick={() => loadTask(task)}
+                    className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                      currentTask?.id === task.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {task.title}
+                  </button>
+                ))}
+            </div>
           </div>
         </div>
 
-        {/* Выбор задачи */}
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {codeTasks.map(task => (
-            <button
-              key={task.id}
-              onClick={() => loadTask(task)}
-              className={`px-3 py-1.5 text-sm rounded border whitespace-nowrap transition-colors ${
-                currentTask?.id === task.id
-                  ? 'bg-blue-600 border-blue-600 text-white'
-                  : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              {task.title}
-            </button>
-          ))}
-        </div>
+        <Button
+          onClick={handleRunCode}
+          disabled={isRunning || !code.trim()}
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isRunning ? (
+            <span className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Выполняется...
+            </span>
+          ) : (
+            'Запустить код'
+          )}
+        </Button>
       </div>
 
       {/* Описание задачи */}
       {currentTask && (
-        <div className="px-4 py-3 bg-gray-800/50 border-b border-gray-700">
-          <h4 className="font-medium text-white mb-1">{currentTask.title}</h4>
-          <p className="text-sm text-gray-300">{currentTask.description}</p>
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h3 className="font-medium text-gray-800">{currentTask.title}</h3>
+              <p className="text-sm text-gray-600 mt-1">{currentTask.description}</p>
+            </div>
+            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+              {currentTask.language}
+            </span>
+          </div>
+
           {totalTests > 0 && (
             <div className="mt-2 flex items-center gap-2">
-              <div className="text-xs text-gray-400">
-                Тесты: {passedTests}/{totalTests} пройдено
+              <div className="text-sm text-gray-600">
+                Тесты: <span className="font-medium">{passedTests}/{totalTests}</span> пройдено
               </div>
               {passedTests === totalTests && totalTests > 0 && (
-                <span className="text-xs bg-green-600 text-white px-2 py-1 rounded">✓ Все тесты пройдены!</span>
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  ✓ Все тесты пройдены!
+                </span>
               )}
             </div>
           )}
         </div>
       )}
 
-      {/* Основной контент */}
-      <div className="flex-1 grid grid-rows-[1fr_auto] min-h-0">
-        {/* Редактор кода */}
-        <div className="relative bg-gray-950 overflow-auto">
+      {/* Редактор кода */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-gray-700">
+            Код:
+          </label>
+          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+            {code.length} символов
+          </span>
+        </div>
+        <div className="border border-gray-300 rounded-lg overflow-hidden">
           <Editor
             value={code}
             onValueChange={setCode}
             highlight={highlightCode}
             padding={16}
             style={{
-              fontFamily: '"Fira Code", monospace',
+              fontFamily: '"Fira Code", "Cascadia Code", monospace',
               fontSize: 14,
-              backgroundColor: '#0a0a0a',
-              minHeight: '100%',
+              backgroundColor: '#ffffff',
+              minHeight: '300px',
             }}
-            className="w-full h-full focus:outline-none"
+            className="w-full focus:outline-none"
           />
         </div>
+      </div>
 
-        {/* Консоль вывода */}
-        <div className="border-t border-gray-700 bg-gray-800">
-          <div className="px-4 py-2.5 flex items-center justify-between bg-gray-750 border-b border-gray-700">
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-              </svg>
-              <span className="text-sm font-medium text-gray-300">Результат</span>
-            </div>
-            {output && (
-              <span className="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300">
-                {output.split('\n').length} строк
-              </span>
-            )}
-          </div>
-
-          <div className="max-h-48 overflow-y-auto">
-            {/* Результаты тестов */}
-            {testResults.length > 0 && (
-              <div className="px-4 py-2 border-b border-gray-700 bg-gray-750">
-                <div className="text-sm font-medium text-gray-300 mb-1">Результаты тестов:</div>
-                {testResults.map((result, index) => (
-                  <div key={index} className={`text-sm ${result.passed ? 'text-green-400' : 'text-red-400'}`}>
-                    {result.message}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Вывод выполнения */}
-            <div className="px-4 py-3 font-mono">
-              <div className="text-sm whitespace-pre-wrap">
-                {formatOutput(output)}
-              </div>
-            </div>
+      {/* Область вывода */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium text-gray-700">Вывод:</h3>
+          {output && (
+            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              {output.split('\n').length} строк
+            </span>
+          )}
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[150px]">
+          <div className="font-mono text-sm whitespace-pre-wrap">
+            {formatOutput(output)}
           </div>
         </div>
       </div>
+
+      {/* Результаты тестов */}
+      {testResults.length > 0 && (
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Результаты тестов:</h3>
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            {testResults.map((result, index) => (
+              <div key={index} className={`text-sm mb-1 ${result.passed ? 'text-green-600' : 'text-red-600'}`}>
+                {result.message}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* История выполнения */}
+      {history.length > 0 && (
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <details className="cursor-pointer">
+            <summary className="text-sm text-gray-600 hover:text-gray-800">
+              История выполнения ({history.length})
+            </summary>
+            <div className="mt-2 space-y-2">
+              {history.slice(0, 5).map((item, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-medium text-gray-700">{item.language}</span>
+                    <span className="text-xs text-gray-500">{item.executionTime}ms</span>
+                  </div>
+                  <div className="text-sm text-gray-600 truncate">
+                    {item.status === 'success' ? '✅' : '❌'} {item.code.substring(0, 60)}...
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+        </div>
+      )}
     </div>
   )
 }

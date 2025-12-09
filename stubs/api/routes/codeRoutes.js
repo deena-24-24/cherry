@@ -1,16 +1,27 @@
+// stubs/api/routes/codeRoutes.js - добавьте:
 const express = require('express');
 const router = express.Router();
 const codeController = require('../controllers/codeController');
-const { auth } = require('../middleware/authMiddleware');
+
+// Health check
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'code-execution',
+    timestamp: new Date().toISOString(),
+    port: process.env.PORT || 5000
+  });
+});
 
 // POST /api/code/execute - Выполнение кода
 router.post('/execute', (req, res) => {
-  console.log('📨 Received POST /api/code/execute');
+  console.log('📨 POST /api/code/execute');
   codeController.executeCode(req, res);
 });
 
-// GET /api/code/sessions/:sessionId/executions - Получение истории выполнения кода
+// GET /api/code/sessions/:sessionId/executions - История
 router.get('/sessions/:sessionId/executions', (req, res) => {
+  console.log('📊 GET история для:', req.params.sessionId);
   codeController.getExecutionHistory(req, res);
 });
 
