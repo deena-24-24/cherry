@@ -4,7 +4,7 @@ const { ChatDeepSeek } = require('@langchain/deepseek');
 const { Agent } = require('node:https');
 const { Ollama } = require("@langchain/ollama");
 
-// ЯВНО загружаем .env файл
+// ЯВНО .env файл
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 console.log('🔧 Loading LLM configuration from .env...');

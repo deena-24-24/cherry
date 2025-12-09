@@ -16,8 +16,40 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
   wasAutomatic,
   onClose
 }) => {
-  if (!report) return null
-
+  console.log('🎪 FinalReportPopup rendering with:', {
+    report,
+    hasReport: !!report,
+    reportKeys: report ? Object.keys(report) : 'none',
+    hasOverallAssessment: report?.overall_assessment
+  })
+  if (!report || !report.overall_assessment) {
+    console.error('❌ Invalid report data in FinalReportPopup:', {
+      report,
+      completionReason,
+      wasAutomatic
+    })
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div className="bg-gray-800 rounded-2xl max-w-md w-full p-6">
+          <h2 className="text-2xl font-bold text-white mb-4">
+            ⚠️ Данные отчета недоступны
+          </h2>
+          <p className="text-gray-300 mb-4">
+            Не удалось загрузить полный отчет. Основные данные отсутствуют.
+          </p>
+          <p className="text-sm text-gray-400 mb-4">
+            Причина: {completionReason || 'Неизвестно'}
+          </p>
+          <Button
+            onClick={onClose}
+            className="w-full bg-blue-500 hover:bg-blue-600"
+          >
+            Закрыть
+          </Button>
+        </div>
+      </div>
+    )
+  }
   const {
     overall_assessment,
     technical_skills,

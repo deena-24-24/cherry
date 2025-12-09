@@ -58,7 +58,7 @@ export const useVoiceCall = (sessionId: string, position: string) => {
               console.log('🎤 Starting recording after AI response')
               startRecording()
             }
-          }, 1000) // Было 500, стало 1500 мс
+          }, 800) // Было 500, стало 1500 мс
         } catch (error) {
           console.error('❌ Error playing AI audio:', error)
           setTimeout(() => {
@@ -239,7 +239,7 @@ export const useVoiceCall = (sessionId: string, position: string) => {
       recognitionRef.current = null
     }
     setIsRecording(false)
-    console.log('⏹️ Recording stopped')
+    console.warn('⏹️ Recording stopped')
   }, [])
 
   const toggleRecording = useCallback(() => {
