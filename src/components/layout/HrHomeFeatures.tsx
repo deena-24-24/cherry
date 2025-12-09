@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import * as styles from "./CandidateHomeFeatures.module.css"
+import * as styles from "./HrHomeFeatures.module.css"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(ScrollTrigger)
 
-export const HomeFeatures: React.FC = () => {
+export const HrHomeFeatures: React.FC = () => {
   const navigate = useNavigate()
   const cardsRef = useRef<HTMLDivElement[]>([])
 
@@ -111,28 +111,16 @@ export const HomeFeatures: React.FC = () => {
 
   const cards = [
     {
-      title: "ИИ-СОБЕСЕДОВАНИЕ",
-      text: "Оттачивайте навыки прохождения технического интервью с нашим ИИ-ассистентом",
+      title: "ЧАТЫ",
+      text: "Проверьте, возможно Вам пришёл ответ от кандидата",
       color: "pink",
-      route: "/interview",
-    },
-    {
-      title: "ЧАТ",
-      text: "Изучайте новое и повторяйте известное в чате с искусственным интеллектом",
-      color: "blue",
       route: "/chat",
     },
     {
-      title: "РЕЗЮМЕ",
-      text: "Заполняйте резюме, которое увидят HR-специалисты из реальных компаний",
-      color: "blue",
-      route: "/resume",
-    },
-    {
-      title: "ОНЛАЙН-КОМПИЛЯТОР",
-      text: "Решайте реальные задачи в интегрированном онлайн-компиляторе",
+      title: "ПРОСМОТР КАНДИДАТОВ",
+      text: "Найдите подходящего сотрудника по загруженным резюме",
       color: "pink",
-      route: "/compiler",
+      route: "/resume",
     },
   ]
 
