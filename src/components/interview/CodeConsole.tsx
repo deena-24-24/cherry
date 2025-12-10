@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { useInterviewStore } from '../../store'
 import { compilerService } from '../../service/interview/compilerService'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/Button/Button'
 import Editor from 'react-simple-code-editor'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css'

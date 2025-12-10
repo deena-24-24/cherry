@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-import { Button } from '../ui/Button'
+import { Button } from '../ui/Button/Button'
 import { type User } from '../../types'
 import * as authService from '../../service/auth/authService'
 import * as styles from './AuthPopup.module.css'

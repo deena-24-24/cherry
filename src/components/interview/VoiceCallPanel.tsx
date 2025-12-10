@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useInterviewStore } from '../../store'
 import { useVoiceCall } from '../../pages/hooks/useVoiceCall'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/Button/Button'
 import { voiceService } from '../../service/interview/voiceService'
 import { socketService } from '../../service/socketService'
 
@@ -348,14 +348,14 @@ export const VoiceCallPanel: React.FC<VoiceCallPanelProps> = ({ sessionId, posit
 
       {/* Панель управления */}
       <div className="controls flex flex-col space-y-4">
-        <button
+        <Button
           ref={endCallButtonRef}
           onClick={handleEndCall}
           className="px-8 py-4 rounded-full text-lg font-medium bg-red-500 hover:bg-red-600 transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={!isCallActive}
         >
           ⏸️ Прервать собеседование
-        </button>
+        </Button>
 
         {/* Дополнительные кнопки управления */}
         {isCallActive && (

@@ -1,6 +1,6 @@
 // src/components/interview/FinalReportPopup.tsx
 import React from 'react'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/Button/Button'
 import { FinalReport } from '../../types'
 import './FinalReportPopup.css'
 

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useInterviewStore } from '../../store'
-import { Button } from '../../components/ui/Button'
+import { Button } from '../../components/ui/Button/Button'
 import { VoiceCallPanel } from '../../components/interview/VoiceCallPanel'
 import { NotesPanel } from '../../components/interview/NotesPanel'
 import { CodeConsole } from '../../components/interview/CodeConsole'

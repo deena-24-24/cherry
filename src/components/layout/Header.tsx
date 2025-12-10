@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState,  } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/Button/Button'
 import { ROUTES } from '../../router/routes'
 import { usePopupStore } from '../../store'
 import { useAuthStore } from '../../store'
@@ -103,8 +103,9 @@ export const Header: React.FC = () => {
         <div className={`${styles["mobileMenu"]}`}>
           <div className={styles["mobileMenuContent"]}>
             {user && (user.role === "candidate" ? <CandidateNavigation /> : <HrNavigation />)}
-            <button className={styles["mobileLoginButton"]} onClick={handleAuthClick}>
-              {user ? "ВЫЙТИ" : "ВОЙТИ"} </button>
+            <Button className={styles["mobileLoginButton"]} onClick={handleAuthClick}>
+              {user ? "ВЫЙТИ" : "ВОЙТИ"}
+            </Button>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useResumeStore } from '../../store/useResumeStore'
 import { Input } from '../../components/ui/Input'
-import { Button } from '../../components/ui/Button'
+import { Button } from '../../components/ui/Button/Button'
 
 export const ResumePage: React.FC = () => {
   const { resume, setResume, addExperience, addEducation } = useResumeStore()

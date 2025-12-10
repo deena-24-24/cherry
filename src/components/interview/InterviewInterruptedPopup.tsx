@@ -1,6 +1,6 @@
 // src/components/interview/InterviewInterruptedPopup.tsx
 import React from 'react'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/Button/Button'
 
 interface InterviewInterruptedPopupProps {
   reason: string
@@ -59,12 +59,12 @@ export const InterviewInterruptedPopup: React.FC<InterviewInterruptedPopupProps>
             </Button>
 
             <div className="text-center">
-              <button
+              <Button
                 onClick={onClose}
                 className="text-sm text-gray-400 hover:text-gray-300 underline"
               >
                 или продолжить позже
-              </button>
+              </Button>
             </div>
           </div>
         </div>
