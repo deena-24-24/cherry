@@ -14,7 +14,7 @@
 }
 
 .menuDivider {
-  width: 241px;
+  width: calc(var(--width-menu) + 5px);
   height: 17px;
   padding: var(--spacing-sm) 16px;
   left: -3px;
@@ -46,7 +46,7 @@
 }
 
 .menuButton {
-  width: 223px;
+  width: calc(var(--width-menu) - 13px);
   height: 48px;
   position: absolute;
   display: flex;

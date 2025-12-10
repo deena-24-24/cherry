@@ -13,12 +13,17 @@ export interface Education {
 
 export interface Resume {
   id?: string
-  fullName: string
+  userId?: string
+  fullName?: string // Оставлено для обратной совместимости, но рекомендуется использовать firstName и lastName
+  firstName?: string
+  lastName?: string
   jobTitle: string
   email: string
   phone: string
   photoUrl?: string
   videoUrl?: string
+  skills?: string[]
+  about?: string // Информация "О себе"
 
   experience: Experience[]
   education: Education[]

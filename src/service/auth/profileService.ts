@@ -12,6 +12,7 @@ export interface ProfileData {
   lastName?: string
   companyName?: string
   position?: string
+  avatar?: string
   [key: string]: unknown
 }
 
@@ -23,8 +24,12 @@ export const fetchUserProfile = async (): Promise<ProfileData> => {
   }
 
   try {
-    // Используем /api/auth/me для получения базовых данных пользователя
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    // Используем правильный endpoint в зависимости от роли
+    const endpoint = user.role === 'candidate' 
+      ? `${API_BASE_URL}/candidate/profile`
+      : `${API_BASE_URL}/hr/profile`
+
+    const response = await fetch(endpoint, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -51,7 +56,8 @@ export const fetchUserProfile = async (): Promise<ProfileData> => {
       country: data.country || '',
       about: data.about || '',
       companyName: data.companyName || '',
-      position: data.position || ''
+      position: data.position || '',
+      avatar: data.avatar || ''
     }
 
     return profileData

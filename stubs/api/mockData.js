@@ -18,6 +18,9 @@ const mockDB = {
       companyName: 'Компания'
     }
   ],
+  resumes: [  ],
+  candidates: [],
+  hrs: [],
   sessions: [
     {
       id: 'session_1',

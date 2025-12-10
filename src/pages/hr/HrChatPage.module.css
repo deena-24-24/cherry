@@ -1,4 +1,4 @@
-@import './styles/variables.css';
+@import '../ProfilePage/styles/variables.css';
 
 .page {
   padding-top: 67px;
@@ -25,33 +25,20 @@
 .container {
   padding-left: 70px;
   display: flex;
-  gap: var(--spacing-3xl);
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
 }
 
-.contentContainerAbout,
-.contentContainerResume {
-  flex: 1;
-  max-width: 600px;
-  position: relative;
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #082060;
+  font-size: 18px;
 }
 
-.contentContainerProgress {
-  flex: 1;
-  max-width: 807px;
-  position: relative;
+.emptyState p {
+  margin: 0;
 }
 
-.rightPanel {
-  display: flex;
-  gap: var(--spacing-5xl);
-  align-items: flex-start;
-}
 
-.menuWrapper {
-  margin-left: 35px;
-}
-
-.menuWrapperCandidates {
-  margin-left: 60px;
-}

@@ -2,35 +2,29 @@
 const express = require('express');
 const router = express.Router();
 const { auth, requireRole } = require('../middleware/authMiddleware');
-const HrRoutes = require('../models/HR');
+const { getProfile, updateProfile } = require('../controllers/profileController');
+const { getHr, updateHr } = require('../controllers/hrController');
+const { getCandidates } = require('../controllers/candidatesController');
+const { getFavorites, addFavorite, removeFavorite } = require('../controllers/favoritesController');
 
-// Получение профиля HR
-router.get('/profile', auth, requireRole(['hr']), async (req, res) => {
-  try {
-    const profile = await HrRoutes.findOne({ user: req.user._id });
-    res.json(profile);
-  } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+// Единый endpoint для получения всех данных HR
+router.get('/', auth, requireRole(['hr']), getHr);
 
-// Обновление профиля HR
-router.put('/profile', auth, requireRole(['hr']), async (req, res) => {
-  try {
-    const profile = await HrRoutes.findOneAndUpdate(
-      { user: req.user._id },
-      { $set: req.body },
-      { new: true }
-    );
+// Единый endpoint для обновления всех данных HR
+router.put('/', auth, requireRole(['hr']), updateHr);
 
-    if (!req.user.profileCompleted) {
-      await User.findByIdAndUpdate(req.user._id, { profileCompleted: true });
-    }
+// Получение профиля HR (для обратной совместимости)
+router.get('/profile', auth, requireRole(['hr']), getProfile);
 
-    res.json({ message: 'Профиль обновлен', profile });
-  } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+// Обновление профиля HR (для обратной совместимости)
+router.put('/profile', auth, requireRole(['hr']), updateProfile);
+
+// Получение списка всех кандидатов
+router.get('/candidates', auth, requireRole(['hr']), getCandidates);
+
+// Работа с избранными кандидатами
+router.get('/favorites', auth, requireRole(['hr']), getFavorites);
+router.post('/favorites/:candidateId', auth, requireRole(['hr']), addFavorite);
+router.delete('/favorites/:candidateId', auth, requireRole(['hr']), removeFavorite);
 
 module.exports = router;

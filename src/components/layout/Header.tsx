@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../router/routes'
 import { usePopupStore } from '../../store'
 import { useAuthStore } from '../../store'
@@ -12,12 +12,14 @@ import { useWindowScroll } from 'react-use'
 
 
 export const Header: React.FC = () => {
+  const navigate = useNavigate()
   const { openAuth } = usePopupStore()
   const { user, logout } = useAuthStore()
   
   const handleAuthClick = () => {
     if (user) {
       logout()
+      navigate(ROUTES.HOME)
     } else {
       openAuth()
     }

@@ -15,6 +15,10 @@ import { ProfilePage } from '../pages/ProfilePage/ProfilePage'
 import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
 import { ChatPage } from '../pages/candidate/ChatPage'
 import { CompilerPage } from '../pages/candidate/CompilerPage'
+import { HrProfilePage } from '../pages/hr/HrProfilePage'
+import { HrDashboardPage } from '../pages/hr/HrDashboardPage'
+import { HrCandidatesPage } from '../pages/hr/HrCandidatesPage'
+import { HrChatPage } from '../pages/hr/HrChatPage'
 
 // Stores
 import { usePopupStore } from '../store'
@@ -80,6 +84,40 @@ export const AppRouter: React.FC = () => {
             element={
               <ProtectedRoute>
                 <CompilerPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* HR Routes */}
+          <Route
+            path={ROUTES.HR_DASHBOARD}
+            element={
+              <ProtectedRoute>
+                <HrDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.HR_PROFILE}
+            element={
+              <ProtectedRoute>
+                <HrProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.HR_CANDIDATES}
+            element={
+              <ProtectedRoute>
+                <HrCandidatesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.HR_CHAT}
+            element={
+              <ProtectedRoute>
+                <HrChatPage />
               </ProtectedRoute>
             }
           />

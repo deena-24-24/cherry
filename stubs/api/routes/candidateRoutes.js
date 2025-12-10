@@ -2,35 +2,26 @@
 const express = require('express');
 const router = express.Router();
 const { auth, requireRole } = require('../middleware/authMiddleware');
+const { getProfile, updateProfile } = require('../controllers/profileController');
+const { getResume, updateResume } = require('../controllers/resumeController');
+const { getCandidate, updateCandidate } = require('../controllers/candidateController');
 
-// Получение профиля кандидата
-router.get('/profile', auth, requireRole(['candidate']), async (req, res) => {
-  try {
-    const profile = await CandidateRoutes.findOne({ user: req.user._id });
-    res.json(profile);
-  } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+// Единый endpoint для получения всех данных кандидата
+router.get('/', auth, requireRole(['candidate']), getCandidate);
 
-// Обновление профиля кандидата
-router.put('/profile', auth, requireRole(['candidate']), async (req, res) => {
-  try {
-    const profile = await CandidateRoutes.findOneAndUpdate(
-      { user: req.user._id },
-      { $set: req.body },
-      { new: true }
-    );
+// Единый endpoint для обновления всех данных кандидата
+router.put('/', auth, requireRole(['candidate']), updateCandidate);
 
-    // Помечаем профиль как завершенный
-    if (!req.user.profileCompleted) {
-      await User.findByIdAndUpdate(req.user._id, { profileCompleted: true });
-    }
+// Получение профиля кандидата (для обратной совместимости)
+router.get('/profile', auth, requireRole(['candidate']), getProfile);
 
-    res.json({ message: 'Профиль обновлен', profile });
-  } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+// Обновление профиля кандидата (для обратной совместимости)
+router.put('/profile', auth, requireRole(['candidate']), updateProfile);
+
+// Получение резюме кандидата (для обратной совместимости)
+router.get('/resume', auth, requireRole(['candidate']), getResume);
+
+// Обновление резюме кандидата (для обратной совместимости)
+router.put('/resume', auth, requireRole(['candidate']), updateResume);
 
 module.exports = router;

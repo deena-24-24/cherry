@@ -3,7 +3,11 @@ const { mockDB } = require('../mockData.js');
 
 // --- БАЗА ДАННЫХ В ПАМЯТИ ---
 const users = mockDB.users;
-let userIdCounter = 1;
+// Инициализируем счетчик на основе существующих пользователей
+let userIdCounter = Math.max(...users.map(u => {
+  const idNum = parseInt(u._id.replace('user_', ''));
+  return isNaN(idNum) ? 0 : idNum;
+}), 0) + 1;
 
 /**
  * @desc    Регистрация нового кандидата
@@ -11,7 +15,7 @@ let userIdCounter = 1;
  * @access  Public
  */
 const registerCandidate = async (req, res) => {
-  const { email, password, firstName, lastName } = req.body;
+  const { email, password, firstName, lastName, phone } = req.body;
 
   try {
     // 1. Проверяем, существует ли пользователь в нашем массиве
@@ -27,6 +31,10 @@ const registerCandidate = async (req, res) => {
       role: 'candidate',
       firstName,
       lastName,
+      phone: phone || '',
+      country: '',
+      about: '',
+      avatar: '',
     };
 
     // 3. "Сохраняем" пользователя, добавляя его в массив
@@ -45,6 +53,7 @@ const registerCandidate = async (req, res) => {
         role: newUser.role,
         firstName: newUser.firstName,
         lastName: newUser.lastName,
+        phone: newUser.phone,
       },
     });
   } catch (error) {
@@ -59,7 +68,7 @@ const registerCandidate = async (req, res) => {
  * @access  Public
  */
 const registerHr = async (req, res) => {
-  const { email, password, firstName, lastName, companyName } = req.body;
+  const { email, password, firstName, lastName, companyName, phone, position } = req.body;
 
   try {
     if (users.find(user => user.email === email)) {
@@ -74,6 +83,11 @@ const registerHr = async (req, res) => {
       firstName,
       lastName,
       companyName,
+      phone: phone || '',
+      position: position || '',
+      country: '',
+      about: '',
+      avatar: '',
     };
 
     users.push(newUser);
@@ -91,6 +105,8 @@ const registerHr = async (req, res) => {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         companyName: newUser.companyName,
+        phone: newUser.phone,
+        position: newUser.position,
       },
     });
   } catch (error) {
@@ -120,15 +136,22 @@ const login = async (req, res) => {
     // 3. Генерируем токен и отправляем ответ
     const token = generateToken(user._id, user.role);
     console.log('Пользователь вошел в систему:', user.email);
+    
+    // Возвращаем все актуальные данные пользователя из mockDB
     res.json({
       token,
       user: {
         _id: user._id,
         email: user.email,
         role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        companyName: user.companyName, // Будет undefined для кандидата, это нормально
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        country: user.country || '',
+        about: user.about || '',
+        avatar: user.avatar || '',
+        companyName: user.companyName || '', // Будет пустым для кандидата, это нормально
+        position: user.position || '',
       },
     });
   } catch (error) {
