@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useInterviewStore } from '../../store'
 import { Button } from '../../components/ui/Button/Button'
-import { VoiceCallPanel } from '../../components/interview/VoiceCallPanel'
 import { CodeConsole } from '../../components/interview/CodeConsole'
 import { NotesPanel } from '../../components/interview/NotesPanel'
 import { interviewService } from '../../service/interview/InterviewService'
@@ -11,27 +10,53 @@ import { ROUTES } from '../../router/routes'
 import { FinalReportPopup } from '../../components/interview/FinalReportPopup'
 import { FinalReport, SocketInterviewCompleted } from '../../types'
 import { InterviewInterruptedPopup } from '../../components/interview/InterviewInterruptedPopup'
+import { useVoiceCall } from '../hooks/useVoiceCall'
+import { voiceService } from '../../service/interview/voiceService'
+import { socketService } from '../../service/socketService'
 import './InterviewCallPage.css'
 
 export const InterviewCallPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
-  const { currentSession, isLoading, error, fetchSession, endCall } = useInterviewStore()
+  const {
+    currentSession,
+    isLoading,
+    error,
+    fetchSession,
+    isCallActive,
+    startCall: startStoreCall,
+    endCall: endStoreCall
+  } = useInterviewStore()
 
-  // Управление UI элементами
+  // === СОСТОЯНИЯ ДЛЯ ВСЕЙ СТРАНИЦЫ ===
   const [showNotes, setShowNotes] = useState(false)
   const [showConsole, setShowConsole] = useState(false)
-
-  // Состояния для финального отчета
   const [showFinalReport, setShowFinalReport] = useState(false)
   const [finalReport, setFinalReport] = useState<FinalReport | null>(null)
   const [completionReason, setCompletionReason] = useState<string>('')
   const [wasAutomatic, setWasAutomatic] = useState<boolean>(false)
-
-  // Состояния для прерванного интервью
   const [showInterrupted, setShowInterrupted] = useState(false)
   const [interruptionReason, setInterruptionReason] = useState<string>('')
 
+  // === СОСТОЯНИЯ ДЛЯ ГОЛОСОВОЙ ЧАСТИ ===
+  const [connectionQuality, setConnectionQuality] = useState<'good' | 'average' | 'poor'>('good')
+  const [voiceActivity, setVoiceActivity] = useState(0)
+  const [isConnected, setIsConnected] = useState(false)
+
+  // === ИСПОЛЬЗУЕМ ГОЛОСОВОЙ ХУК ===
+  const {
+    isRecording,
+    isAIThinking,
+    isAISpeaking,
+    toggleRecording,
+    transcript,
+    aiResponse,
+    error: voiceError
+  } = useVoiceCall(sessionId || '', currentSession?.position || '')
+
+  // === ЭФФЕКТЫ ===
+
+  // Загрузка сессии
   useEffect(() => {
     const controller = new AbortController()
 
@@ -44,7 +69,6 @@ export const InterviewCallPage: React.FC = () => {
           console.log('Запрос отменен')
         } else {
           console.error('Ошибка загрузки сессии:', error)
-          // Ошибка уже обработана в store, но можно добавить дополнительную логику
         }
       }
     }
@@ -52,33 +76,32 @@ export const InterviewCallPage: React.FC = () => {
     void loadSession()
 
     return () => {
-      controller.abort() // Отмена при размонтировании
+      controller.abort()
     }
   }, [sessionId, fetchSession])
 
-  // Строго типизированный обработчик завершения интервью через WebSocket
+  // Автоматически запускаем звонок при загрузке
+  useEffect(() => {
+    if (!isCallActive) {
+      startStoreCall()
+    }
+  }, [isCallActive, startStoreCall])
+
+  // Обработчик завершения интервью через WebSocket
   const handleInterviewCompleted = useCallback((data: SocketInterviewCompleted) => {
     console.log('🏁 Interview completed received:', data)
 
-    // ЛОГИРОВАНИЕ ДЛЯ ДИАГНОСТИКИ
-    console.log('📊 Final report structure:', {
-      hasReport: !!data.finalReport,
-      hasOverallAssessment: !!data.finalReport?.overall_assessment,
-      overallAssessment: data.finalReport?.overall_assessment,
-      wasAutomatic: data.wasAutomatic
-    })
-
-    if (data.wasAutomatic) {
+    if (data.wasAutomatic && data.finalReport) {
       setFinalReport(data.finalReport)
-      setCompletionReason(data.completionReason)
-
-      setShowFinalReport(true)
+      setCompletionReason(data.completionReason || 'Собеседование завершено автоматически')
       setWasAutomatic(true)
+      setShowFinalReport(true)
     }
 
-    endCall()
-  }, [endCall])
+    endStoreCall()
+  }, [endStoreCall])
 
+  // Подписка на WebSocket события
   useEffect(() => {
     interviewService.onInterviewCompleted(handleInterviewCompleted)
 
@@ -87,93 +110,105 @@ export const InterviewCallPage: React.FC = () => {
     }
   }, [handleInterviewCompleted])
 
-  //test
-  const handleTestPopup = () => {
-    console.log('🧪 Test button clicked')
+  // Мониторинг состояния соединения WebSocket
+  useEffect(() => {
+    const checkConnection = () => {
+      const state = socketService.getConnectionState?.() || 'disconnected'
+      setIsConnected(state === 'connected')
+    }
 
-    const mockReport: FinalReport = {
-      overall_assessment: {
-        final_score: 7.5,
-        level: "Middle",
-        recommendation: "hire",
-        confidence: 0.8,
-        strengths: [
-          { strength: "Хорошие базовые знания JavaScript", frequency: 3, confidence: 0.9 },
-          { strength: "Логическое мышление", frequency: 2, confidence: 0.8 }
-        ],
-        improvements: ["Нужно углубить знания архитектуры", "Практиковать алгоритмы"],
-        potential_areas: [
-          {
-            topic: "System Design",
-            reason: "Хорошие базовые знания, но требуется углубление",
-            potential: "high"
-          }
-        ]
-      },
-      technical_skills: {
-        topics_covered: ["JavaScript", "React", "HTML/CSS", "TypeScript"],
-        strong_areas: ["Frontend development", "React components"],
-        weak_areas: ["System design", "Performance optimization"],
-        technical_depth: 7.2,
-        recommendations: ["Изучить продвинутые паттерны", "Практиковать алгоритмы"]
-      },
-      behavioral_analysis: {
-        communication_skills: {
-          score: 8.0,
-          structure: 7.5,
-          clarity: 8.5,
-          feedback: "Отличные коммуникативные навыки, ясное изложение мыслей"
-        },
-        problem_solving: {
-          score: 7.0,
-          examples_count: 2,
-          feedback: "Способен решать типовые задачи, требуется практика с сложными кейсами"
-        },
-        learning_ability: {
-          score: 8.5,
-          topics_mastered: 4,
-          feedback: "Быстро осваивает новые темы, показывает хороший прогресс"
-        },
-        adaptability: {
-          score: 7.8,
-          consistency: 8.0,
-          trend: 0.5,
-          feedback: "Хорошо адаптируется к новым вопросам, демонстрирует стабильность"
-        }
-      },
-      interview_analytics: {
-        total_duration: "18 минут",
-        total_questions: 12,
-        topics_covered_count: 5,
-        average_response_quality: 7.5,
-        topic_progression: ["введение", "javascript", "react", "оптимизация"],
-        action_pattern: {
-          total_actions: 15,
-          action_breakdown: {
-            "continue_topic": 8,
-            "next_topic": 4,
-            "deep_dive_topic": 3
-          },
-          most_common_action: "continue_topic",
-          completion_rate: "completed"
-        }
-      },
-      detailed_feedback: "Кандидат демонстрирует хороший потенциал для позиции Middle Frontend-разработчика. Показал уверенные знания базовых технологий и способность к обучению. Рекомендуется углубление в архитектурные вопросы и оптимизацию производительности.",
-      next_steps: [
-        "Техническое интервью с лидом",
-        "Оценка культурного соответствия команде",
-        "Обсуждение плана развития на первые 3 месяца"
-      ],
-      raw_data: {
-        evaluationHistory: [],
-        actionsHistory: []
+    const interval = setInterval(checkConnection, 2000)
+    checkConnection()
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Имитация изменения качества связи
+  useEffect(() => {
+    if (!isCallActive) return
+
+    const interval = setInterval(() => {
+      const qualities: Array<'good' | 'average' | 'poor'> = ['good', 'average', 'poor']
+      const randomQuality = qualities[Math.floor(Math.random() * qualities.length)]
+      setConnectionQuality(randomQuality)
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [isCallActive])
+
+  // Имитация активности голоса
+  useEffect(() => {
+    if (!isRecording || !isCallActive) {
+      setVoiceActivity(0)
+      return
+    }
+
+    const interval = setInterval(() => {
+      const baseLevel = transcript.length > 0 ? 30 : 10
+      const randomVariation = Math.random() * 40
+      setVoiceActivity(Math.min(baseLevel + randomVariation, 100))
+    }, 100)
+
+    return () => clearInterval(interval)
+  }, [isRecording, transcript, isCallActive])
+
+  // Обработчик клавиши Escape
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isCallActive) {
+        console.log('⌨️ Escape key pressed - ending call')
+        handleEndCall('user')
       }
     }
 
-    setFinalReport(mockReport)
-    setCompletionReason("Тестовое завершение собеседования")
-    setShowFinalReport(true)
-  }
+    document.addEventListener('keydown', handleKeyPress)
+    return () => document.removeEventListener('keydown', handleKeyPress)
+  }, [isCallActive])
+
+  // === ОБРАБОТЧИКИ ===
+
+  // Функция завершения звонка
+  const handleEndCall = useCallback(async (reason: 'user' | 'system' | 'error' = 'user') => {
+    if (!isCallActive) return
+
+    console.log(`🛑 Ending interview call, reason: ${reason}`)
+
+    try {
+      // 1. Останавливаем запись если активна
+      if (isRecording) {
+        toggleRecording()
+      }
+
+      // 2. Останавливаем аудио воспроизведение
+      await voiceService.stopAudio()
+
+      // 3. Отключаем WebSocket соединение
+      socketService.disconnect()
+
+      // 4. Обновляем состояние хранилища
+      endStoreCall()
+
+      // 5. Сбрасываем локальные состояния
+      setVoiceActivity(0)
+      setIsConnected(false)
+
+      // 6. Показываем соответствующий попап
+      if (reason === 'user') {
+        setInterruptionReason('Собеседование прервано кандидатом')
+        setShowInterrupted(true)
+      }
+
+      console.log('✅ Interview call ended successfully')
+
+    } catch (error) {
+      console.error('❌ Error ending call:', error)
+      endStoreCall()
+      socketService.disconnect()
+      setInterruptionReason('Ошибка при завершении звонка')
+      setShowInterrupted(true)
+    }
+  }, [isCallActive, isRecording, toggleRecording, endStoreCall])
+
   const handleCloseReport = useCallback(() => {
     setShowFinalReport(false)
     setFinalReport(null)
@@ -185,6 +220,47 @@ export const InterviewCallPage: React.FC = () => {
     setInterruptionReason('')
     navigate(ROUTES.HOME)
   }, [navigate])
+
+  // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ РЕНДЕРИНГА ГОЛОСОВОЙ ЧАСТИ ===
+
+  const renderVoiceVisualizer = () => {
+    const bars = 8
+    return (
+      <div className="flex items-end justify-center space-x-1 h-12 mb-4">
+        {Array.from({ length: bars }).map((_, index) => {
+          const activityForBar = voiceActivity * (1 - Math.abs(index - bars/2) / bars)
+          const height = Math.max(10, (activityForBar / 100) * 32)
+
+          return (
+            <div
+              key={index}
+              className="w-2 bg-blue-500 rounded-t transition-all duration-150 ease-in-out"
+              style={{ height: `${height}px` }}
+            />
+          )
+        })}
+      </div>
+    )
+  }
+
+  const renderConnectionIndicator = () => {
+    const config = {
+      good: { color: 'bg-green-500', text: 'Отличное соединение' },
+      average: { color: 'bg-yellow-500', text: 'Среднее соединение' },
+      poor: { color: 'bg-red-500', text: 'Плохое соединение' }
+    }
+
+    const { color, text } = config[connectionQuality]
+
+    return (
+      <div className="flex items-center justify-center space-x-2 mb-4">
+        <div className={`w-3 h-3 rounded-full ${color} animate-pulse`} />
+        <span className="text-sm text-gray-300">{text}</span>
+      </div>
+    )
+  }
+
+  // === РЕНДЕРИНГ ===
 
   if (isLoading) {
     return <div className="loading-screen">Загрузка собеседования...</div>
@@ -245,11 +321,207 @@ export const InterviewCallPage: React.FC = () => {
 
 
           {/* Правая часть - голосовая панель */}
-          <div className="w-1/3 bg-gray-800 border-l border-gray-700">
-            <VoiceCallPanel
-              sessionId={currentSession.id}
-              position={currentSession.position}
-            />
+          <div className="w-1/3 bg-gray-800 border-l border-gray-700 p-6">
+            <div className="voice-call-panel bg-gray-800 rounded-lg p-6 h-full flex flex-col">
+              {/* Заголовок с индикаторами */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  {/* Индикатор соединения WebSocket */}
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+                    <span className="text-sm text-gray-300">
+                      {isConnected ? 'Соединение установлено' : 'Нет соединения'}
+                    </span>
+                  </div>
+
+                  {/* Индикатор записи */}
+                  {isRecording && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                      <span className="text-sm text-red-400">Запись</span>
+                    </div>
+                  )}
+
+                  {/* Индикатор мышления AI */}
+                  {isAIThinking && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                      <span className="text-sm text-blue-400">AI думает...</span>
+                    </div>
+                  )}
+
+                  {/* Индикатор речи AI */}
+                  {isAISpeaking && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse" />
+                      <span className="text-sm text-purple-400">AI говорит</span>
+                    </div>
+                  )}
+
+                  {/* Индикатор микрофона */}
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full ${isRecording ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="text-sm text-gray-300">
+                      {isRecording ? 'Включен' : 'Выключен'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Основной контент голосового звонка */}
+              <div className="video-placeholder bg-gray-700 rounded-lg flex-1 flex flex-col items-center justify-center mb-4 p-4">
+                <div className="text-center mb-4">
+                  <div className="w-20 h-20 bg-blue-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-white text-2xl">AI</span>
+                  </div>
+                  <p className="text-lg text-white font-medium">AI Интервьюер</p>
+
+                  {isCallActive && (
+                    <div className="mt-2 text-green-400 text-sm flex items-center justify-center">
+                      <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                      Интервью активно
+                    </div>
+                  )}
+                </div>
+
+                {/* Визуализатор голоса */}
+                {isCallActive && isRecording && renderVoiceVisualizer()}
+
+                {/* Индикатор качества связи */}
+                {isCallActive && renderConnectionIndicator()}
+
+                {/* Индикатор речи AI */}
+                {isAISpeaking && (
+                  <div className="mt-4 p-3 bg-purple-500/20 rounded-lg max-w-md border border-purple-500/30">
+                    <p className="text-sm text-purple-300 text-center">
+                      🗣️ AI интервьюер говорит...
+                    </p>
+                  </div>
+                )}
+
+                {/* Визуальные подсказки */}
+                {isRecording && !transcript && (
+                  <div className="mt-4 p-3 bg-green-500/20 rounded-lg max-w-md border border-green-500/30">
+                    <p className="text-sm text-green-300 text-center animate-pulse">
+                      🎤 Говорите сейчас... Я слушаю
+                    </p>
+                  </div>
+                )}
+
+                {isRecording && transcript && (
+                  <div className="mt-4 p-3 bg-yellow-500/20 rounded-lg max-w-md border border-yellow-500/30">
+                    <p className="text-sm text-yellow-300 text-center">
+                      🔊 Распознано: {transcript}
+                    </p>
+                  </div>
+                )}
+
+                {/* Ответ AI */}
+                {aiResponse && (
+                  <div className="mt-4 p-3 bg-blue-500/20 rounded-lg max-w-md border border-blue-500/30">
+                    <p className="text-sm text-blue-300 text-center">
+                      🤖 {aiResponse}
+                    </p>
+                  </div>
+                )}
+
+                {/* Сообщение об ошибке соединения */}
+                {!isConnected && isCallActive && (
+                  <div className="mt-4 p-3 bg-red-500/20 rounded-lg max-w-md border border-red-500/30">
+                    <p className="text-sm text-red-300 text-center">
+                      ❌ Нет соединения с сервером. Попытка переподключения...
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Панель управления звонком */}
+              <div className="controls flex flex-col space-y-4">
+                <button
+                  onClick={async () => {
+                    try {
+                      await handleEndCall('user')
+                    } catch (error) {
+                      console.error('Ошибка при завершении звонка:', error)
+                    }
+                  }}
+                  className="px-8 py-4 rounded-full text-lg font-medium bg-red-500 hover:bg-red-600 transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!isCallActive}
+                >
+                  ⏸️ Прервать собеседование
+                </button>
+
+                {/* Кнопка mute/unmute */}
+                {isCallActive && (
+                  <div className="flex justify-center space-x-4">
+                    <Button
+                      onClick={toggleRecording}
+                      className={`px-6 py-3 rounded-full transition-all duration-200 ${
+                        isRecording
+                          ? 'bg-red-500/20 text-red-300 border border-red-500 hover:bg-red-500/30'
+                          : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600'
+                      }`}
+                    >
+                      {isRecording ? '🔇 Выключить микрофон' : '🎤 Включить микрофон'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Статусы звонка */}
+              <div className="mt-4 text-center space-y-2">
+                {isRecording && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm text-red-400">Идёт запись аудио...</p>
+                  </div>
+                )}
+
+                {!isRecording && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <p className="text-sm text-yellow-400">Микрофон выключен</p>
+                  </div>
+                )}
+
+                {isAIThinking && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm text-blue-400">AI обрабатывает ответ...</p>
+                  </div>
+                )}
+
+                {isAISpeaking && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm text-purple-400">AI отвечает...</p>
+                  </div>
+                )}
+
+                {!isRecording && !isAISpeaking && !isAIThinking && isCallActive && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm text-green-400">Ожидаю ваш ответ...</p>
+                  </div>
+                )}
+
+                {isCallActive && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                    <p className="text-sm text-gray-400">
+                      Нажмите Escape для экстренного завершения
+                    </p>
+                  </div>
+                )}
+
+                {voiceError && (
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <p className="text-sm text-red-400">Ошибка: {voiceError}</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -262,13 +534,6 @@ export const InterviewCallPage: React.FC = () => {
           >
             📝
           </Button>
-
-          <button
-            onClick={handleTestPopup}
-            className="fixed top-4 right-4 bg-green-500 text-white p-2 rounded z-50"
-          >
-            TEST POPUP
-          </button>
 
           <Button
             className="round-btn"
@@ -303,7 +568,7 @@ export const InterviewCallPage: React.FC = () => {
         </aside>
       </div>
 
-
+      {/* Попапы */}
       {showFinalReport && (
         <FinalReportPopup
           report={finalReport}
@@ -313,7 +578,6 @@ export const InterviewCallPage: React.FC = () => {
         />
       )}
 
-      {/* для прерванного собеседования */}
       {showInterrupted && (
         <InterviewInterruptedPopup
           reason={interruptionReason}
