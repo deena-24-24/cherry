@@ -10,12 +10,14 @@ import { ProtectedRoute } from './ProtectedRoute'
 
 // Pages
 import { LandingPage } from '../pages/common/LandingPage'
-//import { ResumePage } from '../pages/candidate/ResumePage'
 import { ProfilePage } from '../pages/ProfilePage/ProfilePage'
 import { AiInterviewPage } from '../pages/candidate/AiInterviewPage'
 import { AiChatPage } from '../pages/candidate/AiChatPage'
 import { HrChatPage } from '../pages/candidate/HrChatPage'
 import { CompilerPage } from '../pages/candidate/CompilerPage'
+import { HrProfilePage } from '../pages/hr/HrProfilePage'
+import { HrDashboardPage } from '../pages/hr/HrDashboardPage'
+import { HrCandidatesPage } from '../pages/hr/HrCandidatesPage'
 
 // Stores
 import { usePopupStore } from '../store'
@@ -89,6 +91,40 @@ export const AppRouter: React.FC = () => {
             element={
               <ProtectedRoute>
                 <CompilerPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* HR Routes */}
+          <Route
+            path={ROUTES.HR_DASHBOARD}
+            element={
+              <ProtectedRoute>
+                <HrDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.HR_PROFILE}
+            element={
+              <ProtectedRoute>
+                <HrProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.HR_CANDIDATES}
+            element={
+              <ProtectedRoute>
+                <HrCandidatesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.HR_CHAT}
+            element={
+              <ProtectedRoute>
+                <HrChatPage />
               </ProtectedRoute>
             }
           />

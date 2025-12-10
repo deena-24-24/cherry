@@ -10,4 +10,5 @@ export const ROUTES = {
   HR_DASHBOARD: '/hr/dashboard',
   HR_PROFILE: '/hr/profile',
   HR_CANDIDATES: '/hr/candidates',
+  HR_CHAT: '/hr/chat',
 }

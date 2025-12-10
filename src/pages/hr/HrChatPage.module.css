@@ -1,0 +1,44 @@
+@import '../ProfilePage/styles/variables.css';
+
+.page {
+  padding-top: 67px;
+  padding-left: 90px;
+  padding-right: 90px;
+  padding-bottom: 60px;
+  background: var(--color-background);
+  min-height: 100vh;
+}
+
+.title {
+  color: var(--color-text);
+  font-size: var(--font-size-3xl);
+  font-family: var(--font-family-title);
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: var(--line-height-lg);
+  word-wrap: break-word;
+  margin-bottom: var(--spacing-4xl);
+  padding-bottom: 16px;
+  border-bottom: 3px solid #78AAFF;
+}
+
+.container {
+  padding-left: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #082060;
+  font-size: 18px;
+}
+
+.emptyState p {
+  margin: 0;
+}
+
+

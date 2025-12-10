@@ -12,14 +12,15 @@ import "./styles/variables.css";
 import * as styles from "./ProfilePage.module.css";
 
 export const ProfilePage: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [activeMenuItem, setActiveMenuItem] = useState<MenuItem>('about');
   const [isEditing, setIsEditing] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [emailError, setEmailError] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<FormData>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     phoneCode: '',
@@ -27,52 +28,71 @@ export const ProfilePage: React.FC = () => {
     about: ''
   });
 
-  // Загрузка данных профиля при монтировании компонента
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+  // Функция загрузки данных профиля
+  const loadProfile = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-      // Сначала устанавливаем данные из user store (данные регистрации)
-      const initialName = (user as any).firstName && (user as any).lastName
-        ? `${(user as any).firstName} ${(user as any).lastName}`.trim()
-        : user.email || '';
+    try {
+      setLoading(true);
       
+      // Загружаем данные из API (это источник истины)
+      const profileData = await fetchUserProfile();
+      
+      // Устанавливаем данные из API
       setFormData({
-        name: initialName,
+        firstName: profileData.firstName || '',
+        lastName: profileData.lastName || '',
+        email: profileData.email || user.email || '',
+        phone: profileData.phone || '',
+        phoneCode: '',
+        country: profileData.country || '',
+        about: profileData.about || ''
+      });
+      
+      // Устанавливаем аватар, если он есть
+      if (profileData.avatar) {
+        setAvatarUrl(profileData.avatar);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки профиля:', error);
+      
+      // Если API не доступен, используем данные из store как fallback
+      setFormData({
+        firstName: (user as any).firstName || '',
+        lastName: (user as any).lastName || '',
         email: user.email || '',
         phone: (user as any).phone || '',
         phoneCode: '',
-        country: '',
-        about: ''
+        country: (user as any).country || '',
+        about: (user as any).about || ''
       });
-
-      // Затем загружаем полные данные из API
-      try {
-        setLoading(true);
-        const profileData = await fetchUserProfile();
-        
-        // Обновляем данные из API, если они есть
-        setFormData(prev => ({
-          ...prev,
-          name: profileData.name || `${profileData.firstName || ''} ${profileData.lastName || ''}`.trim() || prev.name || user.email || '',
-          email: profileData.email || prev.email || user.email || '',
-          phone: profileData.phone || prev.phone || (user as any).phone || '',
-          country: profileData.country || prev.country || '',
-          about: profileData.about || prev.about || ''
-        }));
-      } catch (error) {
-        console.error('Ошибка загрузки профиля:', error);
-        // Данные уже установлены из user store, просто продолжаем
-      } finally {
-        setLoading(false);
+      
+      // Устанавливаем аватар из store, если он есть
+      if ((user as any).avatar) {
+        setAvatarUrl((user as any).avatar);
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Загрузка данных профиля при монтировании компонента
+  useEffect(() => {
     loadProfile();
   }, [user]);
+
+  // Перезагрузка данных при переключении разделов
+  useEffect(() => {
+    // Перезагружаем данные профиля при переходе в раздел "Обо мне"
+    if (activeMenuItem === 'about') {
+      loadProfile();
+    }
+    // Для резюме данные загружаются внутри ResumeContent при монтировании
+    // Но мы можем добавить ключ, чтобы компонент перезагружался
+  }, [activeMenuItem]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -94,23 +114,53 @@ export const ProfilePage: React.FC = () => {
     try {
       setIsEditing(false);
       
-      // Разбиваем name на firstName и lastName для отправки на сервер
-      const nameParts = formData.name.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-      
       // Подготавливаем данные для отправки
       const profileData = {
-        firstName,
-        lastName,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone,
         country: formData.country,
-        about: formData.about
+        about: formData.about,
+        avatar: avatarUrl || ''
       };
 
-      await updateUserProfile(profileData);
+      const updatedProfile = await updateUserProfile(profileData);
       console.log('Профиль успешно обновлен');
+      
+      // Обновляем данные в store
+      if (updatedProfile) {
+        updateUser({
+          firstName: updatedProfile.firstName || formData.firstName,
+          lastName: updatedProfile.lastName || formData.lastName,
+          email: updatedProfile.email || formData.email,
+          phone: updatedProfile.phone || formData.phone,
+          country: updatedProfile.country || formData.country,
+          about: updatedProfile.about || formData.about,
+          avatar: updatedProfile.avatar || avatarUrl || '',
+        } as Partial<typeof user>);
+      }
+      
+      // Перезагружаем данные профиля из API для получения всех обновленных данных
+      try {
+        const freshProfileData = await fetchUserProfile();
+        setFormData(prev => ({
+          ...prev,
+          firstName: freshProfileData.firstName || prev.firstName,
+          lastName: freshProfileData.lastName || prev.lastName,
+          email: freshProfileData.email || prev.email,
+          phone: freshProfileData.phone || prev.phone,
+          country: freshProfileData.country || prev.country,
+          about: freshProfileData.about || prev.about
+        }));
+        
+        // Обновляем аватар, если он есть
+        if (freshProfileData.avatar) {
+          setAvatarUrl(freshProfileData.avatar);
+        }
+      } catch (error) {
+        console.error('Ошибка перезагрузки профиля:', error);
+      }
     } catch (error) {
       console.error('Ошибка сохранения профиля:', error);
       // Можно добавить уведомление об ошибке
@@ -129,6 +179,30 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleCancel = async () => {
+    setIsEditing(false);
+    // Загружаем свежие данные с сервера для отмены изменений
+    try {
+      const freshProfileData = await fetchUserProfile();
+      setFormData(prev => ({
+        ...prev,
+        firstName: freshProfileData.firstName || prev.firstName,
+        lastName: freshProfileData.lastName || prev.lastName,
+        email: freshProfileData.email || prev.email,
+        phone: freshProfileData.phone || prev.phone,
+        country: freshProfileData.country || prev.country,
+        about: freshProfileData.about || prev.about
+      }));
+      
+      // Восстанавливаем аватар
+      if (freshProfileData.avatar) {
+        setAvatarUrl(freshProfileData.avatar);
+      }
+    } catch (error) {
+      console.error('Ошибка отмены изменений:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles["page"]}>
@@ -142,11 +216,24 @@ export const ProfilePage: React.FC = () => {
     );
   }
 
+  const getPageTitle = () => {
+    switch (activeMenuItem) {
+      case 'about':
+        return 'ЛИЧНЫЙ КАБИНЕТ';
+      case 'progress':
+        return 'ПРОГРЕСС';
+      case 'resume':
+        return 'РЕЗЮМЕ';
+      default:
+        return 'ЛИЧНЫЙ КАБИНЕТ';
+    }
+  };
+
   return (
     <div className={styles["page"]}>
       {/* Заголовок */}
       <div className={styles["title"]}>
-        ЛИЧНЫЙ КАБИНЕТ
+        {getPageTitle()}
       </div>
 
       {/* Основной контейнер с формой и правой панелью */}
@@ -165,20 +252,21 @@ export const ProfilePage: React.FC = () => {
               onInputChange={handleInputChange}
               onEmailErrorChange={setEmailError}
               onEditToggle={handleEditToggle}
+              onCancel={handleCancel}
             />
           )}
           {activeMenuItem === 'progress' && (
             <ProgressContent />
           )}
           {activeMenuItem === 'resume' && (
-            <ResumeContent />
+            <ResumeContent key={`resume-${activeMenuItem}`} />
           )}
         </div>
 
         {/* Правая часть - аватар и меню */}
         <div className={styles["rightPanel"]}>
-          {/* Аватар - только в разделе "Обо мне" */}
-          {activeMenuItem === 'about' && (
+          {/* Аватар - в разделах "Обо мне" и "Резюме" */}
+          {(activeMenuItem === 'about' || activeMenuItem === 'resume') && (
             <ProfileAvatar
               avatarUrl={avatarUrl}
               isEditing={isEditing}

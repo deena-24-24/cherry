@@ -4,6 +4,7 @@
   padding-top: 67px;
   padding-left: 90px;
   padding-right: 90px;
+  padding-bottom: 60px;
   background: var(--color-background);
   min-height: 100vh;
 }
@@ -17,6 +18,8 @@
   line-height: var(--line-height-lg);
   word-wrap: break-word;
   margin-bottom: var(--spacing-4xl);
+  padding-bottom: 16px;
+  border-bottom: 3px solid #78AAFF;
 }
 
 .container {
@@ -47,4 +50,8 @@
 
 .menuWrapper {
   margin-left: 35px;
+}
+
+.menuWrapperCandidates {
+  margin-left: 60px;
 }

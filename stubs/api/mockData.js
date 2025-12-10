@@ -30,6 +30,9 @@ const mockDB = {
       avatarUrl: 'https://i.pravatar.cc/150?img=2'
     }
   ],
+  resumes: [  ],
+  candidates: [],
+  hrs: [],
   hrConversations: [
     {
       id: 'hr-chat-1',
@@ -55,7 +58,20 @@ const mockDB = {
       ]
     }
   ],
-  sessions: [],
+  sessions: [
+    {
+      id: 'session_1',
+      title: 'Frontend Developer Interview',
+      position: 'frontend',
+      difficulty: 'middle',
+      status: 'active',
+      candidateId: 'user_1',
+      interviewerId: 'ai_interviewer',
+      createdAt: new Date().toISOString(),
+      notes: '',
+      conversationHistory: []
+    }
+  ],
   codeExecutions: []
 };
 

@@ -7,20 +7,20 @@ export const HrNavigation: React.FC = () => {
   return (
     <>
       <NavLink 
-        to={ROUTES.HR_DASHBOARD}
-        className={({ isActive }) => 
-          `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
-        }
-      >
-        ДАШБОРД
-      </NavLink>
-      <NavLink 
         to={ROUTES.HR_CANDIDATES}
         className={({ isActive }) => 
           `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
         }
       >
         КАНДИДАТЫ
+      </NavLink>
+      <NavLink 
+        to={ROUTES.HR_CHAT}
+        className={({ isActive }) => 
+          `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
+        }
+      >
+        ЧАТ
       </NavLink>
       <NavLink 
         to={ROUTES.HR_PROFILE} 

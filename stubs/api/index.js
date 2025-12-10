@@ -9,6 +9,7 @@ const interviewRoutes = require('./routes/interviewRoutes');
 const codeRoutes = require('./routes/codeRoutes');
 const interviewAI = require('./service/interviewAI');
 const chatRoutes = require('./routes/chatRoutes');
+const candidateRoutes = require('./routes/candidateRoutes');
 const hrRoutes = require('./routes/hrRoutes');
 
 // Создаем экземпляр приложения Express
@@ -23,13 +24,14 @@ const io = new Server(server, {
 });
 
 app.use(cors({ origin: FRONTEND_ORIGIN }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // --- ОСНОВНЫЕ МАРШРУТЫ ПРИЛОЖЕНИЯ ---
 app.use('/api/auth', authRoutes);
 app.use('/api/interview', interviewRoutes);
 app.use('/api/code', codeRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/candidate', candidateRoutes);
 app.use('/api/hr', hrRoutes);
 
 app.get('/', (req, res) => {

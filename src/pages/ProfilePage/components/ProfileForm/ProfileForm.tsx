@@ -15,6 +15,7 @@ interface ProfileFormProps {
   onInputChange: (field: keyof FormData, value: string) => void;
   onEmailErrorChange: (error: string) => void;
   onEditToggle: () => void;
+  onCancel: () => void;
 }
 
 export const ProfileForm: React.FC<ProfileFormProps> = ({
@@ -24,6 +25,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   onInputChange,
   onEmailErrorChange,
   onEditToggle,
+  onCancel,
 }) => {
   const handleInputChange = (field: keyof FormData, value: string) => {
     onInputChange(field, value);
@@ -43,9 +45,17 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       {/* Поле "Имя" */}
       <FormField
         label="ИМЯ"
-        value={formData.name}
+        value={formData.firstName}
         isEditing={isEditing}
-        onChange={(value) => handleInputChange('name', value)}
+        onChange={(value) => handleInputChange('firstName', value)}
+      />
+
+      {/* Поле "Фамилия" */}
+      <FormField
+        label="ФАМИЛИЯ"
+        value={formData.lastName}
+        isEditing={isEditing}
+        onChange={(value) => handleInputChange('lastName', value)}
       />
 
       {/* Поле "Электронная почта" */}
@@ -84,13 +94,32 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         onChange={(value) => handleInputChange('about', value)}
       />
 
-      {/* Кнопка "Редактировать" / "Сохранить" */}
-      <Button
-        variant="primary"
-        onClick={onEditToggle}
-      >
-        {isEditing ? 'СОХРАНИТЬ' : 'РЕДАКТИРОВАТЬ'}
-      </Button>
+      {/* Кнопки управления */}
+      {isEditing ? (
+        <div className={styles["actions"]}>
+          <Button
+            variant="primary"
+            onClick={onEditToggle}
+            className={styles["saveButton"]}
+          >
+            СОХРАНИТЬ
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={onCancel}
+            className={styles["cancelButton"]}
+          >
+            Отмена
+          </Button>
+        </div>
+      ) : (
+        <Button
+          variant="primary"
+          onClick={onEditToggle}
+        >
+          РЕДАКТИРОВАТЬ
+        </Button>
+      )}
     </div>
   );
 };

@@ -44,7 +44,7 @@ export const CandidateNavigation: React.FC = () => {
           `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
         }
       >
-        МОЁ РЕЗЮМЕ
+        ПРОФИЛЬ
       </NavLink>
     </>
   )
