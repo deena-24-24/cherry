@@ -103,10 +103,7 @@
 
 .loginButton {
   flex: 1 1 0;
-  padding-left: 17px;
-  padding-right: 17px;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding: 12px 17px;
   background: var(--maroon);
   border-radius: 15px;
   justify-content: center;

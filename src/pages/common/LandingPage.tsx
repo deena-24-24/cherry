@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import * as styles from './LandingPage.module.css'
 import { HomeFeatures } from '../../components/layout/CandidateHomeFeatures'
 import { HeroBanner } from '../../components/layout/HeroBanner'

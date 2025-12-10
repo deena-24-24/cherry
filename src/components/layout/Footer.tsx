@@ -29,16 +29,13 @@ export const Footer: React.FC = () => {
                   <div className={styles["sectionTitle"]}>Обучение</div>
 
                   <NavLink to={ROUTES.INTERVIEW_HOME} className={styles["link"]}>
-                      ИИ-собеседования
+                    ИИ-собеседования
                   </NavLink>
                   <NavLink to={ROUTES.RESUME} className={styles["link"]}>
-                      Резюме
+                    Резюме
                   </NavLink>
-                  <NavLink to={ROUTES.COMPILER} className={styles["link"]}>
-                      Компилятор
-                  </NavLink>
-                  <NavLink to={ROUTES.TECH_CHAT} className={styles["link"]}>
-                      Чат
+                  <NavLink to={ROUTES.AI_CHAT} className={styles["link"]}>
+                    Чат
                   </NavLink>
                 </div>
               ) : (

@@ -1,9 +1,9 @@
-import React from 'react';
-import { useAuthStore } from '../../store';
-import * as styles from './HrDashboardPage.module.css';
+import React from 'react'
+import { useAuthStore } from '../../store'
+import * as styles from './HrDashboardPage.module.css'
 
 export const HrDashboardPage: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user } = useAuthStore()
 
   return (
     <div className={styles["page"]}>
@@ -33,6 +33,6 @@ export const HrDashboardPage: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 

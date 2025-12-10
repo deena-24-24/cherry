@@ -488,8 +488,7 @@ export function isFlexibleText(payload: unknown): payload is FlexibleText {
  * Type guard для проверки AIMetadata
  */
 export function isAIMetadata(payload: unknown): payload is AIMetadata {
-  if (!isObject(payload)) return false
-  return true
+  return isObject(payload)
 }
 
 /**  return (payload.evaluation === undefined || isResponseEvaluation(payload.evaluation)) &&

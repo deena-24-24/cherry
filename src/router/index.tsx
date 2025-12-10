@@ -15,7 +15,6 @@ import { InterviewHomePage } from '../pages/candidate/InterviewHomePage'
 import { InterviewCallPage } from '../pages/candidate/InterviewCallPage'
 import { AiChatPage } from '../pages/candidate/AiChatPage'
 import { HrChatPage } from '../pages/candidate/HrChatPage'
-import { CompilerPage } from '../pages/candidate/CompilerPage'
 import { HrProfilePage } from '../pages/hr/HrProfilePage'
 import { HrDashboardPage } from '../pages/hr/HrDashboardPage'
 import { HrCandidatesPage } from '../pages/hr/HrCandidatesPage'
@@ -108,19 +107,10 @@ export const AppRouter: React.FC = () => {
             }
           />
           <Route
-            path={ROUTES.HR_CHAT}
+            path={ROUTES.CANDIDATE_CHAT}
             element={
               <ProtectedRoute>
                 <HrChatPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path={ROUTES.COMPILER}
-            element={
-              <ProtectedRoute>
-                <CompilerPage />
               </ProtectedRoute>
             }
           />

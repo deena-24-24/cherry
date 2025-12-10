@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { FaqItem } from '../ui/FaqItem/FaqItem'
-import './FaqSection.css'
+import * as styles from './FaqSection.module.css'
 export const FaqSection: React.FC = () => {
 
   const faqData = [
@@ -31,19 +31,21 @@ export const FaqSection: React.FC = () => {
   }
 
   return (
-    <div className="faqContainer">
-      <div className='faqTitle'>Часто задаваемые вопросы</div>
-    <div className="faqSection">
-      {faqData.map((item, index) => (
-        <FaqItem
-          key={index}
-          question={item.q}
-          answer={item.a}
-          isOpen={openFaqIndex === index}
-          onToggle={() => handleFaqToggle(index)}
-        />
-      ))}
-    </div>
+    <div className={styles["faqContainer"]}>
+      <div className={styles['faqTitle']}>
+        Часто задаваемые вопросы
+      </div>
+      <div className={styles["faqSection"]}>
+        {faqData.map((item, index) => (
+          <FaqItem
+            key={index}
+            question={item.q}
+            answer={item.a}
+            isOpen={openFaqIndex === index}
+            onToggle={() => handleFaqToggle(index)}
+          />
+        ))}
+      </div>
     </div>
   )
 }

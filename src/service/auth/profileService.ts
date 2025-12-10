@@ -45,10 +45,10 @@ export const fetchUserProfile = async (): Promise<ProfileData> => {
     const data = await response.json()
     
     // Преобразуем данные в формат ProfileData
-    const profileData: ProfileData = {
+    return {
       email: data.email || '',
-      name: data.firstName && data.lastName 
-        ? `${data.firstName} ${data.lastName}` 
+      name: data.firstName && data.lastName
+        ? `${data.firstName} ${data.lastName}`
         : data.email,
       firstName: data.firstName || '',
       lastName: data.lastName || '',
@@ -59,8 +59,6 @@ export const fetchUserProfile = async (): Promise<ProfileData> => {
       position: data.position || '',
       avatar: data.avatar || ''
     }
-
-    return profileData
   } catch (error) {
     console.error('Error fetching profile:', error)
     if (error instanceof Error) {

@@ -26,7 +26,7 @@ export const ChatList: React.FC<ChatListProps> = ({ conversations, activeChatId,
         {conversations.map((convo) => (
           <div
             key={convo.id}
-            className={`${styles['chat-item']} ${convo.id === activeChatId ? styles.active : ''}`}
+            className={`${styles['chat-item']} ${convo.id === activeChatId ? styles['active'] : ''}`}
             onClick={() => onSelectChat(convo.id)}
           >
             <img src={convo.avatarUrl} alt={convo.partnerName} className={styles['avatar']} />

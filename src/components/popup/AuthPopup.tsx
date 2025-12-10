@@ -215,12 +215,12 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
           className={styles['authRoutes-popup']}
           onClick={(e) => e.stopPropagation()}
         >
-          <Button
+          <button
             className={styles['authRoutes-popup-close']}
             onClick={handleClose}
           >
             &times;
-          </Button>
+          </button>
           <div className={styles['authRoutes-popup-header']}>
             <h2>{activeTab === 'login' ? 'Вход в аккаунт' : 'Регистрация'}</h2>
           </div>

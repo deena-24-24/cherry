@@ -21,7 +21,7 @@ export const useVoiceCall = (sessionId: string, position: string) => {
       try {
         recognitionRef.current.stop()
       } catch (e) {
-        console.log('Recognition already stopped')
+        console.log(`Recognition already stopped: ${e}`)
       }
       recognitionRef.current = null
     }
@@ -80,21 +80,21 @@ export const useVoiceCall = (sessionId: string, position: string) => {
 
       setTimeout(() => {
         if (!isRecording) {
-          startRecording()
+          startRecording().then()
         }
       }, 2000)
     }
 
     console.log(`🎯 Initializing voice call: session=${sessionId}, position=${position}`)
 
-    socketService.connect(sessionId, position)
+    socketService.connect(sessionId, position).then()
     socketService.onMessage(handleAIResponse)
     socketService.onError(handleAIError)
 
     // УВЕЛИЧИВАЕМ НАЧАЛЬНУЮ ЗАДЕРЖКУ
     const timer = setTimeout(() => {
       console.log('🎤 Starting initial recording...')
-      startRecording()
+      startRecording().then()
     }, 2000) // Было 1000, стало 2000 мс
 
     return () => {
@@ -246,7 +246,7 @@ export const useVoiceCall = (sessionId: string, position: string) => {
     if (isRecording) {
       stopRecording()
     } else {
-      startRecording()
+      startRecording().then()
     }
   }, [isRecording, startRecording, stopRecording])
 

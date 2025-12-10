@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import * as styles from "./HrHomeFeatures.module.css"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { ROUTES } from '../../router/routes'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -114,13 +115,13 @@ export const HrHomeFeatures: React.FC = () => {
       title: "ЧАТЫ",
       text: "Проверьте, возможно Вам пришёл ответ от кандидата",
       color: "pink",
-      route: "/chat",
+      route: ROUTES.HR_CHAT,
     },
     {
       title: "ПРОСМОТР КАНДИДАТОВ",
       text: "Найдите подходящего сотрудника по загруженным резюме",
       color: "pink",
-      route: "/resume",
+      route: ROUTES.HR_CANDIDATES,
     },
   ]
 

@@ -1,6 +1,6 @@
-import { useAuthStore } from '../../store';
+import { useAuthStore } from '../../store'
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5000/api'
 
 export interface CandidateData {
   userId?: string;
@@ -37,10 +37,10 @@ export interface CandidateData {
  * Получение всех данных кандидата (профиль + резюме)
  */
 export const fetchCandidate = async (): Promise<CandidateData> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/candidate`, {
@@ -49,25 +49,24 @@ export const fetchCandidate = async (): Promise<CandidateData> => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     }
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка загрузки данных кандидата');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка загрузки данных кандидата')
   }
 
-  const data = await response.json();
-  return data;
-};
+  return await response.json()
+}
 
 /**
  * Обновление всех данных кандидата
  */
 export const updateCandidate = async (candidateData: Partial<CandidateData>): Promise<CandidateData> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/candidate`, {
@@ -77,14 +76,14 @@ export const updateCandidate = async (candidateData: Partial<CandidateData>): Pr
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify(candidateData)
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка сохранения данных кандидата');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка сохранения данных кандидата')
   }
 
-  const data = await response.json();
-  return data.candidate;
-};
+  const data = await response.json()
+  return data.candidate
+}
 

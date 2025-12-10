@@ -3,7 +3,7 @@ import gsap from "gsap"
 import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 
-import "./HeroBanner.css"   // 👉 подключаем css
+import * as styles from "./HeroBanner.module.css"
 import heroImage from "../../assets/cand_home.png"
 import { Button } from '../ui/Button/Button'
 
@@ -35,11 +35,11 @@ export const HeroBanner: React.FC = () => {
   }, [])
 
   return (
-    <div className="hero-banner">
-      <div ref={wrapperRef} className="hero-bg"></div>
+    <div className={styles["hero-banner"]}>
+      <div ref={wrapperRef} className={styles["hero-bg"]}></div>
 
-      <div className="hero-content">
-        <div className="hero-text">
+      <div className={styles["hero-content"]}>
+        <div className={styles["hero-text"]}>
           <h1>Добро пожаловать в ИИ-интервью</h1>
           <p>
             Пройди тренировочное собеседование, оцени свои навыки и прокачайся
@@ -63,7 +63,7 @@ export const HeroBanner: React.FC = () => {
           </Button>
         </div>
 
-        <div className="hero-image">
+        <div className={styles["hero-image"]}>
           <img src={heroImage} alt="HR Illustration" />
         </div>
       </div>

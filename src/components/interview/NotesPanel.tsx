@@ -11,7 +11,7 @@ export const NotesPanel: React.FC = () => {
 
     // Автосохранение заметок
     if (currentSession) {
-      interviewService.saveNotes(newNotes)
+      interviewService.saveNotes(newNotes).then()
     }
   }
 

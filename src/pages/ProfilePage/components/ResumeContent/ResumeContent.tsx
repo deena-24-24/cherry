@@ -111,12 +111,12 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
 
   // Загружаем данные при монтировании компонента (при переключении на раздел резюме)
   useEffect(() => {
-    loadCandidateData()
+    loadCandidateData().then()
   }, [])
 
   // Загружаем данные при изменении пользователя
   useEffect(() => {
-    loadCandidateData()
+    loadCandidateData().then()
   }, [user?._id, user?.email, user?.country])
 
   // Синхронизируем локальное состояние с store

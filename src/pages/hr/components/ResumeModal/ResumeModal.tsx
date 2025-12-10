@@ -1,6 +1,6 @@
-import React from 'react';
-import { CandidateData } from '../../../../service/candidate/candidateService';
-import * as styles from './ResumeModal.module.css';
+import React from 'react'
+import { CandidateData } from '../../../../service/candidate/candidateService'
+import * as styles from './ResumeModal.module.css'
 
 interface ResumeModalProps {
   candidate: CandidateData | null;
@@ -8,11 +8,11 @@ interface ResumeModalProps {
 }
 
 export const ResumeModal: React.FC<ResumeModalProps> = ({ candidate, onClose }) => {
-  if (!candidate) return null;
+  if (!candidate) return null
 
   const fullName = candidate.firstName && candidate.lastName
     ? `${candidate.firstName} ${candidate.lastName}`
-    : candidate.email;
+    : candidate.email
 
   return (
     <div className={styles["modalOverlay"]} onClick={onClose}>
@@ -124,6 +124,6 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({ candidate, onClose }) 
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 

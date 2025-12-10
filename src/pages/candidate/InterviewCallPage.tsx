@@ -13,7 +13,7 @@ import { InterviewInterruptedPopup } from '../../components/interview/InterviewI
 import { useVoiceCall } from '../hooks/useVoiceCall'
 import { voiceService } from '../../service/interview/voiceService'
 import { socketService } from '../../service/socketService'
-import './InterviewCallPage.css'
+import * as styles from './InterviewCallPage.module.css'
 
 export const InterviewCallPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -157,7 +157,7 @@ export const InterviewCallPage: React.FC = () => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isCallActive) {
         console.log('⌨️ Escape key pressed - ending call')
-        handleEndCall('user')
+        handleEndCall('user').then()
       }
     }
 
@@ -221,6 +221,11 @@ export const InterviewCallPage: React.FC = () => {
     navigate(ROUTES.HOME)
   }, [navigate])
 
+  const closeSidePanels = () => {
+    setShowNotes(false)
+    setShowConsole(false)
+  }
+
   // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ РЕНДЕРИНГА ГОЛОСОВОЙ ЧАСТИ ===
 
   const renderVoiceVisualizer = () => {
@@ -263,14 +268,14 @@ export const InterviewCallPage: React.FC = () => {
   // === РЕНДЕРИНГ ===
 
   if (isLoading) {
-    return <div className="loading-screen">Загрузка собеседования...</div>
+    return <div className={styles['loading-screen']}>Загрузка собеседования...</div>
   }
 
   if (error || !currentSession) {
     return (
-      <div className="loading-screen">
+      <div className={styles['loading-screen']}>
         <p className="text-red-400">{error || 'Сессия не найдена'}</p>
-        <Button onClick={() => navigate(ROUTES.HOME)} className="back-btn">
+        <Button onClick={() => navigate(ROUTES.HOME)} className={styles['back-btn']}>
           Вернуться на главную
         </Button>
       </div>
@@ -278,45 +283,42 @@ export const InterviewCallPage: React.FC = () => {
   }
 
   return (
-    <div className="call-page">
+    <div className={styles['call-page']}>
       {/* Основная область */}
-      <div className="call-header">
+      <div className={styles['call-header']}>
         {/* Хедер */}
 
-        <div className="header-right">
-          <div className="session-info">
+        <div className={styles['header-right']}>
+          <div className={styles['session-info']}>
             <h1>{currentSession.title}</h1>
-            <span className="session-label">{currentSession.position}</span>
+            <span className={styles['session-label']}>{currentSession.position}</span>
           </div>
-          <div className="connection">
-            <div className="dot"></div>
+          <div className={styles['connection']}>
+            <div className={styles['dot']}></div>
             Connected
           </div>
-          <Button className="interrupt-btn" variant="secondary" onClick={handleEndCallFromPanel}>
-            ⏸️ Прервать собеседование
-          </Button>
         </div>
 
         {/* Основной контент */}
-        <div className="interview-main">
+        <div className={styles['interview-main']}>
 
-          <div className="ai-block block">
+          <div className={`ai-block ${styles['block']}`}>
             <h2>ИИ-СОБЕСЕДУЮЩИЙ</h2>
-            <div className="avatar">
-              <span className="avatar-icon">🤖</span>
+            <div className={styles['avatar']}>
+              <span className={styles['avatar-icon']}>🤖</span>
             </div>
-            <div className="talking-row">
-              <div className="talking-dot"></div>
-              <span className="talking-text">Говорит...</span>
+            <div className={styles['talking-row']}>
+              <div className={styles['talking-dot']}></div>
+              <span className={styles['talking-text']}>Говорит...</span>
             </div>
           </div>
 
-          <div className="user-block block">
+          <div className={`user-block ${styles['block']}`}>
             <h2>КАНДИДАТ</h2>
-            <div className="avatar">
-              <span className="avatar-icon">👤</span>
+            <div className={styles['avatar']}>
+              <span className={styles['avatar-icon']}>👤</span>
             </div>
-            <p className="subtitle">Вы</p>
+            <p className={styles['subtitle']}>Вы</p>
           </div>
 
 
@@ -526,9 +528,9 @@ export const InterviewCallPage: React.FC = () => {
         </div>
 
         {/* Нижняя панель управления */}
-        <div className="bottom-controls">
+        <div className={styles['bottom-controls']}>
           <Button
-            className="round-btn"
+            className={styles['round-btn']}
             variant={"secondary"}
             onClick={() => setShowNotes(!showNotes)}
           >
@@ -536,7 +538,7 @@ export const InterviewCallPage: React.FC = () => {
           </Button>
 
           <Button
-            className="round-btn"
+            className={styles['round-btn']}
             variant="secondary"
             onClick={() => setShowConsole(!showConsole)}
           >
@@ -546,22 +548,22 @@ export const InterviewCallPage: React.FC = () => {
       </div>
 
       {/* Боковая панель для заметок и консоли */}
-      <div className={`side-overlay ${showNotes || showConsole ? 'open' : ''}`} onClick={closeSidePanels}>
-        <aside className={`side-panel ${showNotes || showConsole ? 'open' : ''}`} onClick={(e) => e.stopPropagation()}>
-          <div className="tabs">
+      <div className={`${styles['side-overlay']} ${showNotes || showConsole ? styles['open'] : ''}`} onClick={closeSidePanels}>
+        <aside className={`${styles['side-panel']} ${showNotes || showConsole ? styles['open'] : ''}`} onClick={(e) => e.stopPropagation()}>
+          <div className={styles['tabs']}>
             <button
               onClick={() => { setShowNotes(true); setShowConsole(false) }}
-              className={`tab ${showNotes? 'active': ''}`}>
+              className={`${styles["tab"]} ${showNotes? styles['active'] : ''}`}>
               📝 Заметки
             </button>
             <button
               onClick={() => { setShowConsole(true); setShowNotes(false) }}
-              className={`tab ${showConsole ? 'active' : ''}`} >
+              className={`${styles['tab']} ${showConsole ? styles['active'] : ''}`} >
               💻 Код
             </button>
           </div>
 
-          <div className="panel-content">
+          <div className={styles['panel-content']}>
             {showNotes && <NotesPanel />}
             {showConsole && sessionId && <CodeConsole sessionId={sessionId} />}
           </div>

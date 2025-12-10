@@ -81,14 +81,14 @@ export const ProfilePage: React.FC = () => {
 
   // Загрузка данных профиля при монтировании компонента
   useEffect(() => {
-    loadProfile()
+    loadProfile().then()
   }, [user])
 
   // Перезагрузка данных при переключении разделов
   useEffect(() => {
     // Перезагружаем данные профиля при переходе в раздел "Обо мне"
     if (activeMenuItem === 'about') {
-      loadProfile()
+      loadProfile().then()
     }
     // Для резюме данные загружаются внутри ResumeContent при монтировании
     // Но мы можем добавить ключ, чтобы компонент перезагружался
@@ -173,7 +173,7 @@ export const ProfilePage: React.FC = () => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      handleSave()
+      handleSave().then()
     } else {
       handleEdit()
     }

@@ -1,9 +1,8 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button/Button'
-import { Header } from '../../components/layout/Header'
 import { ROUTES } from '../../router/routes'
-import './InterviewHomePage.css'
+import * as styles from './InterviewHomePage.module.css'
 
 export const InterviewHomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -19,8 +18,8 @@ export const InterviewHomePage: React.FC = () => {
   }
 
   return (
-    <div className="ihp-wrapper">
-      <div className="ihp-container">
+    <div className={styles["ihp-wrapper"]}>
+      <div className={styles["ihp-container"]}>
         {/* Хедер
         <header className="ihp-header">
           <h1>
@@ -32,8 +31,8 @@ export const InterviewHomePage: React.FC = () => {
         </header> */}
 
         {/* HERO БЛОК → как на макете */}
-        <section className="ihp-hero">
-          <div className="ihp-hero-text">
+        <section className={styles["ihp-hero"]}>
+          <div className={styles["ihp-hero-text"]}>
             <h2>
               Подготовьтесь к техническому<br />
               интервью с ИИ-собеседующим
@@ -44,32 +43,33 @@ export const InterviewHomePage: React.FC = () => {
             </p>
 
             {/* ЭТА КНОПКА ПЕРЕВОДИТ НА СТРАНИЦУ ЗВОНКА */}
-            <Button className="ihp-hero-btn" onClick={handleStartInterview}>
+            <Button className={styles["ihp-hero-btn"]} onClick={handleStartInterview}>
               ПРИСТУПИТЬ К ИНТЕРВЬЮ
             </Button>
           </div>
 
-          <div className="ihp-hero-image">
+          <div className={styles["ihp-hero-image"]}>
+            {/* todo: Добавить ссылку */}
             <img />
           </div>
         </section>
 
         {/* Дополнительная информация */}
-        <div className="ihp-bottom-info">
+        <div className={styles["ihp-bottom-info"]}>
           <p>После нажатия кнопки вы попадете в виртуальную комнату собеседования</p>
         </div>
 
         {/* Карточки фич */}
-        <h3 className="ihp-section-title">ВАШИ ИНТЕРВЬЮ</h3>
+        <h3 className={styles["ihp-section-title"]}>ВАШИ ИНТЕРВЬЮ</h3>
 
-        <div className="ihp-interview-card">
-          <div className="ihp-interview-title">FULLSTACK<br />INTERVIEW</div>
+        <div className={styles["ihp-interview-card"]}>
+          <div className={styles["ihp-interview-title"]}>FULLSTACK<br />INTERVIEW</div>
 
-          <div className="ihp-interview-date">
-            <span className="ihp-calendar">📅</span> 18/10/2025
+          <div className={styles["ihp-interview-date"]}>
+            <span className={styles["ihp-calendar"]}>📅</span> 18/10/2025
           </div>
 
-          <button className="ihp-interview-btn" onClick={handleViewResults}>
+          <button className={styles["ihp-interview-btn"]} onClick={handleViewResults}>
             ПОСМОТРЕТЬ ФИДБЕК
           </button>
         </div>

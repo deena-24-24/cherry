@@ -77,7 +77,7 @@ export const HrChatPage: React.FC = () => {
       }
     }
 
-    fetchConversations()
+    fetchConversations().then()
   }, [])
 
   const fetchActiveChat = useCallback(async (chatId: string) => {
@@ -106,7 +106,7 @@ export const HrChatPage: React.FC = () => {
 
   useEffect(() => {
     if (activeChatId) {
-      fetchActiveChat(activeChatId)
+      fetchActiveChat(activeChatId).then()
     }
   }, [activeChatId, fetchActiveChat])
 

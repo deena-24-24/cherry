@@ -50,4 +50,4 @@ async function testGigaChat() {
   }
 }
 
-testGigaChat();
+testGigaChat().then();

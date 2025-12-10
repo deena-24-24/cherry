@@ -49,11 +49,11 @@ export interface FaqItemProps {
 }
 
 export const FaqItem: React.FC<FaqItemProps> = ({
-                                                  question,
-                                                  answer,
-                                                  isOpen,
-                                                  onToggle
-                                                }) => {
+  question,
+  answer,
+  isOpen,
+  onToggle
+}) => {
   return (
     <div className={styles["faqItem"]}>
       <button className={styles["faqHeader"]} onClick={onToggle}>

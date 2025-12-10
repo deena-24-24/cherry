@@ -1,6 +1,6 @@
 /*import React from 'react'
 import { Button } from '../ui/Button/Button'
-import './SubscriptionBanner.css'
+import './SubscriptionBanner.module.css'
 
 export const SubscriptionBanner: React.FC = () => {
   return (
@@ -31,13 +31,13 @@ export const SubscriptionBanner: React.FC = () => {
 }*/
 import React from 'react'
 import { Button } from '../ui/Button/Button'
-import './SubscriptionBanner.css'
+import * as styles from'./SubscriptionBanner.module.css'
 
 export const SubscriptionBanner: React.FC = () => {
   return (
-    <section className="subscription">
-      <div className="subscription__inner">
-        <h2 className="subscription__title">
+    <section className={styles["subscription"]}>
+      <div className={styles["subscription__inner"]}>
+        <h2 className={styles["subscription__title"]}>
           получите неограниченный доступ к ресурсам
         </h2>
 
@@ -54,7 +54,7 @@ export const SubscriptionBanner: React.FC = () => {
             padding: '12px 17px',
             gap: '7.25px'
           }}
-          className="subscription__button"
+          className={styles["subscription__button"]}
         >
           Оформить подписку
         </Button>

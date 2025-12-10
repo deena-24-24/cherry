@@ -105,7 +105,7 @@ print(factorial(0))  # Должно быть 1`,
   useEffect(() => {
     if (codeTasks.length > 0) {
       loadTask(codeTasks[0])
-      loadHistory()
+      loadHistory().then()
     }
   }, [])
 
@@ -190,7 +190,7 @@ print(factorial(0))  # Должно быть 1`,
         return hljs.highlight(code, { language: 'plaintext' }).value
       }
     }
-  };
+  }
 
   const formatOutput = (text: string) => {
     if (!text) {
