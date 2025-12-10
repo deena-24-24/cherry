@@ -7,7 +7,7 @@ export const CandidateNavigation: React.FC = () => {
   return (
     <>
       <NavLink 
-        to={`${ROUTES.AI_INTERVIEW.replace(':session_id', 'session_1')}`}
+        to={`${ROUTES.INTERVIEW_HOME.replace(':session_id', 'session_1')}`}
         className={({ isActive }) => 
           `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
         }

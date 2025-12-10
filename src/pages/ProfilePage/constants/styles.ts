@@ -16,7 +16,7 @@ export const COLORS = {
   textLight: '#F5F5FF',
   error: '#ff4444',
   background: '#fff',
-} as const;
+} as const
 
 // Размеры шрифтов
 export const FONT_SIZES = {
@@ -28,14 +28,14 @@ export const FONT_SIZES = {
   '2xl': '28px',
   '3xl': '36px',
   '4xl': '64px',
-} as const;
+} as const
 
 // Шрифты
 export const FONT_FAMILIES = {
   sans: "'Geist', sans-serif",
   mono: "'Geist Mono', monospace",
   title: "'Anek Telugu', sans-serif",
-} as const;
+} as const
 
 // Отступы
 export const SPACING = {
@@ -48,7 +48,7 @@ export const SPACING = {
   '3xl': '30px',
   '4xl': '40px',
   '5xl': '60px',
-} as const;
+} as const
 
 // Радиусы скругления
 export const BORDER_RADIUS = {
@@ -56,19 +56,19 @@ export const BORDER_RADIUS = {
   md: '7.25px',
   lg: '8px',
   xl: '15px',
-} as const;
+} as const
 
 // Высоты элементов
 export const HEIGHTS = {
   input: '38px',
   button: '50px',
   avatar: '236px',
-} as const;
+} as const
 
 // Ширины элементов
 export const WIDTHS = {
   button: '201px',
   avatar: '236px',
   menu: '236px',
-} as const;
+} as const
 

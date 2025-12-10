@@ -12,8 +12,8 @@
   width: 100vw;
   height: 80px;
   padding: 10px 60px;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   position: absolute;
   background: var(--lavand);
   overflow: hidden;

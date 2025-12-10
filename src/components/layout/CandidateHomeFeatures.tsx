@@ -138,7 +138,7 @@ export const HomeFeatures: React.FC = () => {
 
   return (
     <section className={styles["section"]}>
-      <h2 className={styles["title"]}>НАШИ ВОЗМОЖНОСТИ</h2>
+      <h2 className={styles["title"]}>ПРИСТУПИТЕ К РАБОТЕ</h2>
 
       <div className={styles["grid"]} ref={gridRef}>
         {cards.map((card, index) => (

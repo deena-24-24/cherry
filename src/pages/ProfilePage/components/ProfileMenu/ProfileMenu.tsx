@@ -1,6 +1,6 @@
-import React from "react";
-import { MenuItem } from "../../types";
-import { Menu } from "../../../../components/ui/Menu/Menu";
+import React from "react"
+import { MenuItem } from "../../types"
+import { Menu } from "../../../../components/ui/Menu/Menu"
 
 interface ProfileMenuProps {
   activeMenuItem: MenuItem;
@@ -11,7 +11,7 @@ const menuItems = [
   { id: 'about', label: 'Обо мне' },
   { id: 'progress', label: 'Прогресс' },
   { id: 'resume', label: 'Резюме' },
-];
+]
 
 export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   activeMenuItem,
@@ -23,6 +23,6 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
       activeItemId={activeMenuItem}
       onItemChange={onMenuItemChange}
     />
-  );
-};
+  )
+}
 

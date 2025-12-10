@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { FormData, MenuItem } from "./types";
-import { compressAvatarImage } from "./utils";
-import { ProfileForm } from "./components/ProfileForm/ProfileForm";
-import { ProfileAvatar } from "./components/ProfileAvatar/ProfileAvatar";
-import { ProfileMenu } from "./components/ProfileMenu/ProfileMenu";
-import { ProgressContent } from "./components/ProgressContent/ProgressContent";
-import { ResumeContent } from "./components/ResumeContent/ResumeContent";
-import { useAuthStore } from "../../store";
-import { fetchUserProfile, updateUserProfile } from "../../service/auth/profileService";
-import "./styles/variables.css";
-import * as styles from "./ProfilePage.module.css";
+import React, { useState, useEffect } from "react"
+import { FormData, MenuItem } from "./types"
+import { compressAvatarImage } from "./utils"
+import { ProfileForm } from "./components/ProfileForm/ProfileForm"
+import { ProfileAvatar } from "./components/ProfileAvatar/ProfileAvatar"
+import { ProfileMenu } from "./components/ProfileMenu/ProfileMenu"
+import { ProgressContent } from "./components/ProgressContent/ProgressContent"
+import { ResumeContent } from "./components/ResumeContent/ResumeContent"
+import { useAuthStore } from "../../store"
+import { fetchUserProfile, updateUserProfile } from "../../service/auth/profileService"
+import "./styles/variables.css"
+import * as styles from "./ProfilePage.module.css"
 
 export const ProfilePage: React.FC = () => {
-  const { user, updateUser } = useAuthStore();
-  const [activeMenuItem, setActiveMenuItem] = useState<MenuItem>('about');
-  const [isEditing, setIsEditing] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string>('');
-  const [emailError, setEmailError] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+  const { user, updateUser } = useAuthStore()
+  const [activeMenuItem, setActiveMenuItem] = useState<MenuItem>('about')
+  const [isEditing, setIsEditing] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
+  const [emailError, setEmailError] = useState<string>('')
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -26,21 +26,21 @@ export const ProfilePage: React.FC = () => {
     phoneCode: '',
     country: '',
     about: ''
-  });
+  })
 
   // Функция загрузки данных профиля
   const loadProfile = async () => {
     if (!user) {
-      setLoading(false);
-      return;
+      setLoading(false)
+      return
     }
 
     try {
-      setLoading(true);
-      
+      setLoading(true)
+
       // Загружаем данные из API (это источник истины)
-      const profileData = await fetchUserProfile();
-      
+      const profileData = await fetchUserProfile()
+
       // Устанавливаем данные из API
       setFormData({
         firstName: profileData.firstName || '',
@@ -50,15 +50,15 @@ export const ProfilePage: React.FC = () => {
         phoneCode: '',
         country: profileData.country || '',
         about: profileData.about || ''
-      });
-      
+      })
+
       // Устанавливаем аватар, если он есть
       if (profileData.avatar) {
-        setAvatarUrl(profileData.avatar);
+        setAvatarUrl(profileData.avatar)
       }
     } catch (error) {
-      console.error('Ошибка загрузки профиля:', error);
-      
+      console.error('Ошибка загрузки профиля:', error)
+
       // Если API не доступен, используем данные из store как fallback
       setFormData({
         firstName: (user as any).firstName || '',
@@ -68,52 +68,52 @@ export const ProfilePage: React.FC = () => {
         phoneCode: '',
         country: (user as any).country || '',
         about: (user as any).about || ''
-      });
-      
+      })
+
       // Устанавливаем аватар из store, если он есть
       if ((user as any).avatar) {
-        setAvatarUrl((user as any).avatar);
+        setAvatarUrl((user as any).avatar)
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Загрузка данных профиля при монтировании компонента
   useEffect(() => {
-    loadProfile();
-  }, [user]);
+    loadProfile()
+  }, [user])
 
   // Перезагрузка данных при переключении разделов
   useEffect(() => {
     // Перезагружаем данные профиля при переходе в раздел "Обо мне"
     if (activeMenuItem === 'about') {
-      loadProfile();
+      loadProfile()
     }
     // Для резюме данные загружаются внутри ResumeContent при монтировании
     // Но мы можем добавить ключ, чтобы компонент перезагружался
-  }, [activeMenuItem]);
+  }, [activeMenuItem])
 
   const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
       try {
-        const compressedImage = await compressAvatarImage(file);
-        setAvatarUrl(compressedImage);
+        const compressedImage = await compressAvatarImage(file)
+        setAvatarUrl(compressedImage)
       } catch (error) {
-        console.error('Ошибка обработки изображения:', error);
+        console.error('Ошибка обработки изображения:', error)
       }
     }
-  };
+  }
 
   const handleSave = async () => {
     try {
-      setIsEditing(false);
-      
+      setIsEditing(false)
+
       // Подготавливаем данные для отправки
       const profileData = {
         firstName: formData.firstName,
@@ -123,11 +123,11 @@ export const ProfilePage: React.FC = () => {
         country: formData.country,
         about: formData.about,
         avatar: avatarUrl || ''
-      };
+      }
 
-      const updatedProfile = await updateUserProfile(profileData);
-      console.log('Профиль успешно обновлен');
-      
+      const updatedProfile = await updateUserProfile(profileData)
+      console.log('Профиль успешно обновлен')
+
       // Обновляем данные в store
       if (updatedProfile) {
         updateUser({
@@ -138,12 +138,12 @@ export const ProfilePage: React.FC = () => {
           country: updatedProfile.country || formData.country,
           about: updatedProfile.about || formData.about,
           avatar: updatedProfile.avatar || avatarUrl || '',
-        } as Partial<typeof user>);
+        } as Partial<typeof user>)
       }
-      
+
       // Перезагружаем данные профиля из API для получения всех обновленных данных
       try {
-        const freshProfileData = await fetchUserProfile();
+        const freshProfileData = await fetchUserProfile()
         setFormData(prev => ({
           ...prev,
           firstName: freshProfileData.firstName || prev.firstName,
@@ -152,38 +152,38 @@ export const ProfilePage: React.FC = () => {
           phone: freshProfileData.phone || prev.phone,
           country: freshProfileData.country || prev.country,
           about: freshProfileData.about || prev.about
-        }));
-        
+        }))
+
         // Обновляем аватар, если он есть
         if (freshProfileData.avatar) {
-          setAvatarUrl(freshProfileData.avatar);
+          setAvatarUrl(freshProfileData.avatar)
         }
       } catch (error) {
-        console.error('Ошибка перезагрузки профиля:', error);
+        console.error('Ошибка перезагрузки профиля:', error)
       }
     } catch (error) {
-      console.error('Ошибка сохранения профиля:', error);
+      console.error('Ошибка сохранения профиля:', error)
       // Можно добавить уведомление об ошибке
     }
-  };
+  }
 
   const handleEdit = () => {
-    setIsEditing(true);
-  };
+    setIsEditing(true)
+  }
 
   const handleEditToggle = () => {
     if (isEditing) {
-      handleSave();
+      handleSave()
     } else {
-      handleEdit();
+      handleEdit()
     }
-  };
+  }
 
   const handleCancel = async () => {
-    setIsEditing(false);
+    setIsEditing(false)
     // Загружаем свежие данные с сервера для отмены изменений
     try {
-      const freshProfileData = await fetchUserProfile();
+      const freshProfileData = await fetchUserProfile()
       setFormData(prev => ({
         ...prev,
         firstName: freshProfileData.firstName || prev.firstName,
@@ -192,16 +192,16 @@ export const ProfilePage: React.FC = () => {
         phone: freshProfileData.phone || prev.phone,
         country: freshProfileData.country || prev.country,
         about: freshProfileData.about || prev.about
-      }));
-      
+      }))
+
       // Восстанавливаем аватар
       if (freshProfileData.avatar) {
-        setAvatarUrl(freshProfileData.avatar);
+        setAvatarUrl(freshProfileData.avatar)
       }
     } catch (error) {
-      console.error('Ошибка отмены изменений:', error);
+      console.error('Ошибка отмены изменений:', error)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -213,21 +213,21 @@ export const ProfilePage: React.FC = () => {
           Загрузка данных...
         </div>
       </div>
-    );
+    )
   }
 
   const getPageTitle = () => {
     switch (activeMenuItem) {
       case 'about':
-        return 'ЛИЧНЫЙ КАБИНЕТ';
+        return 'ЛИЧНЫЙ КАБИНЕТ'
       case 'progress':
-        return 'ПРОГРЕСС';
+        return 'ПРОГРЕСС'
       case 'resume':
-        return 'РЕЗЮМЕ';
+        return 'РЕЗЮМЕ'
       default:
-        return 'ЛИЧНЫЙ КАБИНЕТ';
+        return 'ЛИЧНЫЙ КАБИНЕТ'
     }
-  };
+  }
 
   return (
     <div className={styles["page"]}>
@@ -241,8 +241,8 @@ export const ProfilePage: React.FC = () => {
         {/* Левая часть - контент в зависимости от выбранного пункта меню */}
         <div className={
           activeMenuItem === 'about' ? styles["contentContainerAbout"] :
-          activeMenuItem === 'progress' ? styles["contentContainerProgress"] :
-          styles["contentContainerResume"]
+            activeMenuItem === 'progress' ? styles["contentContainerProgress"] :
+              styles["contentContainerResume"]
         }>
           {activeMenuItem === 'about' && (
             <ProfileForm
@@ -286,5 +286,5 @@ export const ProfilePage: React.FC = () => {
       </div>
       
     </div>
-  );
-};
+  )
+}

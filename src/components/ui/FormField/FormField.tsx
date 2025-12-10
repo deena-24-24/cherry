@@ -1,5 +1,5 @@
-import React from "react";
-import * as styles from "./FormField.module.css";
+import React from "react"
+import * as styles from "./FormField.module.css"
 
 export interface FormFieldStyleProps {
   labelColor?: string;
@@ -49,14 +49,14 @@ export const FormField: React.FC<FormFieldProps> = ({
 }) => {
   const fieldStyles: React.CSSProperties = styleProps ? {
     width: styleProps.width,
-  } : {};
+  } : {}
 
   const labelStyles: React.CSSProperties = styleProps ? {
     color: styleProps.labelColor,
     fontSize: styleProps.labelFontSize,
     fontFamily: styleProps.labelFontFamily,
     paddingLeft: styleProps.paddingLeft,
-  } : {};
+  } : {}
 
   const inputStyles: React.CSSProperties = styleProps ? {
     background: styleProps.inputBackground,
@@ -66,12 +66,12 @@ export const FormField: React.FC<FormFieldProps> = ({
     fontSize: styleProps.inputFontSize,
     color: styleProps.inputColor,
     fontFamily: styleProps.inputFontFamily,
-  } : {};
+  } : {}
 
   const errorStyles: React.CSSProperties = styleProps ? {
     color: styleProps.errorColor,
     fontSize: styleProps.errorFontSize,
-  } : {};
+  } : {}
 
   return (
     <div className={`${styles["fieldGroup"]} ${className}`} style={fieldStyles}>
@@ -110,6 +110,6 @@ export const FormField: React.FC<FormFieldProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 

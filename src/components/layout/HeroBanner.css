@@ -1,7 +1,7 @@
 .hero-banner {
     position: relative;
     width: 100vw;
-    height: 90vh;
+    height: 95vh;
     margin-bottom: 0;
     overflow: hidden;
 }
@@ -94,6 +94,9 @@
         margin: 0;
     }
 
+    .hero-text h1 {
+        font-size: 40px;
+    }
     .hero-text {
         align-items: center;
     }

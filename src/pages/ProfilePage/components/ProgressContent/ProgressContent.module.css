@@ -22,8 +22,8 @@
 .tasksBackground {
   width: 806px;
   height: 208px;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   position: absolute;
   background: #F5F5FF;
   border-radius: 15px;
@@ -111,8 +111,8 @@
 .interviewCardLeft {
   width: 450px;
   height: 172px;
-  left: 0px;
-  top: 0px;
+  left: 0;
+  top: 0;
   position: absolute;
 }
 
@@ -120,7 +120,7 @@
   width: 322px;
   height: 172px;
   left: 485px;
-  top: 0px;
+  top: 0;
   position: absolute;
 }
 
@@ -203,7 +203,7 @@
 
 .interviewNote {
   width: 492px;
-  left: 0px;
+  left: 0;
   top: 189px;
   position: absolute;
 }

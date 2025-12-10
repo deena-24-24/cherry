@@ -4,6 +4,11 @@ const { ChatDeepSeek } = require('@langchain/deepseek');
 const { Agent } = require('node:https');
 const { Ollama } = require("@langchain/ollama");
 
+// ЯВНО загружаем .env файл
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+console.log('🔧 Loading LLM configuration from .env...');
+console.log('GIGA_AUTH present:', !!process.env.GIGA_AUTH);
 
 const httpsAgent = new Agent({
     rejectUnauthorized: false,
@@ -11,9 +16,9 @@ const httpsAgent = new Agent({
 
 const llm = new GigaChat({
     model: 'GigaChat-2-Max',
-    temperature: 0.2,
+    temperature: 0.7,
     scope: 'GIGACHAT_API_PERS',
-    streaming: true,
+    streaming: false,
     credentials: process.env.GIGA_AUTH,
     httpsAgent,
 });

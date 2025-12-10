@@ -1,5 +1,4 @@
 import React from 'react'
-import * as styles from './FeatureCard.module.css'
 
 export interface FeatureCardProps {
   title: string

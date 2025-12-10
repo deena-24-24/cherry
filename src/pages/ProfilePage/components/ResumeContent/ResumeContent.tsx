@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from "react";
-import { useResumeStore } from "../../../../store/useResumeStore";
-import { useAuthStore } from "../../../../store";
-import { Button } from "../../../../components/ui/Button/Button";
-import { fetchCandidate, updateCandidate, CandidateData } from "../../../../service/candidate/candidateService";
-import * as styles from "./ResumeContent.module.css";
+import React, { useState, useEffect } from "react"
+import { useResumeStore } from "../../../../store/useResumeStore"
+import { useAuthStore } from "../../../../store"
+import { Button } from "../../../../components/ui/Button/Button"
+import { fetchCandidate, updateCandidate, CandidateData } from "../../../../service/candidate/candidateService"
+import * as styles from "./ResumeContent.module.css"
 
 interface ResumeContentProps {
   key?: string;
 }
 
 export const ResumeContent: React.FC<ResumeContentProps> = () => {
-  const { user } = useAuthStore();
-  const { resume, setResume, addExperience, addEducation } = useResumeStore();
-  const [isEditing, setIsEditing] = useState(false);
-  const [localResume, setLocalResume] = useState(resume);
-  const [skills, setSkills] = useState<string[]>(['React', 'Node.js']);
-  const [showExperienceModal, setShowExperienceModal] = useState(false);
-  const [showEducationModal, setShowEducationModal] = useState(false);
-  const [resumeFileName, setResumeFileName] = useState<string>('');
-  const [resumeFileData, setResumeFileData] = useState<string>(''); // base64 или URL
+  const { user } = useAuthStore()
+  const { resume, setResume, addExperience, addEducation } = useResumeStore()
+  const [isEditing, setIsEditing] = useState(false)
+  const [localResume, setLocalResume] = useState(resume)
+  const [skills, setSkills] = useState<string[]>(['React', 'Node.js'])
+  const [showExperienceModal, setShowExperienceModal] = useState(false)
+  const [showEducationModal, setShowEducationModal] = useState(false)
+  const [resumeFileName, setResumeFileName] = useState<string>('')
+  const [resumeFileData, setResumeFileData] = useState<string>('') // base64 или URL
   
   // Форма для опыта работы
   const [experienceForm, setExperienceForm] = useState({
@@ -26,22 +26,22 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
     periodEnd: '',
     company: '',
     title: ''
-  });
+  })
   
   // Форма для образования
   const [educationForm, setEducationForm] = useState({
     year: '',
     institution: '',
     degree: ''
-  });
+  })
 
   // Функция загрузки данных кандидата
   const loadCandidateData = async () => {
-    if (!user) return;
+    if (!user) return
     
     try {
       // Загружаем все данные кандидата из единого API
-      const candidateData = await fetchCandidate();
+      const candidateData = await fetchCandidate()
       
       // Преобразуем данные кандидата в формат резюме
       const resumeData = {
@@ -57,44 +57,44 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
         experience: candidateData.experience || [],
         education: candidateData.education || [],
         about: candidateData.about || '', // Информация "О себе"
-      };
+      }
       
-      setResume(resumeData);
-      setLocalResume(resumeData);
+      setResume(resumeData)
+      setLocalResume(resumeData)
       
       // Загружаем навыки
       if (candidateData.skills && candidateData.skills.length > 0) {
-        setSkills(candidateData.skills);
+        setSkills(candidateData.skills)
       } else {
-        setSkills([]);
+        setSkills([])
       }
       
       // Загружаем файл резюме - всегда проверяем наличие файла в бэкенде
-      const fileName = candidateData.resumeFileName || '';
-      const fileData = candidateData.resumeFileData || '';
+      const fileName = candidateData.resumeFileName || ''
+      const fileData = candidateData.resumeFileData || ''
       
       console.log('🔍 Проверка файла при загрузке:', {
         fileName: fileName || 'НЕТ',
         hasData: !!fileData,
         dataLength: fileData?.length || 0,
         candidateDataKeys: Object.keys(candidateData)
-      });
+      })
       
       // Устанавливаем файл, даже если он пустой (для сброса состояния)
-      setResumeFileName(fileName);
-      setResumeFileData(fileData);
+      setResumeFileName(fileName)
+      setResumeFileData(fileData)
       
       if (fileName) {
-        console.log('✅ Файл резюме найден в бэкенде и загружен:', fileName, 'размер данных:', fileData.length);
+        console.log('✅ Файл резюме найден в бэкенде и загружен:', fileName, 'размер данных:', fileData.length)
       } else {
-        console.log('ℹ️ Файл резюме не найден в бэкенде');
+        console.log('ℹ️ Файл резюме не найден в бэкенде')
       }
     } catch (error) {
-      console.error('Ошибка загрузки данных кандидата:', error);
+      console.error('Ошибка загрузки данных кандидата:', error)
       // Используем данные из профиля как fallback
       const name = user.firstName && user.lastName 
         ? `${user.firstName} ${user.lastName}` 
-        : user.email || '';
+        : user.email || ''
       
       const fallbackResume = {
         ...resume,
@@ -103,35 +103,33 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
         phone: user.phone || '',
         jobTitle: user.country || '', // Место жительства берется из country профиля
         photoUrl: user.avatar || '',
-      };
-      setResume(fallbackResume);
-      setLocalResume(fallbackResume);
+      }
+      setResume(fallbackResume)
+      setLocalResume(fallbackResume)
     }
-  };
+  }
 
   // Загружаем данные при монтировании компонента (при переключении на раздел резюме)
   useEffect(() => {
-    loadCandidateData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    loadCandidateData()
+  }, [])
 
   // Загружаем данные при изменении пользователя
   useEffect(() => {
-    loadCandidateData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?._id, user?.email, user?.country]);
+    loadCandidateData()
+  }, [user?._id, user?.email, user?.country])
 
   // Синхронизируем локальное состояние с store
   useEffect(() => {
-    setLocalResume(resume);
-  }, [resume]);
+    setLocalResume(resume)
+  }, [resume])
 
   const handleFieldChange = (field: keyof typeof localResume, value: string) => {
     setLocalResume(prev => ({
       ...prev,
       [field]: value
-    }));
-  };
+    }))
+  }
 
   const handleExperienceChange = (index: number, field: keyof typeof localResume.experience[0], value: string) => {
     setLocalResume(prev => ({
@@ -139,8 +137,8 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
       experience: prev.experience.map((exp, i) => 
         i === index ? { ...exp, [field]: value } : exp
       )
-    }));
-  };
+    }))
+  }
 
   const handleEducationChange = (index: number, field: keyof typeof localResume.education[0], value: string) => {
     setLocalResume(prev => ({
@@ -148,48 +146,48 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
       education: prev.education.map((edu, i) => 
         i === index ? { ...edu, [field]: value } : edu
       )
-    }));
-  };
+    }))
+  }
 
   const handleRemoveExperience = (index: number) => {
     setLocalResume(prev => ({
       ...prev,
       experience: prev.experience.filter((_, i) => i !== index)
-    }));
-  };
+    }))
+  }
 
   const handleRemoveEducation = (index: number) => {
     setLocalResume(prev => ({
       ...prev,
       education: prev.education.filter((_, i) => i !== index)
-    }));
-  };
+    }))
+  }
 
   const handleRemoveSkill = (index: number) => {
-    setSkills(prev => prev.filter((_, i) => i !== index));
-  };
+    setSkills(prev => prev.filter((_, i) => i !== index))
+  }
 
   const handleAddSkill = () => {
-    const newSkill = prompt('Введите название навыка:');
+    const newSkill = prompt('Введите название навыка:')
     if (newSkill && newSkill.trim()) {
-      setSkills(prev => [...prev, newSkill.trim()]);
+      setSkills(prev => [...prev, newSkill.trim()])
     }
-  };
+  }
 
   const handleOpenExperienceModal = () => {
-    setExperienceForm({ periodStart: '', periodEnd: '', company: '', title: '' });
-    setShowExperienceModal(true);
-  };
+    setExperienceForm({ periodStart: '', periodEnd: '', company: '', title: '' })
+    setShowExperienceModal(true)
+  }
 
   const handleCloseExperienceModal = () => {
-    setShowExperienceModal(false);
-    setExperienceForm({ periodStart: '', periodEnd: '', company: '', title: '' });
-  };
+    setShowExperienceModal(false)
+    setExperienceForm({ periodStart: '', periodEnd: '', company: '', title: '' })
+  }
 
   const handleSubmitExperience = () => {
     const period = experienceForm.periodStart && experienceForm.periodEnd
       ? `${experienceForm.periodStart} - ${experienceForm.periodEnd}`
-      : experienceForm.periodStart || experienceForm.periodEnd;
+      : experienceForm.periodStart || experienceForm.periodEnd
     
     setLocalResume(prev => ({
       ...prev,
@@ -199,19 +197,19 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
         title: experienceForm.title,
         description: ''
       }]
-    }));
-    handleCloseExperienceModal();
-  };
+    }))
+    handleCloseExperienceModal()
+  }
 
   const handleOpenEducationModal = () => {
-    setEducationForm({ year: '', institution: '', degree: '' });
-    setShowEducationModal(true);
-  };
+    setEducationForm({ year: '', institution: '', degree: '' })
+    setShowEducationModal(true)
+  }
 
   const handleCloseEducationModal = () => {
-    setShowEducationModal(false);
-    setEducationForm({ year: '', institution: '', degree: '' });
-  };
+    setShowEducationModal(false)
+    setEducationForm({ year: '', institution: '', degree: '' })
+  }
 
   const handleSubmitEducation = () => {
     setLocalResume(prev => ({
@@ -221,9 +219,9 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
         institution: educationForm.institution,
         degree: educationForm.degree
       }]
-    }));
-    handleCloseEducationModal();
-  };
+    }))
+    handleCloseEducationModal()
+  }
 
   const handleSave = async () => {
     try {
@@ -243,7 +241,7 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
         // Всегда отправляем файл, даже если он пустой (для удаления)
         resumeFileName: resumeFileName ? String(resumeFileName) : '',
         resumeFileData: resumeFileData ? String(resumeFileData) : '',
-      };
+      }
       
       console.log('💾 Сохранение файла резюме:', {
         fileName: resumeFileName || 'НЕТ',
@@ -254,22 +252,22 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
         candidateDataKeys: Object.keys(candidateData),
         willSendFileName: candidateData.resumeFileName || 'НЕТ',
         willSendFileData: candidateData.resumeFileData ? `данные (${candidateData.resumeFileData.length} символов)` : 'НЕТ'
-      });
+      })
       
       // Проверяем, что файл включен в данные перед отправкой
       console.log('📤 Отправка данных на сервер, проверка файла:', {
         resumeFileName: candidateData.resumeFileName || 'НЕТ',
         resumeFileData: candidateData.resumeFileData ? `данные (${candidateData.resumeFileData.length} символов)` : 'НЕТ',
         allKeys: Object.keys(candidateData)
-      });
+      })
       
       // Сохраняем все данные в единое хранилище
-      const savedCandidate = await updateCandidate(candidateData);
+      const savedCandidate = await updateCandidate(candidateData)
       
       console.log('📥 Получен ответ от сервера, проверка файла:', {
         resumeFileName: savedCandidate.resumeFileName || 'НЕТ',
         resumeFileData: savedCandidate.resumeFileData ? `данные (${savedCandidate.resumeFileData.length} символов)` : 'НЕТ'
-      });
+      })
       
       // Преобразуем данные кандидата в формат резюме
       const mergedResume = {
@@ -285,87 +283,87 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
         experience: savedCandidate.experience || [],
         education: savedCandidate.education || [],
         about: savedCandidate.about || '', // Информация "О себе"
-      };
+      }
       
       // Обновляем store
-      setResume(mergedResume);
-      setLocalResume(mergedResume);
+      setResume(mergedResume)
+      setLocalResume(mergedResume)
       
       // Обновляем навыки
       if (savedCandidate.skills) {
-        setSkills(savedCandidate.skills);
+        setSkills(savedCandidate.skills)
       }
       
       // Обновляем файл резюме - всегда обновляем состояние
-      const savedFileName = savedCandidate.resumeFileName || '';
-      const savedFileData = savedCandidate.resumeFileData || '';
+      const savedFileName = savedCandidate.resumeFileName || ''
+      const savedFileData = savedCandidate.resumeFileData || ''
       
-      setResumeFileName(savedFileName);
-      setResumeFileData(savedFileData);
+      setResumeFileName(savedFileName)
+      setResumeFileData(savedFileData)
       
       console.log('✅ Файл обновлен после сохранения:', {
         fileName: savedFileName || 'НЕТ',
         hasData: !!savedFileData,
         dataLength: savedFileData?.length || 0,
         savedCandidateKeys: Object.keys(savedCandidate)
-      });
+      })
       
-      setIsEditing(false);
+      setIsEditing(false)
     } catch (error) {
-      console.error('Ошибка сохранения данных кандидата:', error);
+      console.error('Ошибка сохранения данных кандидата:', error)
       // В случае ошибки все равно обновляем локальное состояние
-      setResume(localResume);
-      setIsEditing(false);
+      setResume(localResume)
+      setIsEditing(false)
     }
-  };
+  }
 
   const handleCancel = () => {
-    setLocalResume(resume);
-    setIsEditing(false);
+    setLocalResume(resume)
+    setIsEditing(false)
     // Восстанавливаем имя файла из сохраненных данных
     if (resume) {
       // Файл восстанавливается при перезагрузке данных
     }
-  };
+  }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file && file.type === 'application/pdf') {
       try {
         // Читаем файл как base64
-        const reader = new FileReader();
+        const reader = new FileReader()
         reader.onloadend = () => {
-          const base64String = reader.result as string;
-          setResumeFileData(base64String);
-          setResumeFileName(file.name);
+          const base64String = reader.result as string
+          setResumeFileData(base64String)
+          setResumeFileName(file.name)
           console.log('✅ Файл загружен в состояние:', {
             fileName: file.name,
             fileSize: file.size,
             dataLength: base64String.length,
             dataPreview: base64String.substring(0, 50) + '...'
-          });
-        };
+          })
+        }
         reader.onerror = (error) => {
-          console.error('❌ Ошибка чтения файла:', error);
-        };
-        reader.readAsDataURL(file);
+          console.error('❌ Ошибка чтения файла:', error)
+        }
+        reader.readAsDataURL(file)
       } catch (error) {
-        console.error('❌ Ошибка обработки файла:', error);
+        console.error('❌ Ошибка обработки файла:', error)
       }
     } else {
-      alert('Пожалуйста, выберите файл в формате PDF');
+      alert('Пожалуйста, выберите файл в формате PDF')
     }
-  };
+  }
 
   const handleRemoveFile = () => {
-    setResumeFileName('');
-    setResumeFileData('');
+    setResumeFileName('')
+    setResumeFileData('')
     // Сбрасываем input
-    const fileInput = document.getElementById('resume-file-input') as HTMLInputElement;
+    const fileInput = document.getElementById('resume-file-input') as HTMLInputElement
     if (fileInput) {
-      fileInput.value = '';
+      fileInput.value = ''
     }
-  };
+  }
 
   return (
     <div className={styles["resumeContent"]}>
@@ -712,34 +710,34 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
       </div>
 
       {/* Кнопки сохранения/отмены или редактирования */}
-        {isEditing ? (
-          <div className={styles["actions"]}>
-            <Button
-              variant="primary"
-              onClick={handleSave}
-              className={styles["saveButton"]}
-            >
-              Сохранить
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleCancel}
-              className={styles["cancelButton"]}
-            >
-              Отмена
-            </Button>
-          </div>
-        ) : (
-          <div className={styles["editButtonContainer"]}>
-            <Button
-              variant="primary"
-              onClick={() => setIsEditing(true)}
-              className={styles["editButton"]}
-            >
-              РЕДАКТИРОВАТЬ
-            </Button>
-          </div>
-        )}
+      {isEditing ? (
+        <div className={styles["actions"]}>
+          <Button
+            variant="primary"
+            onClick={handleSave}
+            className={styles["saveButton"]}
+          >
+            Сохранить
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleCancel}
+            className={styles["cancelButton"]}
+          >
+            Отмена
+          </Button>
+        </div>
+      ) : (
+        <div className={styles["editButtonContainer"]}>
+          <Button
+            variant="primary"
+            onClick={() => setIsEditing(true)}
+            className={styles["editButton"]}
+          >
+            РЕДАКТИРОВАТЬ
+          </Button>
+        </div>
+      )}
 
       {/* Модальное окно для добавления опыта работы */}
       {showExperienceModal && (
@@ -775,7 +773,7 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
                   className={styles["modalInput"]}
                   placeholder="Название компании"
                 />
-  </div>
+              </div>
               <div className={styles["formGroup"]}>
                 <label className={styles["formLabel"]}>ДОЛЖНОСТЬ</label>
                 <input
@@ -785,7 +783,7 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
                   className={styles["modalInput"]}
                   placeholder="Название должности"
                 />
-</div>
+              </div>
               <Button
                 variant="primary"
                 onClick={handleSubmitExperience}
@@ -793,9 +791,9 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
               >
                 ДОБАВИТЬ
               </Button>
-</div>
-</div>
-</div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Модальное окно для добавления образования */}
@@ -846,5 +844,6 @@ export const ResumeContent: React.FC<ResumeContentProps> = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
+

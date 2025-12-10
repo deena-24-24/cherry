@@ -24,4 +24,11 @@ router.put('/sessions/:sessionId/complete', auth, interviewController.completeIn
 // Получение сессий пользователя
 router.get('/users/:userId/sessions', interviewController.getUserSessions);
 
+// НОВЫЕ МАРШРУТЫ ДЛЯ ДИАЛОГА:
+// Обработка сообщений в диалоге
+router.post('/sessions/:sessionId/conversation', interviewController.handleConversation);
+
+// Получение истории диалога
+router.get('/sessions/:sessionId/conversation', interviewController.getConversationHistory);
+
 module.exports = router;
