@@ -1,7 +1,7 @@
 // frontend/services/InterviewService.ts
 import { socketService } from '../socketService'
 import { voiceService } from './voiceService'
-import { AIResponse, InterviewSession, CodeExecutionResult, SocketInterviewCompleted } from '../../types'
+import { AIResponse, SocketInterviewCompleted, isSocketInterviewCompleted, extractAIResponse, isSocketAIError } from '../../types'
 
 export interface ConversationMessage {
   role: 'assistant' | 'user'
