@@ -38,7 +38,6 @@ class HrController {
           avatar: user.avatar || '',
           // HR-специфичные поля
           companyName: user.companyName || '',
-          position: user.position || '',
           favoriteCandidateIds: [],
           // Метаданные
           createdAt: new Date().toISOString(),
@@ -60,7 +59,6 @@ class HrController {
         hr.about = user.about || hr.about || '';
         hr.avatar = user.avatar || hr.avatar || '';
         hr.companyName = user.companyName || hr.companyName || '';
-        hr.position = user.position || hr.position || '';
         // Инициализируем favoriteCandidateIds если его нет
         if (!hr.favoriteCandidateIds) {
           hr.favoriteCandidateIds = [];
@@ -126,9 +124,7 @@ class HrController {
       if (updateData.companyName !== undefined) {
         user.companyName = updateData.companyName;
       }
-      if (updateData.position !== undefined) {
-        user.position = updateData.position;
-      }
+
 
       // Подготавливаем данные HR
       const hrData = {
@@ -143,7 +139,6 @@ class HrController {
         avatar: user.avatar || '',
         // HR-специфичные поля
         companyName: user.companyName || '',
-        position: user.position || '',
         updatedAt: new Date().toISOString()
       };
 

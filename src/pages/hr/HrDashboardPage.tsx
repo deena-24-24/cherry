@@ -13,7 +13,7 @@ export const HrDashboardPage: React.FC = () => {
       
       <div className={styles["container"]}>
         <div className={styles["welcome"]}>
-          <h2>Добро пожаловать, {user?.firstName || 'HR-специалист'}!</h2>
+          <h2>Добро пожаловать, {user?.firstName || 'HR-агент'}!</h2>
           <p>Здесь вы можете управлять кандидатами и просматривать статистику</p>
         </div>
         

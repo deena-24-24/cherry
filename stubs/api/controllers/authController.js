@@ -63,12 +63,12 @@ const registerCandidate = async (req, res) => {
 };
 
 /**
- * @desc    Регистрация нового HR-специалиста
+ * @desc    Регистрация нового HR-агента
  * @route   POST /api/auth/register/hr
  * @access  Public
  */
 const registerHr = async (req, res) => {
-  const { email, password, firstName, lastName, companyName, phone, position } = req.body;
+  const { email, password, firstName, lastName, companyName, phone } = req.body;
 
   try {
     if (users.find(user => user.email === email)) {
@@ -84,7 +84,6 @@ const registerHr = async (req, res) => {
       lastName,
       companyName,
       phone: phone || '',
-      position: position || '',
       country: '',
       about: '',
       avatar: '',
@@ -105,8 +104,7 @@ const registerHr = async (req, res) => {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         companyName: newUser.companyName,
-        phone: newUser.phone,
-        position: newUser.position,
+        phone: newUser.phone
       },
     });
   } catch (error) {
@@ -150,8 +148,7 @@ const login = async (req, res) => {
         country: user.country || '',
         about: user.about || '',
         avatar: user.avatar || '',
-        companyName: user.companyName || '', // Будет пустым для кандидата, это нормально
-        position: user.position || '',
+        companyName: user.companyName || '', // Будет пустым для кандидата
       },
     });
   } catch (error) {

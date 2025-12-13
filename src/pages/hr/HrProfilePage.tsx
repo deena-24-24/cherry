@@ -33,7 +33,6 @@ export const HrProfilePage: React.FC = () => {
     about: ''
   })
   const [companyName, setCompanyName] = useState<string>('')
-  const [position, setPosition] = useState<string>('')
 
   // Функция загрузки данных профиля
   const loadProfile = async () => {
@@ -61,7 +60,6 @@ export const HrProfilePage: React.FC = () => {
       
       // Устанавливаем HR-специфичные поля
       setCompanyName(hrData.companyName || '')
-      setPosition(hrData.position || '')
       
       // Устанавливаем аватар, если он есть
       if (hrData.avatar) {
@@ -82,7 +80,6 @@ export const HrProfilePage: React.FC = () => {
       })
       
       setCompanyName((user as any).companyName || '')
-      setPosition((user as any).position || '')
       
       // Устанавливаем аватар из store, если он есть
       if ((user as any).avatar) {
@@ -144,8 +141,7 @@ export const HrProfilePage: React.FC = () => {
         country: formData.country,
         about: formData.about,
         avatar: avatarUrl || '',
-        companyName: companyName,
-        position: position
+        companyName: companyName
       }
 
       const updatedHr = await updateHr(hrData)
@@ -162,7 +158,6 @@ export const HrProfilePage: React.FC = () => {
           about: updatedHr.about || formData.about,
           avatar: updatedHr.avatar || avatarUrl || '',
           companyName: updatedHr.companyName || companyName,
-          position: updatedHr.position || position,
         } as Partial<typeof user>)
       }
       
@@ -180,7 +175,6 @@ export const HrProfilePage: React.FC = () => {
         }))
         
         setCompanyName(freshHrData.companyName || '')
-        setPosition(freshHrData.position || '')
         
         // Обновляем аватар, если он есть
         if (freshHrData.avatar) {
@@ -222,7 +216,6 @@ export const HrProfilePage: React.FC = () => {
         about: freshHrData.about || prev.about
       }))
       setCompanyName(freshHrData.companyName || '')
-      setPosition(freshHrData.position || '')
       if (freshHrData.avatar) {
         setAvatarUrl(freshHrData.avatar)
       }
@@ -293,13 +286,6 @@ export const HrProfilePage: React.FC = () => {
                 value={companyName}
                 isEditing={isEditing}
                 onChange={(value) => setCompanyName(value)}
-              />
-              
-              <FormField
-                label="ДОЛЖНОСТЬ"
-                value={position}
-                isEditing={isEditing}
-                onChange={(value) => setPosition(value)}
               />
 
               {/* Поле "Электронная почта" */}
