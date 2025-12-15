@@ -5,10 +5,14 @@ import gsap from "gsap"
 import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import * as styles from './HrHeroBanner.module.css'
+import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../router/routes'
 
 gsap.registerPlugin(ScrollTrigger)
 
 export const HrHeroBanner: React.FC = () => {
+
+  const navigate = useNavigate()
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
   useGSAP(() => {
@@ -39,10 +43,9 @@ export const HrHeroBanner: React.FC = () => {
 
       <div className={styles["hero-content"]}>
         <div className={styles["hero-text"]}>
-          <h1>Добро пожаловать в ИИ-интервью</h1>
+          <h1>Добро пожаловать в CareerUp</h1>
           <p>
-            Пройди тренировочное собеседование, оцени свои навыки и прокачайся
-            с помощью искусственного интеллекта.
+            Просмотрите опубликованные нашими пользователями резюме. Возможно, кто-то из них идеально подходит вашей компании?
           </p>
           <Button
             variant="custom"
@@ -57,8 +60,9 @@ export const HrHeroBanner: React.FC = () => {
               padding: '12px 17px',
               gap: '7.25px'
             }}
+            onClick={()=> navigate(ROUTES.HR_CANDIDATES)}
           >
-            НАЧАТЬ
+            ПЕРЕЙТИ
           </Button>
         </div>
 

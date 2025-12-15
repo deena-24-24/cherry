@@ -10,7 +10,7 @@
 .hero-bg {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, var(--lavand), var(--peach));
+    background: linear-gradient(135deg, var(--lavand), var(--maroon));
     z-index: 1;
     margin: 50px clamp(30px, 5vw, 200px) 0;
 }

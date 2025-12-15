@@ -43,6 +43,18 @@ export const InterviewCallPage: React.FC = () => {
   const [voiceActivity, setVoiceActivity] = useState(0)
   const [isConnected, setIsConnected] = useState(false)
 
+  useEffect(() => {
+    if (showConsole || showNotes) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [showConsole, showNotes])
+
   // === ИСПОЛЬЗУЕМ ГОЛОСОВОЙ ХУК ===
   const {
     isRecording,

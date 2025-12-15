@@ -23,6 +23,7 @@ import { HrCandidatesPage } from '../pages/hr/HrCandidatesPage'
 import { usePopupStore } from '../store'
 import { useAuthStore } from '../store'
 import { User } from '../types'
+import { MainLayout } from '../components/layout/MainLayout'
 
 export const AppRouter: React.FC = () => {
   const { isAuthOpen, closeAuth } = usePopupStore()
@@ -41,43 +42,118 @@ export const AppRouter: React.FC = () => {
 
   return (
     <>
-      <Header />
+      {/*<Header /> - убрала в MainLayout*/}
 
       <main className="min-h-screen">
         <Routes>
-          <Route path={ROUTES.HOME} element={<LandingPage />} />
+          <Route element={<MainLayout />}>
+            <Route path={ROUTES.HOME} element={<LandingPage />} />
 
-          {/* РЕДИРЕКТЫ для старых пулов */}
-          <Route
-            path="/candidate/interview"
-            element={<Navigate to={ROUTES.INTERVIEW_HOME} replace />}
-          />
-          <Route
-            path="/candidate/interview/:sessionId"
-            element={<Navigate to={ROUTES.INTERVIEW_CALL} replace />}
-          />
+            {/* РЕДИРЕКТЫ для старых пулов */}
+            <Route
+              path="/candidate/interview"
+              element={<Navigate to={ROUTES.INTERVIEW_HOME} replace />}
+            />
+            <Route
+              path="/candidate/interview/:sessionId"
+              element={<Navigate to={ROUTES.INTERVIEW_CALL} replace />}
+            />
 
-          {/* Protected Routes */}
+            {/* Protected Routes */}
+            <Route
+              path={ROUTES.RESUME}
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Главная страница интервью (лендинг) */}
+            <Route
+              path={ROUTES.INTERVIEW_HOME}
+              element={
+                <ProtectedRoute>
+                  <InterviewHomePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Страница звонка - вынесла внизу, т.к. хедер и футер не нужен*/}
+            {/*
           <Route
-            path={ROUTES.RESUME}
+            path={ROUTES.INTERVIEW_CALL}
             element={
               <ProtectedRoute>
-                <ProfilePage />
+                <InterviewCallPage />
               </ProtectedRoute>
             }
-          />
+          />*/}
 
-          {/* Главная страница интервью (лендинг) */}
-          <Route
-            path={ROUTES.INTERVIEW_HOME}
-            element={
-              <ProtectedRoute>
-                <InterviewHomePage />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path={ROUTES.RESULTS}
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+                    <h1 className="text-2xl">Страница результатов в разработке 📊</h1>
+                  </div>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Страница звонка */}
+            <Route
+              path={ROUTES.AI_CHAT}
+              element={
+                <ProtectedRoute>
+                  <AiChatPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.CANDIDATE_CHAT}
+              element={
+                <ProtectedRoute>
+                  <HrChatPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* HR Routes */}
+            <Route
+              path={ROUTES.HR_DASHBOARD}
+              element={
+                <ProtectedRoute>
+                  <HrDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.HR_PROFILE}
+              element={
+                <ProtectedRoute>
+                  <HrProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.HR_CANDIDATES}
+              element={
+                <ProtectedRoute>
+                  <HrCandidatesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.HR_CHAT}
+              element={
+                <ProtectedRoute>
+                  <HrChatPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
+          {/* Страница звонка - без хедера и футера */}
           <Route
             path={ROUTES.INTERVIEW_CALL}
             element={
@@ -86,72 +162,10 @@ export const AppRouter: React.FC = () => {
               </ProtectedRoute>
             }
           />
-
-          <Route
-            path={ROUTES.RESULTS}
-            element={
-              <ProtectedRoute>
-                <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-                  <h1 className="text-2xl">Страница результатов в разработке 📊</h1>
-                </div>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path={ROUTES.AI_CHAT}
-            element={
-              <ProtectedRoute>
-                <AiChatPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path={ROUTES.CANDIDATE_CHAT}
-            element={
-              <ProtectedRoute>
-                <HrChatPage />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* HR Routes */}
-          <Route
-            path={ROUTES.HR_DASHBOARD}
-            element={
-              <ProtectedRoute>
-                <HrDashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path={ROUTES.HR_PROFILE}
-            element={
-              <ProtectedRoute>
-                <HrProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path={ROUTES.HR_CANDIDATES}
-            element={
-              <ProtectedRoute>
-                <HrCandidatesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path={ROUTES.HR_CHAT}
-            element={
-              <ProtectedRoute>
-                <HrChatPage />
-              </ProtectedRoute>
-            }
-          />
         </Routes>
       </main>
 
-      <Footer />
+      {/*<Footer /> - убрала в MainLayout*/}
 
       <AuthPopup
         isOpen={isAuthOpen}

@@ -1,0 +1,78 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 800px;
+    margin: 100px auto 0 auto;
+    padding: 60px 20px;
+    gap: 24px;
+    height: 60vh;
+}
+
+.mainTitle {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: -0.5px;
+
+    background:
+            radial-gradient(circle at 30% 40%, var(--maroon), transparent 60%),
+            linear-gradient(90deg, var(--navy), var(--lavand));
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+
+    background-size: 200% 200%;
+    animation: radialMove 8s ease-in-out infinite;
+}
+
+@keyframes radialMove {
+    0%   { background-position: 20% 30%; }
+    50%  { background-position: 80% 70%; }
+    100% { background-position: 20% 30%; }
+}
+
+
+
+.description {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary, var(--navy));
+    margin: 0;
+    max-width: 600px;
+}
+
+.ctaButton {
+    margin-top: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ctaButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .container {
+        padding: 40px 16px;
+        gap: 20px;
+    }
+
+    .mainTitle {
+        font-size: 2.5rem;
+    }
+
+    .description {
+        font-size: 1.125rem;
+    }
+
+    .ctaButton {
+        width: 100%;
+        max-width: 300px;
+    }
+}

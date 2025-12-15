@@ -2,14 +2,17 @@ import React, { useRef } from "react"
 import gsap from "gsap"
 import { useGSAP } from '@gsap/react'
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-
 import * as styles from "./HeroBanner.module.css"
 import heroImage from "../../assets/cand_home.png"
 import { Button } from '../ui/Button/Button'
+import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../router/routes'
 
 gsap.registerPlugin(ScrollTrigger)
 
 export const HeroBanner: React.FC = () => {
+
+  const navigate = useNavigate()
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
   useGSAP(() => {
@@ -40,7 +43,7 @@ export const HeroBanner: React.FC = () => {
 
       <div className={styles["hero-content"]}>
         <div className={styles["hero-text"]}>
-          <h1>Добро пожаловать в ИИ-интервью</h1>
+          <h1>Добро пожаловать в CareerUp</h1>
           <p>
             Пройди тренировочное собеседование, оцени свои навыки и прокачайся
             с помощью искусственного интеллекта.
@@ -58,8 +61,9 @@ export const HeroBanner: React.FC = () => {
               padding: '12px 17px',
               gap: '7.25px'
             }}
+            onClick={() => navigate(ROUTES.INTERVIEW_HOME)}
           >
-            НАЧАТЬ
+            ПЕРЕЙТИ
           </Button>
         </div>
 
