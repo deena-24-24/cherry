@@ -15,7 +15,7 @@ export const HrNavigation: React.FC = () => {
         КАНДИДАТЫ
       </NavLink>
       <NavLink 
-        to={ROUTES.HR_CHAT}
+        to={ROUTES.CHAT}
         className={({ isActive }) => 
           `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
         }

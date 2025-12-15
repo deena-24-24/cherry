@@ -2,7 +2,6 @@ import axios from 'axios'
 import { useAuthStore } from '../../store'
 import { API_URL } from '../../config'
 
-// Создаем экземпляр axios с базовым URL
 const apiClient = axios.create({
   baseURL: `${API_URL}/api`,
 })
@@ -18,23 +17,53 @@ apiClient.interceptors.request.use((config) => {
   return Promise.reject(error)
 })
 
-
-class ChatService {
-  /**
-   * Отправляет сообщение на бэкенд и получает ответ от AI.
-   * @param message - Текст сообщения пользователя.
-   * @returns Объект с ответом AI.
-   */
-  sendMessage = async (message: string): Promise<{ reply: string }> => {
-    try {
-      const response = await apiClient.post('/ai_chat/message', { message })
-      return response.data
-    } catch (error) {
-      console.error("Ошибка при отправке сообщения:", error)
-      throw error
-    }
-  }
+// Типы для HR-чата (Human-to-Human)
+export interface ChatPreview {
+  id: string;
+  partnerId: string;
+  partnerName: string;
+  partnerCompany: string;
+  partnerAvatar: string;
+  lastMessage: string;
+  timestamp: string;
 }
 
-const chatService = new ChatService()
-export default chatService
+export interface ChatMessageData {
+  id: string;
+  senderId: string;
+  text: string;
+  timestamp: string;
+}
+
+export interface FullChat {
+  id: string;
+  messages: ChatMessageData[];
+  partner: {
+    id: string;
+    name: string;
+    company: string;
+    avatar: string;
+  };
+}
+
+export const chatService = {
+  getChats: async (): Promise<ChatPreview[]> => {
+    const response = await apiClient.get('/chat/chats')
+    return response.data
+  },
+
+  getChatById: async (chatId: string): Promise<FullChat> => {
+    const response = await apiClient.get(`/chat/chats/${chatId}`)
+    return response.data
+  },
+
+  sendMessage: async (chatId: string, text: string): Promise<ChatMessageData> => {
+    const response = await apiClient.post(`/chat/chats/${chatId}/message`, { text })
+    return response.data
+  },
+
+  startChat: async (targetUserId: string): Promise<{ id: string; isNew: boolean }> => {
+    const response = await apiClient.post('/chat/start', { targetUserId })
+    return response.data
+  }
+}

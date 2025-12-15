@@ -8,12 +8,11 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
 const codeRoutes = require('./routes/codeRoutes');
-const interviewAI = require('./service/interviewAI');
+const aiChatRoutes = require('./routes/aiChatRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const candidateRoutes = require('./routes/candidateRoutes');
 const hrRoutes = require('./routes/hrRoutes');
 
-// Создаем экземпляр приложения Express
 const app = express();
 const server = createServer(app);
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:8099';
@@ -31,6 +30,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/interview', interviewRoutes);
 app.use('/api/code', codeRoutes);
+app.use('/api/ai_chat', aiChatRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/candidate', candidateRoutes);
 app.use('/api/hr', hrRoutes);
@@ -56,8 +56,8 @@ io.on('connection', (socket) => {
       const state = interviewAI.conversationStates.get(sessionId);
 
       // 3. ОПРЕДЕЛЯЕМ, КАКОЕ СООБЩЕНИЕ ОТПРАВИТЬ
-      let messageToSend = '';
-      let metadata = {};
+      let messageToSend;
+      let metadata;
 
       // Вариант A: Есть приветствие от initializeSession (новая сессия)
       if (greetingResponse) {

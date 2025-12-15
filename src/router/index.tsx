@@ -14,7 +14,7 @@ import { ProfilePage } from '../pages/ProfilePage/ProfilePage'
 import { InterviewHomePage } from '../pages/candidate/InterviewHomePage'
 import { InterviewCallPage } from '../pages/candidate/InterviewCallPage'
 import { AiChatPage } from '../pages/candidate/AiChatPage'
-import { HrChatPage } from '../pages/candidate/HrChatPage'
+import { ChatPage } from '../pages/common/ChatPage'
 import { HrProfilePage } from '../pages/hr/HrProfilePage'
 import { HrDashboardPage } from '../pages/hr/HrDashboardPage'
 import { HrCandidatesPage } from '../pages/hr/HrCandidatesPage'
@@ -107,10 +107,10 @@ export const AppRouter: React.FC = () => {
             }
           />
           <Route
-            path={ROUTES.CANDIDATE_CHAT}
+            path={ROUTES.CHAT}
             element={
               <ProtectedRoute>
-                <HrChatPage />
+                <ChatPage />
               </ProtectedRoute>
             }
           />
@@ -141,10 +141,10 @@ export const AppRouter: React.FC = () => {
             }
           />
           <Route
-            path={ROUTES.HR_CHAT}
+            path={ROUTES.CHAT}
             element={
               <ProtectedRoute>
-                <HrChatPage />
+                <ChatPage />
               </ProtectedRoute>
             }
           />

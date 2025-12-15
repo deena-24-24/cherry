@@ -115,7 +115,7 @@ export const HrHomeFeatures: React.FC = () => {
       title: "ЧАТЫ",
       text: "Проверьте, возможно Вам пришёл ответ от кандидата",
       color: "pink",
-      route: ROUTES.HR_CHAT,
+      route: ROUTES.CHAT,
     },
     {
       title: "ПРОСМОТР КАНДИДАТОВ",

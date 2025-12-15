@@ -23,7 +23,7 @@ export const CandidateNavigation: React.FC = () => {
         AI ЧАТ
       </NavLink>
       <NavLink
-        to={ROUTES.CANDIDATE_CHAT}
+        to={ROUTES.CHAT}
         className={({ isActive }) =>
           `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
         }

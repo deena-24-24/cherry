@@ -4,7 +4,7 @@
     max-width: 1200px;
     margin: calc(80px + 2rem) auto;
     border-radius: 12px;
-    background-color: #fff;
+    background-color: var(--color-background);
     box-shadow: 0 4px 12px rgba(8, 32, 96, 0.15);
     overflow: hidden;
 }
@@ -18,18 +18,18 @@
 
 .chat-header {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e9ecef;
-    background-color: #f8f9fa;
+    border-bottom: 1px solid var(--color-border-light);
+    background-color: var(--color-secondary);
 }
 
 .chat-header h1 {
-    font-size: 1.5rem;
+    font-size: var(--font-size-xl);
     margin: 0 0 0.25rem;
-    color: #082060;
+    color: var(--color-primary);
 }
 
 .chat-header .status {
-    color: #78aaff;
+    color: var(--color-accent);
     font-weight: 500;
     margin: 0;
 }
@@ -41,12 +41,12 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    background-color: #ffffff;
+    background-color: var(--color-background);
 }
 
 .chat-footer {
     width: 100%;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid var(--color-border-light);
 }
 
 .no-chat-selected {
@@ -54,7 +54,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #78aaff;
+    color: var(--color-accent);
 }
 
 .messages-list::-webkit-scrollbar {
@@ -62,16 +62,16 @@
 }
 
 .messages-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: var(--color-secondary);
 }
 
 .messages-list::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: var(--color-border-light);
     border-radius: 4px;
 }
 
 .messages-list::-webkit-scrollbar-thumb:hover {
-    background: #aaa;
+    background: var(--color-accent);
 }
 
 .centered-status, .centered-status-error {
@@ -79,10 +79,10 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    font-size: 1.25rem;
-    color: #78aaff;
+    font-size: var(--font-size-lg);
+    color: var(--color-accent);
 }
 
 .centered-status-error {
-    color: #dc3545;
+    color: var(--color-error);
 }

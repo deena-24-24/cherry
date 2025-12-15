@@ -3,6 +3,7 @@
     gap: 0.75rem;
     max-width: 85%;
     align-items: flex-end;
+    min-width: 0;
 }
 
 /* Стили для аватара */
@@ -19,29 +20,107 @@
 .message-content {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .sender-name {
     margin-bottom: 0.25rem;
-    font-size: 0.85rem;
+    font-size: var(--font-size-sm);
     font-weight: bold;
-    color: #082060;
+    color: var(--color-primary);
 }
 
 .bubble {
     padding: 12px 16px;
     border-radius: 18px;
     line-height: 1.5;
+
+    /* Обычный текст переносим */
+    overflow-wrap: anywhere;
+    word-break: normal;
     word-wrap: break-word;
 }
 
+.bubble > *:first-child { margin-top: 0; }
+.bubble > *:last-child { margin-bottom: 0; }
+.bubble p { margin-bottom: 0.5rem; }
+.bubble strong { font-weight: bold; }
+.bubble em { font-style: italic; }
+
+.bubble a {
+    color: var(--color-primary-light);
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.bubble ul, .bubble ol {
+    padding-left: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.bubble li { margin-bottom: 0.25rem; }
+
+.bubble pre {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+
+    /* Включаем горизонтальный скролл */
+    overflow-x: auto;
+
+    /* Запрещаем перенос строк, чтобы появлялся скролл */
+    white-space: pre;
+
+    /* Сбрасываем наследование переносов от родителя */
+    word-wrap: normal;
+    overflow-wrap: normal;
+
+    max-width: 100%;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    border: 1px solid var(--color-border-light);
+}
+
+/* Стилизация скроллбара только для блоков кода */
+.bubble pre::-webkit-scrollbar {
+    height: 6px;
+}
+
+.bubble pre::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.bubble pre::-webkit-scrollbar-thumb {
+    background-color: var(--color-accent);
+    border-radius: 3px;
+    opacity: 0.5;
+}
+
+.bubble pre::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-primary);
+}
+
+.bubble code {
+    font-family: inherit;
+    font-size: var(--font-size-sm);
+    background: transparent;
+}
+
+.bubble img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Стили для AI (Ассистента) */
 .message-container.ai {
     align-self: flex-start;
 }
 
 .message-container.ai .avatar {
-    background-color: #c8e6ff;
-    color: #082060;
+    background-color: var(--color-accent-light);
+    color: var(--color-primary);
 }
 
 .message-container.ai .sender-name {
@@ -49,11 +128,12 @@
 }
 
 .message-container.ai .bubble {
-    background-color: #c8e6ff;
-    color: #082060;
+    background-color: var(--color-accent-light);
+    color: var(--color-primary);
     border-top-left-radius: 5px;
 }
 
+/* Стили для User (Пользователя) */
 .message-container.user {
     align-self: flex-end;
     flex-direction: row-reverse;
@@ -64,12 +144,16 @@
 }
 
 .message-container.user .avatar {
-    background-color: #f2c2c8;
-    color: #082060;
+    background-color: var(--color-border);
+    color: var(--color-primary);
 }
 
 .message-container.user .bubble {
-    background-color: #78aaff;
-    color: #f5f5ff;
+    background-color: var(--color-accent);
+    color: var(--color-text-light);
     border-top-right-radius: 5px;
+}
+
+.message-container.user .bubble a {
+    color: var(--color-text-light);
 }
