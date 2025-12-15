@@ -9,7 +9,6 @@ import {
   FinalReport,
   isSocketAIResponseExtended,
   extractAIResponse,
-  isSocketInterviewCompleted,
   isSocketAIError
 } from '../types'
 import { io, Socket } from 'socket.io-client'
@@ -23,84 +22,8 @@ class SocketService {
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
   private isManualDisconnect = false
+  private pendingInterviewCompletedEvent: SocketInterviewCompleted | null = null
 
-  // Функция для создания fallback отчета
-  private createFallbackReport(payload: Record<string, unknown>): FinalReport {
-    console.log('🔄 Creating fallback report from payload:', payload)
-
-    // Пробуем извлечь финальный отчет из payload
-    if (payload.finalReport && typeof payload.finalReport === 'object') {
-      const report = payload.finalReport as Record<string, unknown>
-      if (report.overall_assessment && report.technical_skills) {
-        console.log('✅ Using finalReport from payload')
-        return payload.finalReport as FinalReport
-      }
-    }
-
-    // Создаем базовый fallback отчет
-    console.log('🔄 Creating basic fallback report')
-    return {
-      overall_assessment: {
-        final_score: 7,
-        level: "Middle",
-        recommendation: "hire",
-        confidence: 0.8,
-        strengths: ["Базовые знания пройдены", "Показал потенциал для роста"],
-        improvements: ["Требуется больше практики", "Углубить технические знания"],
-        potential_areas: []
-      },
-      technical_skills: {
-        topics_covered: ["JavaScript", "React", "Frontend Basics"],
-        strong_areas: ["Базовые концепции"],
-        weak_areas: ["Продвинутые темы"],
-        technical_depth: 6,
-        recommendations: ["Практиковаться на реальных проектах"]
-      },
-      behavioral_analysis: {
-        communication_skills: {
-          score: 7,
-          structure: 6,
-          clarity: 7,
-          feedback: "Коммуникация на базовом уровне"
-        },
-        problem_solving: {
-          score: 6,
-          examples_count: 1,
-          feedback: "Способен решать базовые задачи"
-        },
-        learning_ability: {
-          score: 7,
-          topics_mastered: 2,
-          feedback: "Показывает способность к обучению"
-        },
-        adaptability: {
-          score: 6,
-          consistency: 7,
-          trend: 0,
-          feedback: "Стабильная производительность"
-        }
-      },
-      interview_analytics: {
-        total_duration: "10 минут",
-        total_questions: 5,
-        topics_covered_count: 3,
-        average_response_quality: 6.5,
-        topic_progression: ["введение", "базовые темы"],
-        action_pattern: {
-          total_actions: 8,
-          action_breakdown: {},
-          most_common_action: "continue",
-          completion_rate: "completed"
-        }
-      },
-      detailed_feedback: "Кандидат показал базовые знания и потенциал для роста в frontend разработке.",
-      next_steps: ["Практика на реальных проектах", "Изучение продвинутых тем"],
-      raw_data: {
-        evaluationHistory: [],
-        actionsHistory: []
-      }
-    }
-  }
   async connect(sessionId: string, position: string = 'frontend'): Promise<boolean> {
     try {
       this.isManualDisconnect = false
@@ -111,7 +34,7 @@ class SocketService {
         transports: ['websocket', 'polling'],
         autoConnect: true,
         withCredentials: false,
-        timeout: 10000,
+        timeout: 20000, // Увеличиваем таймаут до 20 секунд
         forceNew: true
       })
 
@@ -125,7 +48,7 @@ class SocketService {
         const connectionTimeout = setTimeout(() => {
           console.error('❌ Socket connection timeout')
           resolve(false)
-        }, 10000)
+        }, 20000) // Увеличиваем таймаут до 20 секунд
 
         this.socket.on('connect', () => {
           clearTimeout(connectionTimeout)
@@ -199,35 +122,39 @@ class SocketService {
             console.error('❌ Error processing AI response:', error)
           }
         })
+        // Внутри connect() в socketService.ts
 
-        // Обработчик завершения интервью
         this.socket.on('interview-completed', (payload: unknown) => {
           console.log('🏁 Interview completed event received:', payload)
-          try {
-            // УПРОЩЕННАЯ ПРОВЕРКА
-            if (isSocketInterviewCompleted(payload) && this.onInterviewCompletedCallback) {
-              console.log('✅ Valid interview completed data')
-              this.onInterviewCompletedCallback(payload)
+          console.log('🔍 Callback status:', {
+            hasCallback: !!this.onInterviewCompletedCallback,
+            callback: this.onInterviewCompletedCallback ? 'Function' : 'null'
+          })
+
+          // Обработка payload...
+          let data: SocketInterviewCompleted | null = null
+
+          if (Array.isArray(payload) && payload.length > 0) {
+            data = payload[0] as SocketInterviewCompleted
+          } else if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+            data = payload as SocketInterviewCompleted
+          }
+
+          if (data) {
+            if (this.onInterviewCompletedCallback) {
+              console.log('✅ Calling interview-completed callback immediately')
+              try {
+                this.onInterviewCompletedCallback(data)
+              } catch (error) {
+                console.error('❌ Error in callback execution:', error)
+              }
             } else {
-              console.warn('⚠️ Basic interview completed check failed, creating fallback')
-
-              // СОЗДАЕМ FALLBACK ДАННЫЕ
-              const p = payload as Record<string, unknown>
-              const fallbackData: SocketInterviewCompleted = {
-                sessionId: typeof p.sessionId === 'string' ? p.sessionId : 'unknown',
-                finalReport: this.createFallbackReport(p),
-                completionReason: typeof p.completionReason === 'string' ? p.completionReason : 'Завершено',
-                wasAutomatic: typeof p.wasAutomatic === 'boolean' ? p.wasAutomatic : false
-              }
-
-              if (this.onInterviewCompletedCallback) {
-                console.log('🔄 Using fallback interview data')
-                this.onInterviewCompletedCallback(fallbackData)
-              }
+              console.log('📦 No callback yet, storing event in buffer')
+              // Сохраняем событие в буфер, чтобы вызвать позже
+              this.pendingInterviewCompletedEvent = data
             }
-          } catch (error) {
-            console.error('❌ Error processing interview-completed:', error)
-
+          } else {
+            console.error('❌ Invalid interview-completed payload:', payload)
           }
         })
 
@@ -303,6 +230,11 @@ class SocketService {
     }
   }
 
+  getCallbackStatus(): boolean {
+    return !!this.onInterviewCompletedCallback
+  }
+
+
   // Подписка на обычные AI сообщения
   onMessage(callback: (data: AIResponse) => void): void {
     this.onMessageCallback = callback
@@ -310,7 +242,20 @@ class SocketService {
 
   // Подписка на завершение интервью
   onInterviewCompleted(callback: (data: SocketInterviewCompleted) => void): void {
+    console.log('📝 Setting interview-completed callback')
     this.onInterviewCompletedCallback = callback
+    console.log('✅ Interview-completed callback set:', !!this.onInterviewCompletedCallback)
+
+    // Если есть событие в буфере, вызываем его немедленно
+    if (this.pendingInterviewCompletedEvent) {
+      console.log('📦 Processing pending interview-completed event from buffer')
+      try {
+        callback(this.pendingInterviewCompletedEvent)
+      } catch (error) {
+        console.error('❌ Error processing pending event:', error)
+      }
+      this.pendingInterviewCompletedEvent = null
+    }
   }
 
   onError(callback: (error: string) => void): void {

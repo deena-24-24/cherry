@@ -98,7 +98,6 @@ export class VoiceService {
       speechSynthesis.cancel()
       console.log('🛑 Speech synthesis cancelled')
     }
-
     // Сбрасываем состояние
     this.isPlaying = false
     this.currentUtterance = null

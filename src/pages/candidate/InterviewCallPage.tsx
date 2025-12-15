@@ -1,5 +1,5 @@
 // src/pages/candidate/InterviewCallPage.tsx
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useInterviewStore } from '../../store'
 import { Button } from '../../components/ui/Button/Button'
@@ -37,6 +37,8 @@ export const InterviewCallPage: React.FC = () => {
   const [wasAutomatic, setWasAutomatic] = useState<boolean>(false)
   const [showInterrupted, setShowInterrupted] = useState(false)
   const [interruptionReason, setInterruptionReason] = useState<string>('')
+  const [isFinishing, setIsFinishing] = useState(false)
+  const reportTimeoutRef = useRef<NodeJS.Timeout | null>(null) // Ref для таймаута ожидания отчета
 
   // === СОСТОЯНИЯ ДЛЯ ГОЛОСОВОЙ ЧАСТИ ===
   const [connectionQuality, setConnectionQuality] = useState<'good' | 'average' | 'poor'>('good')
@@ -54,17 +56,6 @@ export const InterviewCallPage: React.FC = () => {
       document.body.style.overflow = ''
     }
   }, [showConsole, showNotes])
-
-  // === ИСПОЛЬЗУЕМ ГОЛОСОВОЙ ХУК ===
-  const {
-    isRecording,
-    isAIThinking,
-    isAISpeaking,
-    toggleRecording,
-    transcript,
-    aiResponse,
-    error: voiceError
-  } = useVoiceCall(sessionId || '', currentSession?.position || '')
 
   // === ЭФФЕКТЫ ===
 
@@ -92,35 +83,96 @@ export const InterviewCallPage: React.FC = () => {
     }
   }, [sessionId, fetchSession])
 
-  // Автоматически запускаем звонок при загрузке
+  // src/pages/candidate/InterviewCallPage.tsx
+
+  // InterviewCallPage.tsx - исправленная версия
+
+  // === ПРАВИЛЬНЫЙ ПОРЯДОК ПОДПИСКИ ===
+
+  // 1. Сначала создаем обработчик
+  const handleInterviewCompleted = useCallback((data: SocketInterviewCompleted) => {
+    console.log('🏁 Interview completed received in InterviewCallPage:', data)
+
+    // ОЧИЩАЕМ ТАЙМАУТ
+    if (reportTimeoutRef.current) {
+      console.log('⏹️ Clearing report timeout - report received')
+      clearTimeout(reportTimeoutRef.current)
+      reportTimeoutRef.current = null
+    }
+
+    if (data.finalReport) {
+      console.log('✅ Setting final report and showing popup')
+      setFinalReport(data.finalReport)
+      setCompletionReason(data.completionReason || 'Собеседование завершено')
+      setWasAutomatic(data.wasAutomatic || false)
+      setShowInterrupted(false)
+      setShowFinalReport(true)
+    } else {
+      console.warn('⚠️ Interview completed but no final report received')
+      setInterruptionReason(data.completionReason || 'Собеседование завершено без отчета')
+      setShowInterrupted(true)
+    }
+
+    // Отключаем сокет через 1 секунду, чтобы гарантированно получить все данные
+    setTimeout(() => {
+      socketService.disconnect()
+      endStoreCall()
+      setIsFinishing(false)
+    }, 1000)
+  }, [endStoreCall])
+
+  // 2. ПОДПИСКА В useLayoutEffect - выполняется СИНХРОННО после рендера
+  useLayoutEffect(() => {
+    console.log('📝 Setting up interview-completed callback in InterviewCallPage (useLayoutEffect)')
+
+    // Устанавливаем колбэк НЕПОСРЕДСТВЕННО в socketService
+    socketService.onInterviewCompleted(handleInterviewCompleted)
+    console.log('✅ Interview-completed callback set:', !!socketService.getCallbackStatus?.())
+
+    return () => {
+      console.log('🧹 Cleaning up interview-completed callback in InterviewCallPage')
+      socketService.offInterviewCompleted()
+    }
+  }, [handleInterviewCompleted])
+  // === ИСПОЛЬЗУЕМ ГОЛОСОВОЙ ХУК ===
+  const {
+    isRecording,
+    isAIThinking,
+    isAISpeaking,
+    toggleRecording,
+    transcript,
+    aiResponse,
+    error: voiceError
+  } = useVoiceCall(sessionId || '', currentSession?.position || '')
+
+  // 3. Только ПОСЛЕ установки колбэка используем хук useVoiceCall
+  // const voiceCall = useVoiceCall(sessionId || '', currentSession?.position || '')
+
+  // 4. Автоматически запускаем звонок при загрузке
   useEffect(() => {
     if (!isCallActive) {
       startStoreCall()
     }
   }, [isCallActive, startStoreCall])
 
-  // Обработчик завершения интервью через WebSocket
-  const handleInterviewCompleted = useCallback((data: SocketInterviewCompleted) => {
-    console.log('🏁 Interview completed received:', data)
-
-    if (data.wasAutomatic && data.finalReport) {
-      setFinalReport(data.finalReport)
-      setCompletionReason(data.completionReason || 'Собеседование завершено автоматически')
-      setWasAutomatic(true)
-      setShowFinalReport(true)
-    }
-
-    endStoreCall()
-  }, [endStoreCall])
-
-  // Подписка на WebSocket события
+  // 5. Добавляем отдельный эффект для мониторинга состояния колбэка
   useEffect(() => {
-    interviewService.onInterviewCompleted(handleInterviewCompleted)
+    const interval = setInterval(() => {
+      console.log('🔍 Checking callback status:', {
+        hasCallback: !!socketService.getCallbackStatus?.() || 'unknown',
+        isConnected: socketService.getConnectionState() === 'connected'
+      })
+    }, 5000)
 
-    return () => {
-      interviewService.offInterviewCompleted(handleInterviewCompleted)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Автоматически запускаем звонок при загрузке
+  useEffect(() => {
+    if (!isCallActive) {
+      startStoreCall()
     }
-  }, [handleInterviewCompleted])
+  }, [isCallActive, startStoreCall])
 
   // Мониторинг состояния соединения WebSocket
   useEffect(() => {
@@ -179,47 +231,73 @@ export const InterviewCallPage: React.FC = () => {
 
   // === ОБРАБОТЧИКИ ===
 
-  // Функция завершения звонка
+  // src/pages/candidate/InterviewCallPage.tsx
+
   const handleEndCall = useCallback(async (reason: 'user' | 'system' | 'error' = 'user') => {
     if (!isCallActive) return
 
     console.log(`🛑 Ending interview call, reason: ${reason}`)
 
+    // 1. Сразу останавливаем запись и аудио
+    if (isRecording) toggleRecording()
+    voiceService.stopAudio()
+
     try {
-      // 1. Останавливаем запись если активна
-      if (isRecording) {
-        toggleRecording()
-      }
-
-      // 2. Останавливаем аудио воспроизведение
-      await voiceService.stopAudio()
-
-      // 3. Отключаем WebSocket соединение
-      socketService.disconnect()
-
-      // 4. Обновляем состояние хранилища
-      endStoreCall()
-
-      // 5. Сбрасываем локальные состояния
-      setVoiceActivity(0)
-      setIsConnected(false)
-
-      // 6. Показываем соответствующий попап
       if (reason === 'user') {
-        setInterruptionReason('Собеседование прервано кандидатом')
-        setShowInterrupted(true)
+        setIsFinishing(true)
+
+        // Проверяем, что колбэк установлен перед отправкой запроса
+        console.log('🔍 Callback status before sending complete:', {
+          hasCallback: !!socketService.getCallbackStatus?.()
+        })
+
+        const sent = socketService.sendCompleteInterview(sessionId || '')
+
+        if (sent) {
+          console.log('⏳ Waiting for final report...')
+
+          if (reportTimeoutRef.current) {
+            clearTimeout(reportTimeoutRef.current)
+            reportTimeoutRef.current = null
+          }
+
+          // Увеличиваем таймаут до 15 секунд
+          reportTimeoutRef.current = setTimeout(() => {
+            if (isCallActive && !showFinalReport) {
+              console.warn('⚠️ Timeout waiting for report, forcing disconnect')
+              setInterruptionReason('Не удалось получить финальный отчет')
+              setShowInterrupted(true)
+              forceDisconnect('timeout')
+            }
+            reportTimeoutRef.current = null
+          }, 15000)
+
+          return // Ждем события interview-completed
+        }
       }
 
-      console.log('✅ Interview call ended successfully')
+      forceDisconnect(reason)
 
     } catch (error) {
       console.error('❌ Error ending call:', error)
-      endStoreCall()
-      socketService.disconnect()
-      setInterruptionReason('Ошибка при завершении звонка')
+      forceDisconnect('error')
+    }
+  }, [isCallActive, isRecording, toggleRecording, sessionId, showFinalReport])
+
+  // Вынесите логику отключения в отдельную функцию для переиспользования
+  const forceDisconnect = (reason: string) => {
+    socketService.disconnect()
+    endStoreCall()
+    setVoiceActivity(0)
+    setIsConnected(false)
+    setIsFinishing(false)
+
+    // Если был таймаут или ошибка — показываем "Прервано", иначе отчет должен был прийти сам
+    if (reason !== 'completed') {
+      setInterruptionReason(reason === 'user' ? 'Собеседование прервано кандидатом' : 'Связь потеряна')
       setShowInterrupted(true)
     }
-  }, [isCallActive, isRecording, toggleRecording, endStoreCall])
+  }
 
   const handleCloseReport = useCallback(() => {
     setShowFinalReport(false)
