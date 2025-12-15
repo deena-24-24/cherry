@@ -1,7 +1,7 @@
 /* Обертка */
 .ihp-wrapper {
     min-height: 100vh;
-    background: #F6F8FF;
+    background: var(--cloud);
     padding: 40px 60px;
     font-family: 'Inter', sans-serif;
     margin-top: 80px;
@@ -23,21 +23,21 @@
     margin: 0;
     font-size: 32px;
     font-weight: 700;
-    color: #112255;
+    color: var(--cloud);
 }
 
 .ihp-header p {
     font-size: 16px;
-    color: #556699;
+    color: var(--cloud);
     margin-top: 8px;
 }
 
 /* HERO */
 .ihp-hero {
     width: 100%;
-    background: #03205C;
+    background: linear-gradient(90deg, var(--navy), var(--cloud));
     border-radius: 14px;
-    padding: 80px 60px;
+    padding: 0 0 0 60px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -65,16 +65,16 @@
 
 .ihp-hero-btn {
     padding: 12px 22px;
-    background: #3A7DFF;
-    color: white;
+    background: var(--lavand);
+    color: var(--navy);
     border: none;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 18px;
     cursor: pointer;
 }
 
 .ihp-hero-btn:hover {
-    background: #2E68D5;
+    background: var(--peach);
 }
 
 .ihp-hero-image img {
@@ -86,14 +86,14 @@
 .ihp-section-title {
     font-size: 22px;
     font-weight: 700;
-    color: #0A1A44;
+    color: var(--navy);
     margin-bottom: 20px;
 }
 
 /* CARD */
 .ihp-interview-card {
     width: 240px;
-    background: linear-gradient(180deg, #EAF1FF 0%, #CFE0FF 100%);
+    background: linear-gradient(180deg, #EAF1FF 0%, var(--lavand) 100%);
     border-radius: 14px;
     padding: 22px;
     display: flex;
@@ -104,7 +104,7 @@
 .ihp-interview-title {
     font-size: 18px;
     font-weight: 700;
-    color: #0A1A44;
+    color: var(--navy);
 }
 
 .ihp-interview-date {
@@ -121,7 +121,7 @@
 
 .ihp-interview-btn {
     padding: 10px 16px;
-    background: #003B87;
+    background: var(--maroon);
     color: white;
     border: none;
     border-radius: 8px;

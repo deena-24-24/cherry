@@ -7,6 +7,9 @@ import { FaqSection } from '../../components/layout/FaqSection'
 import { useAuthStore } from '../../store'
 import { HrHeroBanner } from '../../components/layout/HrHeroBanner'
 import { HrHomeFeatures } from '../../components/layout/HrHomeFeatures'
+import { BannerMain } from '../../components/layout/BannerMain'
+import { BannerAI } from '../../components/layout/BannerAI'
+import { BannerUpper } from '../../components/layout/BannerUpper'
 
 export const LandingPage: React.FC = () => {
 
@@ -14,30 +17,29 @@ export const LandingPage: React.FC = () => {
   return (
     <div className={styles["landingContainer"]}>
 
-      {user && (
-        user.role === "candidate" ? (
-          <>
-            <HeroBanner />
-            <HomeFeatures />
-          </>
-        ) : (
-          <>
-            <HrHeroBanner />
-            <HrHomeFeatures />
-          </>
+      {!user ? (
+        <>
+          <BannerUpper />
+          <BannerMain />
+          <BannerAI />
+        </>) : (
+        (
+          user.role === "candidate" ? (
+            <>
+              <HeroBanner />
+              <HomeFeatures />
+            </>
+          ) : (
+            <>
+              <HrHeroBanner />
+              <HrHomeFeatures />
+            </>
 
+          )
         )
       )}
 
-
-
-      {/* Interview Section */}
-      <div className={styles["interviewSection"]}>
-        <div className={styles["interviewTitle"]}>
-          готовьтесь к реальным собеседованиям с нашим ии-интервьюером
-        </div>
-        
-      </div>
+      {/*добавить лоудер*/}
 
       <SubscriptionBanner />
       <FaqSection />

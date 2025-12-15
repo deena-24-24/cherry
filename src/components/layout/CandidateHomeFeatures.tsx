@@ -118,7 +118,7 @@ export const HomeFeatures: React.FC = () => {
       route: ROUTES.INTERVIEW_HOME,
     },
     {
-      title: "ЧАТ",
+      title: "AI-ЧАТ",
       text: "Изучайте новое и повторяйте известное в чате с искусственным интеллектом",
       color: "blue",
       route: ROUTES.AI_CHAT,
@@ -129,12 +129,12 @@ export const HomeFeatures: React.FC = () => {
       color: "blue",
       route: ROUTES.RESUME,
     },
-    // todo: УДАЛИТЬ
+    // todo: УДАЛИТЬ  - поменяла на hr-чат
     {
-      title: "ОНЛАЙН-КОМПИЛЯТОР",
-      text: "Решайте реальные задачи в интегрированном онлайн-компиляторе",
+      title: "HR-ЧАТ",
+      text: "Проверьте, не пришло ли Вам предоложение от HR",
       color: "pink",
-      route: "/compiler",
+      route: ROUTES.CANDIDATE_CHAT,
     },
   ]
 

@@ -32,6 +32,19 @@ export const Header: React.FC = () => {
     setIsMobileOpen(prev => !prev)
   }
 
+  useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileOpen])
+
+
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isNavVisible, setIsNavVisible] =useState(true)
   const navContainerRef = useRef<HTMLDivElement | null>(null)

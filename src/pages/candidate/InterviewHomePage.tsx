@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button/Button'
 import { ROUTES } from '../../router/routes'
 import * as styles from './InterviewHomePage.module.css'
+import AiGirl from '../../assets/img.png'
 
 export const InterviewHomePage: React.FC = () => {
   const navigate = useNavigate()
@@ -20,15 +21,6 @@ export const InterviewHomePage: React.FC = () => {
   return (
     <div className={styles["ihp-wrapper"]}>
       <div className={styles["ihp-container"]}>
-        {/* Хедер
-        <header className="ihp-header">
-          <h1>
-            AI Interview Assistant
-          </h1>
-          <p>
-            Подготовьтесь к собеседованию с искусственным интеллектом
-          </p>
-        </header> */}
 
         {/* HERO БЛОК → как на макете */}
         <section className={styles["ihp-hero"]}>
@@ -50,7 +42,7 @@ export const InterviewHomePage: React.FC = () => {
 
           <div className={styles["ihp-hero-image"]}>
             {/* todo: Добавить ссылку */}
-            <img />
+            <img src={AiGirl}/>
           </div>
         </section>
 
