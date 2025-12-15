@@ -76,6 +76,7 @@ class SuperAiService {
         evaluationHistory: [],
         topicProgress: new Set(['введение']),
         sessionStart: new Date(),
+        llmErrorCount: 0, // Счетчик ошибок LLM
         topicStartTime: new Date(),
         actionsHistory: []
       };
@@ -147,8 +148,22 @@ class SuperAiService {
         try {
           finalReport = await this.generateComprehensiveReport(sessionId);
         } catch (error) {
-          console.error('❌ Error generating final report, using mock:', error);
-          finalReport = this.createMockFinalReport();
+          console.error('❌ Error generating final report, using empty report:', error);
+          // Используем пустой отчет вместо mock, если нет данных
+          const state = this.conversationStates.get(sessionId);
+          const duration = this.calculateDurationMinutes(sessionId);
+          
+          if (!state || state.evaluationHistory.length === 0) {
+            finalReport = this.createEmptyInterviewReport(sessionId, duration, 'llm_error');
+          } else {
+            
+            if (allLowScores) {
+              finalReport = this.createEmptyInterviewReport(sessionId, duration, 'llm_error');
+            } else {
+              // Только в крайнем случае используем mock
+              finalReport = this.createMockFinalReport();
+            }
+          }
         }
 
         return {
@@ -236,13 +251,54 @@ class SuperAiService {
 
     } catch (error) {
       console.error('❌ Enhanced AI Error:', error.message);
+      
+      // Увеличиваем счетчик ошибок LLM
+      state.llmErrorCount = (state.llmErrorCount || 0) + 1;
+      
+      // Если слишком много ошибок LLM (>= 3), завершаем интервью
+      if (state.llmErrorCount >= 3) {
+        console.warn(`⚠️ Too many LLM errors (${state.llmErrorCount}), completing interview`);
+        
+        // Генерируем финальный отчет
+        let finalReport;
+        try {
+          finalReport = await this.generateComprehensiveReport(sessionId);
+        } catch (reportError) {
+          console.error('❌ Error generating final report:', reportError);
+          const duration = this.calculateDurationMinutes(sessionId);
+          finalReport = this.createEmptyInterviewReport(sessionId, duration, 'llm_error');
+        }
+        
+        return {
+          text: this.getSmartCompletionMessage(finalReport),
+          metadata: {
+            isInterviewComplete: true,
+            finalReport: finalReport,
+            completionReason: 'Превышено количество ошибок LLM API',
+            wasAutomatic: true
+          }
+        };
+      }
+      
+      // Используем fallback ответ
       const fallbackResponse = this.getSmartFallbackResponse(state);
+      
+      // ВАЖНО: Добавляем fallback ответ в историю диалога, чтобы не повторять его
+      state.conversationHistory.push({
+        role: 'assistant',
+        content: fallbackResponse,
+        timestamp: new Date()
+      });
+      
+      console.log(`🔄 Using fallback response (LLM error count: ${state.llmErrorCount}): ${fallbackResponse}`);
+      
       return {
         text: fallbackResponse,
         metadata: {
           isFallback: true,
           currentTopic: state.currentTopic,
-          error: error.message
+          error: error.message,
+          llmErrorCount: state.llmErrorCount
         }
       };
     }
@@ -442,7 +498,7 @@ class SuperAiService {
     const completionKeywords = [
       'стоп', 'закончить', 'завершить', 'хватит', 'достаточно',
       'конец', 'закончим', 'остановись', 'прекрати', 'хватит вопросов',
-      'заканчиваем', 'все', 'завершаем', 'кончай'
+      'заканчиваем',  'завершаем', 'кончай'
     ];
 
     // Проверяем все последние сообщения
@@ -565,11 +621,18 @@ class SuperAiService {
       conversationSummary = `Краткая сводка предыдущих ответов кандидата:\n${userResponses.join('\n')}\n\n`;
     }
 
-    // Формируем историю диалога
-    const recentHistory = conversationHistory.slice(-6); // Последние 3 обмена
+    // Формируем историю диалога - берем больше сообщений для контекста
+    const recentHistory = conversationHistory.slice(-10); // Последние 5 обменов (10 сообщений)
     const historyText = recentHistory.map(msg =>
       `${msg.role === 'user' ? 'Кандидат' : 'Интервьюер'}: ${msg.content}`
     ).join('\n');
+    
+    // Извлекаем все вопросы интервьюера из истории, чтобы не повторять их
+    const previousQuestions = conversationHistory
+      .filter(msg => msg.role === 'assistant')
+      .slice(-5)
+      .map(msg => msg.content)
+      .join('\n');
 
     // Динамические инструкции на основе анализа ответа
     let responseAnalysisText;
@@ -628,11 +691,18 @@ ${responseAnalysisText}
 3. Адаптируй сложность под уровень кандидата
 4. ${isShort ? 'Попроси рассказать подробнее, если ответ был коротким' : 'Продолжай углубляться в тему'}
 5. Не показывай критерии оценки
+6. КРИТИЧЕСКИ ВАЖНО: НЕ ПОВТОРЯЙ вопросы, которые уже были заданы! Посмотри в историю диалога выше и задай НОВЫЙ вопрос.
+7. Если кандидат уже ответил на вопрос, задай следующий вопрос по этой теме или перейди к новой теме.
+
+ПРЕДЫДУЩИЕ ВОПРОСЫ (НЕ ПОВТОРЯЙ ИХ!):
+${previousQuestions ? previousQuestions : 'Это первый вопрос'}
 
 ИСТОРИЯ ДИАЛОГА (последние сообщения):
 ${historyText}
 
-Твой следующий вопрос (естественный, дружелюбный, только один вопрос):`;
+${conversationSummary ? `\n${conversationSummary}` : ''}
+
+Твой следующий вопрос (естественный, дружелюбный, только один вопрос, НЕ ПОВТОРЯЙ предыдущие вопросы):`;
 
     return prompt;
   }
@@ -686,7 +756,7 @@ ${historyText}
     }
   }
 
-  async generateComprehensiveReport(sessionId) {
+  async generateComprehensiveReport(sessionId, reason = 'no_data') {
     let report;
 
     try {
@@ -700,6 +770,15 @@ ${historyText}
 
       const progress = this.getInterviewProgress(sessionId);
       const duration = this.calculateDurationMinutes(sessionId);
+
+      // Если есть ошибки LLM, используем причину 'llm_api_error'
+      const actualReason = (state.llmErrorCount >= 3) ? 'llm_api_error' : 'no_data';
+
+      // ПРОВЕРКА: Если нет данных от пользователя, возвращаем отчет с нулевой оценкой
+      if (!progress || progress.totalExchanges === 0 || state.evaluationHistory.length === 0) {
+        console.warn('⚠️ No user responses found - generating empty interview report');
+        return this.createEmptyInterviewReport(sessionId, duration, actualReason);
+      }
 
       // Анализируем действия и прогресс
       const actionAnalysis = this.analyzeActions(state.actionsHistory);
@@ -762,8 +841,129 @@ ${historyText}
 
     } catch (error) {
       console.error('❌ Error in generateComprehensiveReport:', error);
-      return this.createMockFinalReport(); // ГАРАНТИРОВАННЫЙ ВОЗВРАТ
+      
+      // При ошибке пытаемся вернуть пустой отчет, если нет данных
+      try {
+        const state = this.conversationStates.get(sessionId);
+        const duration = this.calculateDurationMinutes(sessionId);
+        
+        // Определяем причину - если есть ошибки LLM, используем 'llm_api_error'
+        const actualReason = (state && state.llmErrorCount >= 3) ? 'llm_api_error' : 'no_data';
+        
+        // Если нет данных от пользователя или все оценки низкие, возвращаем пустой отчет
+        if (!state || state.evaluationHistory.length === 0) {
+          console.warn('⚠️ No evaluation history - using empty report');
+          return this.createEmptyInterviewReport(sessionId, duration, actualReason);
+        }
+        
+        if (allLowScores) {
+          console.warn('⚠️ All scores are low (<= 3) - using empty report with score 0');
+          return this.createEmptyInterviewReport(sessionId, duration, actualReason);
+        }
+        
+        // В остальных случаях используем mock (но это не должно происходить)
+        console.warn('⚠️ Using mock report as last resort');
+        return this.createMockFinalReport();
+      } catch (fallbackError) {
+        console.error('❌ Error in fallback report generation:', fallbackError);
+        // Последний резерв - пустой отчет
+        return this.createEmptyInterviewReport(sessionId, 0);
+      }
     }
+  }
+
+  createEmptyInterviewReport(sessionId, duration, reason = 'no_data') {
+    console.log(`📊 Creating empty interview report - reason: ${reason}`);
+    
+    // Определяем сообщения в зависимости от причины
+    let improvements = [];
+    let recommendations = [];
+    let detailedFeedback = "";
+    
+    if (reason === 'llm_error' || reason === 'llm_api_error') {
+      improvements = [
+        "Не удалось получить ответы от AI-интервьюера из-за ошибки LLM API",
+        "Сервис GigaChat вернул ошибку 402 (Payment Required) - требуется пополнение баланса"
+      ];
+      recommendations = [
+        "Проверить баланс аккаунта GigaChat",
+        "Проверить настройки API ключа",
+        "Повторить собеседование после устранения проблемы с LLM API"
+      ];
+      detailedFeedback = "Собеседование было прервано из-за ошибки LLM API (GigaChat). Сервис вернул ошибку 402 Payment Required, что означает отсутствие средств на аккаунте или проблемы с доступом. Ответы кандидата были получены, но не могли быть обработаны AI-интервьюером.";
+    } else {
+      improvements = [
+        "Не было получено ответов от кандидата",
+        "Микрофон не работал или кандидат не отвечал"
+      ];
+      recommendations = ["Требуется повторное собеседование с работающим микрофоном"];
+      detailedFeedback = "Собеседование было прервано до получения ответов от кандидата. Возможные причины: проблемы с микрофоном, отсутствие ответов или технические проблемы. Рекомендуется провести повторное собеседование с проверкой работы микрофона.";
+    }
+    
+    return {
+      overall_assessment: {
+        final_score: 0,
+        level: "Не оценено",
+        recommendation: "no_hire",
+        confidence: 0.1,
+        strengths: [],
+        improvements: improvements,
+        potential_areas: []
+      },
+      technical_skills: {
+        topics_covered: [],
+        strong_areas: [],
+        weak_areas: [],
+        technical_depth: 0,
+        recommendations: recommendations
+      },
+      behavioral_analysis: {
+        communication_skills: {
+          score: 0,
+          structure: 0,
+          clarity: 0,
+          engagement: 0,
+          feedback: "Нет данных для оценки коммуникативных навыков"
+        },
+        problem_solving: {
+          score: 0,
+          approach: 0,
+          creativity: 0,
+          feedback: "Нет данных для оценки решения проблем"
+        },
+        learning_ability: {
+          score: 0,
+          feedback: "Нет данных для оценки способности к обучению"
+        },
+        adaptability: {
+          score: 0,
+          feedback: "Нет данных для оценки адаптивности"
+        }
+      },
+      interview_analytics: {
+        total_duration: `${duration || 0} минут`,
+        total_questions: 0,
+        topics_covered_count: 0,
+        average_response_quality: 0,
+        topic_progression: [],
+        action_pattern: {
+          total_actions: 0,
+          action_breakdown: {},
+          most_common_action: "no_actions",
+          completion_rate: "not_completed"
+        }
+      },
+      detailed_feedback: detailedFeedback,
+      next_steps: [
+        "Проверить работу микрофона перед следующим собеседованием",
+        "Убедиться, что браузер имеет разрешение на доступ к микрофону",
+        "Провести повторное собеседование"
+      ],
+      raw_data: {
+        evaluationHistory: [],
+        actionsHistory: []
+      }
+    };
   }
 
   createMockFinalReport() {
@@ -913,10 +1113,15 @@ ${historyText}
       actionCounts[action.action] = (actionCounts[action.action] || 0) + 1;
     });
 
+    const actionKeys = Object.keys(actionCounts);
+    const mostCommonAction = actionKeys.length > 0 
+      ? actionKeys.reduce((a, b) => actionCounts[a] > actionCounts[b] ? a : b)
+      : 'no_actions';
+
     return {
       total_actions: actionsHistory.length,
       action_breakdown: actionCounts,
-      most_common_action: Object.keys(actionCounts).reduce((a, b) => actionCounts[a] > actionCounts[b] ? a : b),
+      most_common_action: mostCommonAction,
       completion_rate: actionsHistory.filter(a => a.action === 'complete_interview').length > 0 ? 'completed' : 'not_completed'
     };
   }
@@ -978,18 +1183,98 @@ ${historyText}
   }
 
   getSmartFallbackResponse(state) {
-    const { currentTopic } = state;
+    const { currentTopic, conversationHistory } = state;
 
+    // Извлекаем все вопросы, которые уже были заданы
+    const previousQuestions = conversationHistory
+      .filter(msg => msg.role === 'assistant')
+      .map(msg => msg.content.toLowerCase());
+
+    // Несколько вариантов вопросов для каждой темы
     const topicQuestions = {
-      'javascript': "Расскажите о вашем опыте работы с асинхронным JavaScript?",
-      'react': "Как вы управляете состоянием в больших React приложениях?",
-      'базы данных': "Как вы оптимизируете запросы к базе данных?",
-      'api': "Какие принципы REST API вы считаете наиболее важными?",
-      'введение': "Расскажите о вашем самом интересном проекте и вашей роли в нем?"
+      'javascript': [
+        "Расскажите о вашем опыте работы с асинхронным JavaScript?",
+        "Какие методы работы с промисами вы знаете?",
+        "Объясните разницу между async/await и промисами?",
+        "Как вы обрабатываете ошибки в асинхронном коде?"
+      ],
+      'react': [
+        "Как вы управляете состоянием в больших React приложениях?",
+        "Расскажите о хуках React и их преимуществах?",
+        "Как вы оптимизируете производительность React компонентов?",
+        "Объясните жизненный цикл компонента React?"
+      ],
+      'базы данных': [
+        "Как вы оптимизируете запросы к базе данных?",
+        "Какие типы баз данных вы использовали?",
+        "Расскажите о нормализации базы данных?",
+        "Как вы работаете с транзакциями?"
+      ],
+      'api': [
+        "Какие принципы REST API вы считаете наиболее важными?",
+        "Как вы обрабатываете ошибки в API?",
+        "Расскажите о методах HTTP и их использовании?",
+        "Как вы обеспечиваете безопасность API?"
+      ],
+      'введение': [
+        "Расскажите о вашем самом интересном проекте и вашей роли в нем?",
+        "Что вас привлекает в разработке?",
+        "Какие технологии вы изучали?",
+        "Расскажите о вашем опыте программирования?"
+      ],
+      'javascript/typescript': [
+        "Расскажите о вашем опыте работы с TypeScript?",
+        "Какие преимущества TypeScript перед JavaScript?",
+        "Как вы используете типы в TypeScript?",
+        "Расскажите о вашем опыте работы с JavaScript?"
+      ]
     };
 
-    return topicQuestions[currentTopic] ||
-      "Расскажите подробнее о вашем опыте в этом направлении?";
+    // Получаем вопросы для текущей темы
+    const questionsForTopic = topicQuestions[currentTopic] || topicQuestions['введение'];
+    
+    // Находим вопрос, который еще не был задан
+    let questionToAsk = null;
+    for (const question of questionsForTopic) {
+      const questionLower = question.toLowerCase();
+      // Проверяем, не был ли этот вопрос уже задан
+      const wasAsked = previousQuestions.some(prevQ => 
+        prevQ.includes(questionLower.substring(0, 30)) || 
+        questionLower.includes(prevQ.substring(0, 30))
+      );
+      
+      if (!wasAsked) {
+        questionToAsk = question;
+        break;
+      }
+    }
+
+    // Если все вопросы по теме уже заданы, переключаемся на другую тему
+    if (!questionToAsk) {
+      // Пробуем другие темы
+      const otherTopics = Object.keys(topicQuestions).filter(topic => topic !== currentTopic);
+      for (const topic of otherTopics) {
+        const questions = topicQuestions[topic];
+        for (const question of questions) {
+          const questionLower = question.toLowerCase();
+          const wasAsked = previousQuestions.some(prevQ => 
+            prevQ.includes(questionLower.substring(0, 30)) || 
+            questionLower.includes(prevQ.substring(0, 30))
+          );
+          
+          if (!wasAsked) {
+            questionToAsk = question;
+            // Обновляем текущую тему
+            state.currentTopic = topic;
+            break;
+          }
+        }
+        if (questionToAsk) break;
+      }
+    }
+
+    // Если все вопросы исчерпаны, возвращаем общий вопрос
+    return questionToAsk || "Расскажите подробнее о вашем опыте в этом направлении?";
   }
 
   // Сохраняем базовые методы из предыдущих версий
@@ -999,11 +1284,19 @@ ${historyText}
 
     const evaluations = state.evaluationHistory;
     const totalExchanges = evaluations.length;
-    const averageScore = evaluations.reduce((sum, item) => sum + item.evaluation.overall_score, 0) / totalExchanges || 0;
+    
+    // ВАЖНО: проверяем, что evaluation существует и имеет overall_score
+    const validEvaluations = evaluations.filter(item => 
+      item && item.evaluation && typeof item.evaluation.overall_score === 'number'
+    );
+    
+    const averageScore = validEvaluations.length > 0
+      ? validEvaluations.reduce((sum, item) => sum + item.evaluation.overall_score, 0) / validEvaluations.length 
+      : 0;
 
     const topicsCovered = Array.from(state.topicProgress || new Set(['введение']));
 
-    const weakAreas = evaluations
+    const weakAreas = validEvaluations
       .filter(item => item.evaluation.overall_score < 6)
       .slice(0, 3)
       .map(item => ({
@@ -1145,9 +1438,19 @@ ${historyText}
    */
   identifyPotentialAreas(topicAnalysis) {
     const potentialAreas = [];
+    
+    // Проверяем, что topicAnalysis существует и имеет правильную структуру
+    if (!topicAnalysis || !topicAnalysis.topicAnalysis) {
+      console.warn('⚠️ Invalid topicAnalysis in identifyPotentialAreas');
+      return [];
+    }
+    
     const { topicAnalysis: topics } = topicAnalysis;
 
     Object.entries(topics).forEach(([topic, data]) => {
+      // Проверяем, что data существует
+      if (!data) return;
+      
       // Области с хорошим баллом, но не максимальным техническим углублением
       if (data.averageScore >= 7 && data.averageTechnicalDepth < 8) {
         potentialAreas.push({
@@ -1159,9 +1462,10 @@ ${historyText}
       }
 
       // Области с ростом в течение собеседования
-      if (data.responseCount >= 2) {
-        const firstScore = topics[topic].scores[0];
-        const lastScore = topics[topic].scores[topics[topic].scores.length - 1];
+      // ВАЖНО: проверяем, что scores существует и не пустой
+      if (data.responseCount >= 2 && data.scores && Array.isArray(data.scores) && data.scores.length > 0) {
+        const firstScore = data.scores[0];
+        const lastScore = data.scores[data.scores.length - 1];
         if (lastScore > firstScore + 1) {
           potentialAreas.push({
             topic: topic,
