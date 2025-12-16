@@ -8,6 +8,7 @@ const mockDB = {
       firstName: 'Кандидат',
       lastName: 'Кандидатов',
       avatarUrl: 'https://i.pravatar.cc/150?u=user_1',
+      phone: '+7-999-000-00-00',
       companyName: ''
     },
     {
@@ -31,13 +32,39 @@ const mockDB = {
       avatarUrl: 'https://i.pravatar.cc/150?img=2'
     }
   ],
-  resumes: [  ],
-  candidates: [
-    { userId: 'user_1', firstName: 'Кандидат', lastName: 'Кандидатов'}
+  resumes: [
+    {
+      id: 'resume_1',
+      userId: 'user_1',
+      title: 'Frontend Developer',
+      position: 'Frontend Developer',
+      skills: ['React', 'TypeScript', 'Redux'],
+      experience: [
+        { title: 'Frontend Dev', company: 'Web Studio', period: '2020 - 2023', description: 'React development' }
+      ],
+      education: [],
+      about: 'Experienced frontend dev',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: 'resume_2',
+      userId: 'user_1',
+      title: 'Fullstack Developer',
+      position: 'Fullstack Developer',
+      skills: ['Node.js', 'React', 'MongoDB'],
+      experience: [
+        { title: 'Fullstack Dev', company: 'Freelance', period: '2018 - 2020', description: 'Full cycle dev' }
+      ],
+      education: [],
+      about: 'Love backend too',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
   ],
+  candidates: [],
   hrs: [
-    { userId: 'user_2', firstName: 'Отдел', lastName: 'Кадров', companyName: 'Компания'},
-    { userId: 'user_3', firstName: 'Отдел2', lastName: 'Кадров2', companyName: 'Компания2'}
+    { userId: 'user_2', firstName: 'Анна', lastName: 'Петрова', companyName: 'Tech Corp' }
   ],
   hrConversations: [
     {
@@ -52,97 +79,59 @@ const mockDB = {
         { id: 'm3', senderId: 'user_2', text: 'Отлично, тогда договорились о созвоне!' },
       ]
     },
-    {
-      id: 'chat_2',
-      candidateId: 'user_1',
-      hrId: 'user_3',
-      lastMessage: 'Жду ваше портфолио',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-      messages: [
-        { id: 'm4', senderId: 'user_3', text: 'Добрый день. У нас открыта позиция Senior Frontend Developer.' },
-        { id: 'm5', senderId: 'user_1', text: 'Здравствуйте. Интересно, вышлю портфолио.' },
-      ]
-    }
   ],
   sessions: [
     {
       id: 'session_1',
-      title: 'Frontend Developer Interview',
-      position: 'frontend',
+      title: 'Frontend Interview #1',
+      position: 'Frontend Developer',
       difficulty: 'middle',
-      status: 'active',
+      status: 'completed',
       candidateId: 'user_1',
       interviewerId: 'ai_interviewer',
-      createdAt: new Date().toISOString(),
-      notes: '',
-      conversationHistory: []
+      createdAt: new Date(Date.now() - 10000000).toISOString(),
+      completedAt: new Date().toISOString(),
+      finalReport: {
+        overall_assessment: {
+          final_score: 7.5
+        }
+      }
+    },
+    {
+      id: 'session_2',
+      title: 'Frontend Interview #2',
+      position: 'Frontend Developer',
+      difficulty: 'senior',
+      status: 'completed',
+      candidateId: 'user_1',
+      interviewerId: 'ai_interviewer',
+      createdAt: new Date(Date.now() - 5000000).toISOString(),
+      completedAt: new Date().toISOString(),
+      finalReport: {
+        overall_assessment: {
+          final_score: 8.2
+        }
+      }
+    },
+    {
+      id: 'session_3',
+      title: 'Fullstack Interview',
+      position: 'Fullstack Developer',
+      difficulty: 'middle',
+      status: 'completed',
+      candidateId: 'user_1',
+      interviewerId: 'ai_interviewer',
+      createdAt: new Date(Date.now() - 2000000).toISOString(),
+      completedAt: new Date().toISOString(),
+      finalReport: {
+        overall_assessment: {
+          final_score: 6.8
+        }
+      }
     }
   ],
   codeExecutions: [],
-  aiChats: [
-    {
-      id: 'msg_ai_1',
-      userId: 'user_1', // Привязано к Кандидату (user_1)
-      sender: 'user',
-      text: 'Привет! Помоги мне подготовиться к собеседованию на позицию Frontend разработчика.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() // Вчера
-    },
-    {
-      id: 'msg_ai_2',
-      userId: 'user_1',
-      sender: 'ai',
-      text: 'Здравствуйте! С удовольствием помогу. Уточните, пожалуйста, какой у вас уровень опыта (Junior, Middle, Senior) и есть ли конкретные технологии, которые вы хотели бы повторить (например, React, Vue, TypeScript)?',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 23.9).toISOString()
-    },
-    {
-      id: 'msg_ai_3',
-      userId: 'user_1',
-      sender: 'user',
-      text: 'Я претендую на Junior React Developer. Меня интересуют вопросы по хукам и жизненному циклу компонентов.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 23.8).toISOString()
-    },
-    {
-      id: 'msg_ai_4',
-      userId: 'user_1',
-      sender: 'ai',
-      text: `Отличный выбор! Для позиции **Junior React Developer** тема хуков и жизненного цикла — самая популярная на собеседованиях.
-
-      Вот краткая шпаргалка, которую нужно знать:
-
-      ### 1. Основные хуки
-      - **useState** — для управления локальным состоянием.
-      - **useEffect** — для побочных эффектов (запросы к API, таймеры). Он заменяет старые методы классов.
-      - **useContext** — для получения глобальных данных без прокидывания пропсов.
-      
-      ### 2. Жизненный цикл через useEffect
-      Вместо \`componentDidMount\` и других методов мы используем массив зависимостей:
-      
-      1. **Монтирование (Mount):**
-         \`useEffect(() => { ... }, [])\` — запускается 1 раз.
-      2. **Обновление (Update):**
-         \`useEffect(() => { ... }, [count])\` — запускается при изменении \`count\`.
-      3. **Размонтирование (Unmount):**
-         Возвращаем функцию очистки (\`cleanup function\`).
-      
-      ### Пример кода (частый вопрос):
-      *"Как сделать очистку таймера при удалении компонента?"*
-      
-      \`\`\`javascript
-      useEffect(() => {
-        const timer = setInterval(() => {
-          console.log('Tick');
-        }, 1000);
-      
-        // Функция очистки (аналог componentWillUnmount)
-        return () => clearInterval(timer);
-      }, []);
-      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
-      \`\`\`
-      
-      Хотите, я задам вам **тестовый вопрос** по этой теме, чтобы проверить знания?`,
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 23.7).toISOString()
-    }
-  ],
+  aiChats: []
 };
 
 module.exports = {

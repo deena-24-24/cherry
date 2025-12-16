@@ -1,6 +1,6 @@
 import React from 'react'
 import { useInterviewStore } from '../../store'
-import { interviewService } from '../../service/interview/InterviewService'
+import { interviewService } from '../../service/interview/interviewService'
 
 export const NotesPanel: React.FC = () => {
   const { notes, updateNotes, currentSession } = useInterviewStore()

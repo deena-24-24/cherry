@@ -1,33 +1,37 @@
 const { mockDB } = require('../mockData.js');
 
 /**
- * @desc    Получение списка всех кандидатов
- * @route   GET /api/hr/candidates
- * @access  Private (HR only)
+ * Получение всех резюме для HR с данными пользователей
  */
 const getCandidates = async (req, res) => {
   try {
-    // Получаем всех кандидатов из базы
-    const candidates = mockDB.candidates || [];
-    
-    // Обогащаем данные информацией из users
-    const enrichedCandidates = candidates.map(candidate => {
-      const user = mockDB.users.find(u => u._id === candidate.userId);
+    // Берем все резюме
+    const allResumes = mockDB.resumes;
+
+    // Обогащаем данными пользователя
+    const enrichedCandidates = allResumes.map(resume => {
+      const user = mockDB.users.find(u => u._id === resume.userId);
       return {
-        ...candidate,
-        email: user?.email || candidate.email,
-        avatar: user?.avatar || candidate.avatar || '',
+        // Данные резюме имеют приоритет (например, навыки, опыт)
+        ...resume,
+        resumeId: resume.id, // Явно указываем ID резюме
+        // Данные пользователя
+        firstName: user?.firstName || 'Unknown',
+        lastName: user?.lastName || '',
+        email: user?.email || '',
+        avatar: user?.avatarUrl || '', // mockDB uses avatarUrl in users
+        country: user?.country || '',
+        phone: user?.phone || ''
       };
     });
-    
+
     res.json(enrichedCandidates);
   } catch (error) {
     console.error('Error getting candidates:', error);
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
+    res.status(500).json({ message: 'Ошибка сервера' });
   }
 };
 
 module.exports = {
   getCandidates,
 };
-

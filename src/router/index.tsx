@@ -10,7 +10,7 @@ import { ProtectedRoute } from './ProtectedRoute'
 
 // Pages
 import { LandingPage } from '../pages/common/LandingPage'
-import { ProfilePage } from '../pages/ProfilePage/ProfilePage'
+import { ProfilePage } from '../pages/candidate/ProfilePage'
 import { InterviewHomePage } from '../pages/candidate/InterviewHomePage'
 import { InterviewCallPage } from '../pages/candidate/InterviewCallPage'
 import { AiChatPage } from '../pages/candidate/AiChatPage'

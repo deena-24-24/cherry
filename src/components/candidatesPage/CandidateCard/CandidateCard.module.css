@@ -1,0 +1,51 @@
+.card {
+  width: 100%;
+  min-height: auto;
+  background: white;
+  border-radius: 15px;
+  border: 1px solid #78AAFF;
+  padding: 24px;
+  margin-bottom: 0;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(8, 32, 96, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(8, 32, 96, 0.1);
+  border-color: #082060;
+}
+
+.skillTag {
+  background: #F2C2C8;
+  border-radius: 7px;
+  border: 1px solid #78AAFF;
+  padding: 4px 12px;
+  color: #082060;
+  font-size: 14px;
+  font-family: 'Anek Telugu', sans-serif;
+  font-weight: 500;
+  text-transform: capitalize;
+  line-height: 15.4px;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.viewButton {
+  background-color: #082060;
+  color: white;
+  border: none;
+}
+.viewButton:hover {
+  background-color: #0A2A7A;
+}

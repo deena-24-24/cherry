@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react"
-import { FormData as ProfileFormData } from "../ProfilePage/types"
-import { HrMenuItem } from "./types"
-import { compressAvatarImage } from "../ProfilePage/utils"
-import { ProfileAvatar } from "../ProfilePage/components/ProfileAvatar/ProfileAvatar"
-import { HrMenu } from "./components/HrMenu/HrMenu"
-import { FavoritesContent } from "./components/FavoritesContent/FavoritesContent"
+import { FormData as ProfileFormData, HrMenuItem } from "../../types"
+import { compressAvatarImage } from "../../utils"
+import { ProfileAvatar } from "../../components/profilePage/ProfileAvatar/ProfileAvatar" // Больше не нужен здесь, если используем внутри формы, но для HR он может быть отдельным компонентом или тем же. Используем тот же подход.
+import { HrMenu } from "../../components/profilePage/HrMenu/HrMenu"
+import { FavoritesContent } from "../../components/profilePage/FavoritesContent/FavoritesContent"
+
 import { FormField } from "../../components/ui/FormField/FormField"
-import { PhoneField } from "../ProfilePage/components/ProfileForm/PhoneField"
-import { CountryField } from "../ProfilePage/components/ProfileForm/CountryField"
-import { TextareaField } from "../ProfilePage/components/ProfileForm/TextareaField"
+import { PhoneField } from "../../components/profilePage/ProfileForm/PhoneField"
+import { CountryField } from "../../components/profilePage/ProfileForm/CountryField"
+import { TextareaField } from "../../components/profilePage/ProfileForm/TextareaField"
 import { Button } from "../../components/ui/Button/Button"
-import { validateEmail } from "../ProfilePage/utils"
+import { validateEmail } from "../../utils"
 import { useAuthStore } from "../../store"
 import { fetchHr, updateHr } from "../../service/hr/hrService"
-import "../ProfilePage/styles/variables.css"
-import * as styles from "../ProfilePage/ProfilePage.module.css"
+import "../../styles/variables.css"
+import * as styles from "../candidate/ProfilePage.module.css"
+import * as formStyles from "../../components/profilePage/ProfileForm/ProfileForm.module.css"
 
 export const HrProfilePage: React.FC = () => {
   const { user, updateUser } = useAuthStore()
@@ -34,20 +35,12 @@ export const HrProfilePage: React.FC = () => {
   })
   const [companyName, setCompanyName] = useState<string>('')
 
-  // Функция загрузки данных профиля
+  // ... (логика загрузки loadProfile, handleSave, handleCancel остается прежней) ...
   const loadProfile = async () => {
-    if (!user) {
-      setLoading(false)
-      return
-    }
-
+    if (!user) { setLoading(false); return }
     try {
       setLoading(true)
-      
-      // Загружаем данные из API (это источник истины)
       const hrData = await fetchHr()
-      
-      // Устанавливаем данные из API
       setFormData({
         firstName: hrData.firstName || '',
         lastName: hrData.lastName || '',
@@ -57,62 +50,21 @@ export const HrProfilePage: React.FC = () => {
         country: hrData.country || '',
         about: hrData.about || ''
       })
-      
-      // Устанавливаем HR-специфичные поля
       setCompanyName(hrData.companyName || '')
-      
-      // Устанавливаем аватар, если он есть
-      if (hrData.avatar) {
-        setAvatarUrl(hrData.avatar)
-      }
+      if (hrData.avatar) setAvatarUrl(hrData.avatar)
     } catch (error) {
-      console.error('Ошибка загрузки профиля:', error)
-      
-      // Если API не доступен, используем данные из store как fallback
-      setFormData({
-        firstName: (user as any).firstName || '',
-        lastName: (user as any).lastName || '',
-        email: user.email || '',
-        phone: (user as any).phone || '',
-        phoneCode: '',
-        country: (user as any).country || '',
-        about: (user as any).about || ''
-      })
-      
-      setCompanyName((user as any).companyName || '')
-      
-      // Устанавливаем аватар из store, если он есть
-      if ((user as any).avatar) {
-        setAvatarUrl((user as any).avatar)
-      }
+      console.error(error)
     } finally {
       setLoading(false)
     }
   }
 
-  // Загрузка данных профиля при монтировании компонента
-  useEffect(() => {
-    loadProfile().then()
-  }, [user])
-
-  // Перезагрузка данных при переключении разделов
-  useEffect(() => {
-    // Перезагружаем данные профиля при переходе в раздел "Обо мне"
-    if (activeMenuItem === 'about') {
-      loadProfile().then()
-    }
-  }, [activeMenuItem])
+  useEffect(() => { loadProfile().then() }, [user])
 
   const handleInputChange = (field: keyof ProfileFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    
-    // Валидация email
     if (field === 'email') {
-      if (value && !validateEmail(value)) {
-        setEmailError('Введите корректный email адрес')
-      } else {
-        setEmailError('')
-      }
+      setEmailError(value && !validateEmail(value) ? 'Некорректный email' : '')
     }
   }
 
@@ -120,265 +72,137 @@ export const HrProfilePage: React.FC = () => {
     const file = e.target.files?.[0]
     if (file) {
       try {
-        const compressedImage = await compressAvatarImage(file)
-        setAvatarUrl(compressedImage)
-      } catch (error) {
-        console.error('Ошибка обработки изображения:', error)
-      }
+        const compressed = await compressAvatarImage(file)
+        setAvatarUrl(compressed)
+      } catch (error) { console.error(error) }
     }
   }
 
   const handleSave = async () => {
     try {
-      setIsEditing(false)
-      
-      // Подготавливаем данные для отправки
-      const hrData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        country: formData.country,
-        about: formData.about,
-        avatar: avatarUrl || '',
-        companyName: companyName
-      }
-
+      const hrData = { ...formData, avatar: avatarUrl, companyName }
       const updatedHr = await updateHr(hrData)
-      console.log('Профиль успешно обновлен')
-      
-      // Обновляем данные в store
       if (updatedHr) {
-        updateUser({
-          firstName: updatedHr.firstName || formData.firstName,
-          lastName: updatedHr.lastName || formData.lastName,
-          email: updatedHr.email || formData.email,
-          phone: updatedHr.phone || formData.phone,
-          country: updatedHr.country || formData.country,
-          about: updatedHr.about || formData.about,
-          avatar: updatedHr.avatar || avatarUrl || '',
-          companyName: updatedHr.companyName || companyName,
-        } as Partial<typeof user>)
+        updateUser({ ...updatedHr })
       }
-      
-      // Перезагружаем данные профиля из API для получения всех обновленных данных
-      try {
-        const freshHrData = await fetchHr()
-        setFormData(prev => ({
-          ...prev,
-          firstName: freshHrData.firstName || prev.firstName,
-          lastName: freshHrData.lastName || prev.lastName,
-          email: freshHrData.email || prev.email,
-          phone: freshHrData.phone || prev.phone,
-          country: freshHrData.country || prev.country,
-          about: freshHrData.about || prev.about
-        }))
-        
-        setCompanyName(freshHrData.companyName || '')
-        
-        // Обновляем аватар, если он есть
-        if (freshHrData.avatar) {
-          setAvatarUrl(freshHrData.avatar)
-        }
-      } catch (error) {
-        console.error('Ошибка перезагрузки профиля:', error)
-      }
-    } catch (error) {
-      console.error('Ошибка сохранения профиля:', error)
-      // Можно добавить уведомление об ошибке
-    }
+      setIsEditing(false)
+    } catch (error) { console.error(error) }
   }
 
-  const handleEdit = () => {
-    setIsEditing(true)
-  }
-
-  const handleEditToggle = () => {
-    if (isEditing) {
-      handleSave().then()
-    } else {
-      handleEdit()
-    }
-  }
+  const handleEditToggle = () => isEditing ? handleSave() : setIsEditing(true)
 
   const handleCancel = async () => {
     setIsEditing(false)
-    // Перезагружаем данные профиля из API для отмены локальных изменений
-    try {
-      const freshHrData = await fetchHr()
-      setFormData(prev => ({
-        ...prev,
-        firstName: freshHrData.firstName || prev.firstName,
-        lastName: freshHrData.lastName || prev.lastName,
-        email: freshHrData.email || prev.email,
-        phone: freshHrData.phone || prev.phone,
-        country: freshHrData.country || prev.country,
-        about: freshHrData.about || prev.about
-      }))
-      setCompanyName(freshHrData.companyName || '')
-      if (freshHrData.avatar) {
-        setAvatarUrl(freshHrData.avatar)
-      }
-    } catch (error) {
-      console.error('Ошибка перезагрузки профиля при отмене:', error)
-    }
+    loadProfile()
   }
 
-  if (loading) {
-    return (
-      <div className={styles["page"]}>
-        <div className={styles["title"]}>
-          ЛИЧНЫЙ КАБИНЕТ
-        </div>
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          Загрузка данных...
-        </div>
-      </div>
-    )
-  }
+  if (loading) return <div>Загрузка...</div>
 
-  const getTitle = () => {
-    switch (activeMenuItem) {
-      case 'about':
-        return 'ЛИЧНЫЙ КАБИНЕТ'
-      case 'candidates':
-        return 'ИЗБРАННЫЕ КАНДИДАТЫ'
-      default:
-        return 'ЛИЧНЫЙ КАБИНЕТ'
-    }
-  }
+  const getTitle = () => activeMenuItem === 'about' ? 'ЛИЧНЫЙ КАБИНЕТ' : 'ИЗБРАННЫЕ КАНДИДАТЫ'
+  const fullWidthStyle = { width: '100%' }
 
   return (
     <div className={styles["page"]}>
-      {/* Заголовок */}
-      <div className={styles["title"]}>
-        {getTitle()}
-      </div>
+      <div className={styles["title"]}>{getTitle()}</div>
 
-      {/* Основной контейнер с формой и правой панелью */}
       <div className={styles["container"]}>
-        {/* Левая часть - контент в зависимости от выбранного пункта меню */}
-        <div className={
-          activeMenuItem === 'about' ? styles["contentContainerAbout"] :
-            styles["contentContainerResume"]
-        }>
+
+        {/* ЛЕВАЯ КОЛОНКА */}
+        <div className={styles["contentColumn"]}>
           {activeMenuItem === 'about' && (
-            <div className={styles["formSection"]}>
-              {/* Поле "Имя" */}
-              <FormField
-                label="ИМЯ"
-                value={formData.firstName}
-                isEditing={isEditing}
-                onChange={(value) => handleInputChange('firstName', value)}
-              />
+            <div className={formStyles["formContainer"]}>
 
-              {/* Поле "Фамилия" */}
-              <FormField
-                label="ФАМИЛИЯ"
-                value={formData.lastName}
-                isEditing={isEditing}
-                onChange={(value) => handleInputChange('lastName', value)}
-              />
-
-              {/* Дополнительные поля для HR - сразу после фамилии */}
-              <FormField
-                label="НАЗВАНИЕ КОМПАНИИ"
-                value={companyName}
-                isEditing={isEditing}
-                onChange={(value) => setCompanyName(value)}
-              />
-
-              {/* Поле "Электронная почта" */}
-              <FormField
-                label="ЭЛЕКТРОННАЯ ПОЧТА"
-                value={formData.email}
-                isEditing={isEditing}
-                type="email"
-                error={emailError}
-                onChange={(value) => handleInputChange('email', value)}
-              />
-
-              {/* Поле "Телефон" */}
-              <PhoneField
-                value={formData.phone || ''}
-                isEditing={isEditing}
-                onChange={(value) => {
-                  handleInputChange('phone', value)
-                  handleInputChange('phoneCode', '')
-                }}
-              />
-
-              {/* Поле "Страна" */}
-              <CountryField
-                value={formData.country}
-                isEditing={isEditing}
-                onChange={(value) => handleInputChange('country', value)}
-              />
-
-              {/* Поле "О себе" */}
-              <TextareaField
-                label="О СЕБЕ"
-                value={formData.about}
-                isEditing={isEditing}
-                onChange={(value) => handleInputChange('about', value)}
-              />
-
-              {/* Кнопки управления */}
-              {isEditing ? (
-                <div className={styles["actions"]}>
-                  <Button
-                    variant="primary"
-                    onClick={handleEditToggle}
-                    className={styles["saveButton"]}
-                  >
-                    СОХРАНИТЬ
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={handleCancel}
-                    className={styles["cancelButton"]}
-                  >
-                    Отмена
-                  </Button>
+              {/* Верхняя секция: Поля + Аватар */}
+              <div className={formStyles["topSection"]}>
+                <div className={formStyles["mainFields"]}>
+                  <FormField
+                    label="ИМЯ"
+                    value={formData.firstName}
+                    isEditing={isEditing}
+                    onChange={(v) => handleInputChange('firstName', v)}
+                    styleProps={fullWidthStyle}
+                  />
+                  <FormField
+                    label="ФАМИЛИЯ"
+                    value={formData.lastName}
+                    isEditing={isEditing}
+                    onChange={(v) => handleInputChange('lastName', v)}
+                    styleProps={fullWidthStyle}
+                  />
+                  {/* Поле компании для HR */}
+                  <FormField
+                    label="НАЗВАНИЕ КОМПАНИИ"
+                    value={companyName}
+                    isEditing={isEditing}
+                    onChange={setCompanyName}
+                    styleProps={fullWidthStyle}
+                  />
+                  <FormField
+                    label="ЭЛЕКТРОННАЯ ПОЧТА"
+                    value={formData.email}
+                    isEditing={isEditing}
+                    type="email"
+                    error={emailError}
+                    onChange={(v) => handleInputChange('email', v)}
+                    styleProps={fullWidthStyle}
+                  />
+                  <PhoneField
+                    value={formData.phone || ''}
+                    isEditing={isEditing}
+                    onChange={(v) => handleInputChange('phone', v)}
+                  />
                 </div>
-              ) : (
-                <Button
-                  variant="primary"
-                  onClick={handleEditToggle}
-                >
-                  РЕДАКТИРОВАТЬ
-                </Button>
-              )}
+
+                <div className={formStyles["avatarSection"]}>
+                  <ProfileAvatar
+                    avatarUrl={avatarUrl}
+                    isEditing={isEditing}
+                    onAvatarChange={handleAvatarChange}
+                  />
+                </div>
+              </div>
+
+              {/* Нижняя секция */}
+              <div className={formStyles["bottomSection"]}>
+                <CountryField
+                  value={formData.country}
+                  isEditing={isEditing}
+                  onChange={(v) => handleInputChange('country', v)}
+                />
+                <TextareaField
+                  label="О СЕБЕ"
+                  value={formData.about}
+                  isEditing={isEditing}
+                  onChange={(v) => handleInputChange('about', v)}
+                />
+              </div>
+
+              {/* Кнопки */}
+              <div className={formStyles["actions"]}>
+                {isEditing ? (
+                  <>
+                    <Button variant="primary" onClick={handleSave} className={formStyles["saveButton"]}>СОХРАНИТЬ</Button>
+                    <Button variant="secondary" onClick={handleCancel} className={formStyles["cancelButton"]}>Отмена</Button>
+                  </>
+                ) : (
+                  <Button variant="primary" onClick={handleEditToggle}>РЕДАКТИРОВАТЬ</Button>
+                )}
+              </div>
             </div>
           )}
-          {activeMenuItem === 'candidates' && (
-            <FavoritesContent />
-          )}
+
+          {activeMenuItem === 'candidates' && <FavoritesContent />}
         </div>
 
-        {/* Правая часть - аватар и меню */}
-        <div className={styles["rightPanel"]}>
-          {/* Аватар - только в разделе "Обо мне" */}
-          {activeMenuItem === 'about' && (
-            <ProfileAvatar
-              avatarUrl={avatarUrl}
-              isEditing={isEditing}
-              onAvatarChange={handleAvatarChange}
-            />
-          )}
-
-          {/* Меню */}
-          <div className={activeMenuItem === 'candidates' ? styles["menuWrapperCandidates"] : ''}>
-            <HrMenu
-              activeMenuItem={activeMenuItem}
-              onMenuItemChange={setActiveMenuItem}
-            />
-          </div>
+        {/* ПРАВАЯ КОЛОНКА (Меню) */}
+        <div className={styles["menuColumn"]}>
+          <HrMenu
+            activeMenuItem={activeMenuItem}
+            onMenuItemChange={setActiveMenuItem}
+          />
         </div>
 
       </div>
-      
     </div>
   )
 }
-

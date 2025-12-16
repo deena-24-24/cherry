@@ -12,22 +12,24 @@ export interface Education {
 }
 
 export interface Resume {
-  id?: string
-  userId?: string
-  fullName?: string // Оставлено для обратной совместимости, но рекомендуется использовать firstName и lastName
-  firstName?: string
-  lastName?: string
-  jobTitle: string
-  email: string
-  phone: string
-  photoUrl?: string
-  videoUrl?: string
-  skills?: string[]
-  about?: string // Информация "О себе"
+  id: string; // Важно: ID резюме
+  userId?: string;
+  title: string; // Название резюме (например, "Мое основное", "Frontend")
+  position: string; // Искомая должность
 
-  experience: Experience[]
-  education: Education[]
+  // Данные из профиля пользователя (для отображения, приходят с бэка)
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+  country?: string;
 
-  updatedAt?: string
-  createdAt?: string
+  skills: string[];
+  experience: Experience[];
+  education: Education[];
+  about?: string;
+
+  resumeFileName?: string;
+  resumeFileData?: string;
 }
