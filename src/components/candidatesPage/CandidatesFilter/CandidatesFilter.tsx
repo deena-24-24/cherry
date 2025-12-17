@@ -19,7 +19,7 @@ interface CandidatesFilterProps {
 export const CandidatesFilter: React.FC<CandidatesFilterProps> = ({
   filters,
   onFiltersChange,
-  availableSkills,
+  availableSkills: _availableSkills,
 }) => {
   const [newSkill, setNewSkill] = useState('')
 
@@ -48,7 +48,7 @@ export const CandidatesFilter: React.FC<CandidatesFilterProps> = ({
         <select
           value={filters.position}
           onChange={(e) => handleFilterChange('position', e.target.value)}
-          className={styles["filterSelect"]} // Используем новый класс
+          className={styles["filterSelect"]}
         >
           <option value="">Все позиции</option>
           {AVAILABLE_POSITIONS.map(pos => (
@@ -71,7 +71,7 @@ export const CandidatesFilter: React.FC<CandidatesFilterProps> = ({
       <div className={styles["filterGroup"]}>
         <label className={styles["filterLabel"]}>Стаж (лет)</label>
         <input
-          type="number" // Лучше number
+          type="number"
           min="0"
           value={filters.experience}
           onChange={(e) => handleFilterChange('experience', e.target.value)}
@@ -87,7 +87,7 @@ export const CandidatesFilter: React.FC<CandidatesFilterProps> = ({
             type="text"
             value={newSkill}
             onChange={(e) => setNewSkill(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
             className={styles["filterInput"]}
             placeholder="Добавить"
           />
