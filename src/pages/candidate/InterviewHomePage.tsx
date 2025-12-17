@@ -35,7 +35,9 @@ export const InterviewHomePage: React.FC = () => {
             </p>
 
             {/* ЭТА КНОПКА ПЕРЕВОДИТ НА СТРАНИЦУ ЗВОНКА */}
-            <Button className={styles["ihp-hero-btn"]} onClick={handleStartInterview}>
+            <Button className={styles["ihp-hero-btn"]}
+              onClick={handleStartInterview}
+              styleProps={{ borderColor: '#36447c' }}>
               ПРИСТУПИТЬ К ИНТЕРВЬЮ
             </Button>
           </div>
@@ -61,9 +63,9 @@ export const InterviewHomePage: React.FC = () => {
             <span className={styles["ihp-calendar"]}>📅</span> 18/10/2025
           </div>
 
-          <button className={styles["ihp-interview-btn"]} onClick={handleViewResults}>
+          <Button className={styles["ihp-interview-btn"]} onClick={handleViewResults}>
             ПОСМОТРЕТЬ ФИДБЕК
-          </button>
+          </Button>
         </div>
 
       </div>

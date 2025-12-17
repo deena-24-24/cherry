@@ -2,7 +2,7 @@
   /* Colors */
   --color-primary: #082060;
   --color-primary-light: #377bff;
-  --color-secondary: #F5F5FF;
+  --color-secondary: #eaeaff;
   --color-secondary-hover: #E9F0FF;
   --color-accent: #78AAFF;
   --color-accent-light: #C8E6FF;
@@ -12,6 +12,12 @@
   --color-text-light: #F5F5FF;
   --color-error: #ff4444;
   --color-background: #fff;
+
+  --cloud: #fffcf5;
+  --lavand: #bac5e2;
+  --peach: #dfaea1;
+  --maroon: #95525b;
+  --navy: #36447c;
 
   /* Typography */
   --font-size-xs: 12px;

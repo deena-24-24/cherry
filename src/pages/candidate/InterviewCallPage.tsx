@@ -383,27 +383,23 @@ export const InterviewCallPage: React.FC = () => {
             <h1>{currentSession.title}</h1>
             <span className={styles['session-label']}>{currentSession.position}</span>
           </div>
-          <div className={styles['connection']}>
-            <div className={styles['dot']}></div>
-            Connected
-          </div>
         </div>
 
         {/* Основной контент */}
         <div className={styles['interview-main']}>
 
-          <div className={`ai-block ${styles['block']}`}>
+          <div className={`${styles['block']} ${styles['ai-block']}`}>
             <h2>ИИ-СОБЕСЕДУЮЩИЙ</h2>
             <div className={styles['avatar']}>
               <span className={styles['avatar-icon']}>🤖</span>
             </div>
-            <div className={styles['talking-row']}>
+            {/*<div className={styles['talking-row']}>
               <div className={styles['talking-dot']}></div>
               <span className={styles['talking-text']}>Говорит...</span>
-            </div>
+            </div>*/}
           </div>
 
-          <div className={`user-block ${styles['block']}`}>
+          <div className={`${styles['block']} ${styles['user-block']}`}>
             <h2>КАНДИДАТ</h2>
             <div className={styles['avatar']}>
               <span className={styles['avatar-icon']}>👤</span>
@@ -412,270 +408,112 @@ export const InterviewCallPage: React.FC = () => {
           </div>
 
 
-          {/* Правая часть - голосовая панель */}
-          <div className="w-1/3 bg-gray-800 border-l border-gray-700 p-6">
-            <div className="voice-call-panel bg-gray-800 rounded-lg p-6 h-full flex flex-col">
-              {/* Заголовок с индикаторами */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  {/* Индикатор соединения WebSocket */}
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-                    <span className="text-sm text-gray-300">
-                      {isConnected ? 'Соединение установлено' : 'Нет соединения'}
-                    </span>
-                  </div>
+          {/* Голосовая панель */}
+          <aside className={styles["panel"]}>
+            {/* Header */}
+            <header className={styles['header']}>
+              <span className={styles['status']}>
+                <i className={isConnected ? styles['online'] : styles['offline']} />
+                {isConnected ? (
+                  <div className={styles['connection']}>
+                    <div className={styles['dot']}></div>
+                    Подключено
+                  </div>)
+                  : 'Нет подключения'}
+              </span>
 
-                  {/* Индикатор записи */}
-                  {isRecording && (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                      <span className="text-sm text-red-400">Запись</span>
-                    </div>
-                  )}
+              {(isAISpeaking || isAIThinking) && (
+                <span className={styles['aiLive']}>
+                  {isAISpeaking ? 'ИИ говорит…' : 'ИИ думает…'}
+                </span>
+              )}
+            </header>
 
-                  {/* Индикатор мышления AI */}
-                  {isAIThinking && (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                      <span className="text-sm text-blue-400">AI думает...</span>
-                    </div>
-                  )}
-
-                  {/* Индикатор речи AI */}
-                  {isAISpeaking && (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse" />
-                      <span className="text-sm text-purple-400">AI говорит</span>
-                    </div>
-                  )}
-
-                  {/* Индикатор микрофона */}
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${isRecording ? 'bg-green-500' : 'bg-red-500'}`} />
-                    <span className="text-sm text-gray-300">
-                      {isRecording ? 'Включен' : 'Выключен'}
-                    </span>
-                  </div>
+            {/* AI block */}
+            <div className={styles['ai']}>
+              {aiResponse && (
+                <div className={styles['subtitle']}>
+                  “{aiResponse}”
                 </div>
+              )}
+            </div>
+
+            {/* User transcript */}
+            <div className={styles['user']}>
+              <div className={styles['userLabel']}>
+                🎤 Вы {isRecording && <span className={styles['recording']} />}
               </div>
 
-              {/* Основной контент голосового звонка */}
-              <div className="video-placeholder bg-gray-700 rounded-lg flex-1 flex flex-col items-center justify-center mb-4 p-4">
-                <div className="text-center mb-4">
-                  <div className="w-20 h-20 bg-blue-500 rounded-full mx-auto mb-3 flex items-center justify-center">
-                    <span className="text-white text-2xl">AI</span>
-                  </div>
-                  <p className="text-lg text-white font-medium">AI Интервьюер</p>
-
-                  {isCallActive && (
-                    <div className="mt-2 text-green-400 text-sm flex items-center justify-center">
-                      <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                      Интервью активно
-                    </div>
-                  )}
-                </div>
-
-                {/* Визуализатор голоса */}
-                {isCallActive && isRecording && renderVoiceVisualizer()}
-
-                {/* Индикатор качества связи */}
-                {isCallActive && renderConnectionIndicator()}
-
-                {/* Индикатор речи AI */}
-                {isAISpeaking && (
-                  <div className="mt-4 p-3 bg-purple-500/20 rounded-lg max-w-md border border-purple-500/30">
-                    <p className="text-sm text-purple-300 text-center">
-                      🗣️ AI интервьюер говорит...
-                    </p>
-                  </div>
-                )}
-
-                {/* Визуальные подсказки */}
-                {isRecording && !transcript && (
-                  <div className="mt-4 p-3 bg-green-500/20 rounded-lg max-w-md border border-green-500/30">
-                    <p className="text-sm text-green-300 text-center animate-pulse">
-                      🎤 Говорите сейчас... Я слушаю
-                    </p>
-                  </div>
-                )}
-
-                {isRecording && transcript && (
-                  <div className="mt-4 p-3 bg-yellow-500/20 rounded-lg max-w-md border border-yellow-500/30">
-                    <p className="text-sm text-yellow-300 text-center">
-                      🔊 Распознано: {transcript}
-                    </p>
-                  </div>
-                )}
-
-                {/* Ответ AI */}
-                {aiResponse && (
-                  <div className="mt-4 p-3 bg-blue-500/20 rounded-lg max-w-md border border-blue-500/30">
-                    <p className="text-sm text-blue-300 text-center">
-                      🤖 {aiResponse}
-                    </p>
-                  </div>
-                )}
-
-                {/* Сообщение об ошибке соединения */}
-                {!isConnected && isCallActive && (
-                  <div className="mt-4 p-3 bg-red-500/20 rounded-lg max-w-md border border-red-500/30">
-                    <p className="text-sm text-red-300 text-center">
-                      ❌ Нет соединения с сервером. Попытка переподключения...
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Панель управления звонком */}
-              <div className="controls flex flex-col space-y-4">
-                <button
-                  onClick={async () => {
-                    try {
-                      await handleEndCall('user')
-                    } catch (error) {
-                      console.error('Ошибка при завершении звонка:', error)
-                    }
-                  }}
-                  className="px-8 py-4 rounded-full text-lg font-medium bg-red-500 hover:bg-red-600 transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!isCallActive}
-                >
-                  ⏸️ Прервать собеседование
-                </button>
-
-                {/* Кнопка mute/unmute */}
-                {isCallActive && (
-                  <div className="flex justify-center space-x-4">
-                    <Button
-                      onClick={toggleRecording}
-                      className={`px-6 py-3 rounded-full transition-all duration-200 ${
-                        isRecording
-                          ? 'bg-red-500/20 text-red-300 border border-red-500 hover:bg-red-500/30'
-                          : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600'
-                      }`}
-                    >
-                      {isRecording ? '🔇 Выключить микрофон' : '🎤 Включить микрофон'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Статусы звонка */}
-              <div className="mt-4 text-center space-y-2">
-                {isRecording && (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    <p className="text-sm text-red-400">Идёт запись аудио...</p>
-                  </div>
-                )}
-
-                {!isRecording && (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                    <p className="text-sm text-yellow-400">Микрофон выключен</p>
-                  </div>
-                )}
-
-                {isAIThinking && (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                    <p className="text-sm text-blue-400">AI обрабатывает ответ...</p>
-                  </div>
-                )}
-
-                {isAISpeaking && (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
-                    <p className="text-sm text-purple-400">AI отвечает...</p>
-                  </div>
-                )}
-
-                {!isRecording && !isAISpeaking && !isAIThinking && isCallActive && (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <p className="text-sm text-green-400">Ожидаю ваш ответ...</p>
-                  </div>
-                )}
-
-                {isCallActive && (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                    <p className="text-sm text-gray-400">
-                      Нажмите Escape для экстренного завершения
-                    </p>
-                  </div>
-                )}
-
-                {voiceError && (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <p className="text-sm text-red-400">Ошибка: {voiceError}</p>
-                  </div>
-                )}
+              <div className={styles['transcript']}>
+                {transcript || 'Здесь отобразится Ваш ответ…'}
               </div>
             </div>
-          </div>
+
+            {/* Нижняя панель управления */}
+            <footer className={styles['bottom-controls']}>
+              <Button
+                className={styles['round-btn']}
+                variant={"secondary"}
+                onClick={() => setShowNotes(!showNotes)}>📝</Button>
+
+              <Button
+                className={styles['round-btn']}
+                variant="secondary"
+                onClick={() => setShowConsole(!showConsole)}>💻</Button>
+
+              <button
+                className={styles['mic']}
+                onClick={toggleRecording}>
+                {isRecording ? 'Выключить микрофон' : 'Включить микрофон'} </button>
+
+              <button
+                className={styles['end']}
+                onClick={() => handleEndCall('user')}>
+                Завершить собеседование </button>
+            </footer>
+          </aside>
         </div>
 
-        {/* Нижняя панель управления */}
-        <div className={styles['bottom-controls']}>
-          <Button
-            className={styles['round-btn']}
-            variant={"secondary"}
-            onClick={() => setShowNotes(!showNotes)}
-          >
-            📝
-          </Button>
+        {/* Боковая панель для заметок и консоли */}
+        <div className={`${styles['side-overlay']} ${showNotes || showConsole ? styles['open'] : ''}`} onClick={closeSidePanels}>
+          <aside className={`${styles['side-panel']} ${showNotes || showConsole ? styles['open'] : ''}`} onClick={(e) => e.stopPropagation()}>
+            <div className={styles['tabs']}>
+              <button
+                onClick={() => { setShowNotes(true); setShowConsole(false) }}
+                className={`${styles["tab"]} ${showNotes? styles['active'] : ''}`}>
+                📝 Заметки
+              </button>
+              <button
+                onClick={() => { setShowConsole(true); setShowNotes(false) }}
+                className={`${styles['tab']} ${showConsole ? styles['active'] : ''}`} >
+                💻 Код
+              </button>
+            </div>
 
-          <Button
-            className={styles['round-btn']}
-            variant="secondary"
-            onClick={() => setShowConsole(!showConsole)}
-          >
-            💻
-          </Button>
+            <div className={styles['panel-content']}>
+              {showNotes && <NotesPanel />}
+              {showConsole && sessionId && <CodeConsole sessionId={sessionId} />}
+            </div>
+          </aside>
         </div>
+
+        {/* Попапы */}
+        {showFinalReport && (
+          <FinalReportPopup
+            report={finalReport}
+            completionReason={completionReason}
+            wasAutomatic={wasAutomatic}
+            onClose={handleCloseReport}
+          />
+        )}
+
+        {showInterrupted && (
+          <InterviewInterruptedPopup
+            reason={interruptionReason}
+            onClose={handleCloseInterruption}
+          />
+        )}
       </div>
-
-      {/* Боковая панель для заметок и консоли */}
-      <div className={`${styles['side-overlay']} ${showNotes || showConsole ? styles['open'] : ''}`} onClick={closeSidePanels}>
-        <aside className={`${styles['side-panel']} ${showNotes || showConsole ? styles['open'] : ''}`} onClick={(e) => e.stopPropagation()}>
-          <div className={styles['tabs']}>
-            <button
-              onClick={() => { setShowNotes(true); setShowConsole(false) }}
-              className={`${styles["tab"]} ${showNotes? styles['active'] : ''}`}>
-              📝 Заметки
-            </button>
-            <button
-              onClick={() => { setShowConsole(true); setShowNotes(false) }}
-              className={`${styles['tab']} ${showConsole ? styles['active'] : ''}`} >
-              💻 Код
-            </button>
-          </div>
-
-          <div className={styles['panel-content']}>
-            {showNotes && <NotesPanel />}
-            {showConsole && sessionId && <CodeConsole sessionId={sessionId} />}
-          </div>
-        </aside>
-      </div>
-
-      {/* Попапы */}
-      {showFinalReport && (
-        <FinalReportPopup
-          report={finalReport}
-          completionReason={completionReason}
-          wasAutomatic={wasAutomatic}
-          onClose={handleCloseReport}
-        />
-      )}
-
-      {showInterrupted && (
-        <InterviewInterruptedPopup
-          reason={interruptionReason}
-          onClose={handleCloseInterruption}
-        />
-      )}
     </div>
   )
 }

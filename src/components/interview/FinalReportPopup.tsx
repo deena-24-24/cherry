@@ -97,9 +97,9 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
                 </span>
               </div>
             </div>
-            <Button onClick={onClose} className="frp-close-btn">✕</Button>
+            {/*<Button onClick={onClose} className="frp-close-btn">✕</Button>*/}
           </div>
-          <p className="frp-reason-text">{completionReason}</p>
+          {/*<p className="frp-reason-text">{completionReason}</p>*/}
         </div>
 
         {/* Контент */}
@@ -255,10 +255,7 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
             <h3 className="frp-section-title">🎯 Следующие шаги</h3>
             <ul className="space-y-2">
               {next_steps?.map((step: string, index: number) => (
-                <li key={index} className="flex items-start text-gray-300">
-                  <span className="text-blue-400 mr-2">•</span>
-                  {step}
-                </li>
+                <li key={index}>{step}</li>
               ))}
             </ul>
           </div>
@@ -266,8 +263,8 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
 
         {/* Футер */}
         <div className="bg-gray-900 px-6 py-4 rounded-b-2xl border-t border-gray-700">
-          <div className="flex justify-end">
-            <Button onClick={onClose} className="bg-blue-500 hover:bg-blue-600">
+          <div className="frp-footer">
+            <Button onClick={onClose}>
               Завершить просмотр
             </Button>
           </div>

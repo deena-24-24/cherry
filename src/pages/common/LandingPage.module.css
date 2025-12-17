@@ -1,11 +1,3 @@
-:root {
-  --cloud: #fffcf5;
-  --lavand: #bac5e2;
-  --peach: #dfaea1;
-  --maroon: #95525b;
-  --navy: #36447c;
-}
-
 .landingContainer {
   background: var(--cloud);/*#F5F5FF;*/
   display: flex;

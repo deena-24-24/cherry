@@ -289,7 +289,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ formData, errors, loading, onInpu
     <Button
       type="submit"
       disabled={loading}
-      styleProps={{ width: '100%' }}
+      styleProps={{ width: '100%', textColor: '#fffcf5' }}
     >
       {loading ? 'Вход...' : 'Войти'}
     </Button>
@@ -301,7 +301,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ formData, errors, loading, onInpu
           type="button"
           variant="secondary"
           onClick={() => onSwitchToRegister('candidate')}
-          styleProps={{ width: '100%' }}
+          styleProps={{ width: '100%', borderColor: 'transparent' }}
         >
           Я соискатель
         </Button>
@@ -309,7 +309,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ formData, errors, loading, onInpu
           type="button"
           variant="secondary"
           onClick={() => onSwitchToRegister('hr')}
-          styleProps={{ width: '100%' }}
+          styleProps={{ width: '100%', borderColor: 'transparent' }}
         >
           Я HR-агент
         </Button>
@@ -471,7 +471,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType, formData, errors,
     <Button
       type="submit"
       disabled={loading}
-      styleProps={{ width: '100%' }}
+      styleProps={{ width: '100%', textColor: '#fffcf5' }}
     >
       {loading ? 'Регистрация...' : 'Зарегистрироваться'}
     </Button>

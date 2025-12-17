@@ -1,8 +1,8 @@
 .chat-list-sidebar {
     width: 320px;
     flex-shrink: 0;
-    background-color: var(--color-secondary);
-    border-right: 1px solid var(--color-accent-light);
+    background-color: white;
+    border-right: 1px solid var(--lavand);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -10,13 +10,14 @@
 
 .sidebar-header {
     padding: 1.5rem 1rem;
-    border-bottom: 1px solid var(--color-accent-light);
+    border-bottom: 1px solid var(--lavand);
+    background-color: var(--navy);
 }
 
 .sidebar-header h2 {
     margin: 0;
     font-size: var(--font-size-lg);
-    color: var(--color-primary);
+    color: var(--cloud);
 }
 
 .chat-items-container {
@@ -39,7 +40,7 @@
 }
 
 .chat-item.active {
-    background-color: var(--color-accent-light);
+    background-color: #e8ebff;
 }
 
 .avatar {
@@ -96,4 +97,77 @@
 
 .chat-items-container::-webkit-scrollbar-thumb:hover {
     background: var(--color-accent);
+}
+
+/* ===============================
+   ADAPTIVE CHAT LIST
+   =============================== */
+
+/* Планшеты и ниже */
+@media (max-width: 1024px) {
+    .chat-list-sidebar {
+        width: 280px;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Мобильные устройства */
+@media (max-width: 768px) {
+    .chat-list-sidebar {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 20;
+        border-right: none;
+    }
+
+    .sidebar-header {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: var(--color-secondary);
+    }
+
+    .chat-item {
+        padding: 1rem 1.25rem;
+    }
+
+    .partner-name {
+        font-size: var(--font-size-md);
+    }
+
+    .last-message {
+        font-size: var(--font-size-sm);
+    }
+}
+
+/* Очень маленькие экраны */
+@media (max-width: 480px) {
+    .avatar {
+        width: 36px;
+        height: 36px;
+    }
+
+    .timestamp {
+        font-size: 10px;
+    }
+
+    .chat-item {
+        gap: 0.75rem;
+    }
+}
+
+/* ===============================
+   Скрытие списка при активном чате (mobile)
+   =============================== */
+
+@media (max-width: 768px) {
+    .chat-list-sidebar[data-hidden="true"] {
+        display: none;
+    }
 }
