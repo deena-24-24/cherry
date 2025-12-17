@@ -129,12 +129,11 @@ export const HomeFeatures: React.FC = () => {
       color: "blue",
       route: ROUTES.RESUME,
     },
-    // todo: УДАЛИТЬ  - поменяла на hr-чат
     {
       title: "HR-ЧАТ",
-      text: "Проверьте, не пришло ли Вам предоложение от HR",
+      text: "Проверьте, не пришло ли Вам предложение от HR",
       color: "pink",
-      route: ROUTES.CANDIDATE_CHAT,
+      route: ROUTES.CHAT,
     },
   ]
 

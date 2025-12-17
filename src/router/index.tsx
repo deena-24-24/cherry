@@ -13,6 +13,8 @@ import { LandingPage } from '../pages/common/LandingPage'
 import { ProfilePage } from '../pages/ProfilePage/ProfilePage'
 import { InterviewHomePage } from '../pages/candidate/InterviewHomePage'
 import { InterviewCallPage } from '../pages/candidate/InterviewCallPage'
+// todo: Почему нет страницы?
+// import { InterviewResultsPage } from '../pages/candidate/InterviewResultsPage'
 import { AiChatPage } from '../pages/candidate/AiChatPage'
 import { ChatPage } from '../pages/common/ChatPage'
 import { HrProfilePage } from '../pages/hr/HrProfilePage'
@@ -79,27 +81,14 @@ export const AppRouter: React.FC = () => {
               }
             />
 
-            {/* Страница звонка - вынесла внизу, т.к. хедер и футер не нужен*/}
-            {/*
-          <Route
-            path={ROUTES.INTERVIEW_CALL}
-            element={
-              <ProtectedRoute>
-                <InterviewCallPage />
-              </ProtectedRoute>
-            }
-          />*/}
-
-            <Route
-              path={ROUTES.RESULTS}
-              element={
-                <ProtectedRoute>
-                  <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-                    <h1 className="text-2xl">Страница результатов в разработке 📊</h1>
-                  </div>
-                </ProtectedRoute>
-              }
-            />
+            {/*<Route*/}
+            {/*  path={ROUTES.RESULTS}*/}
+            {/*  element={*/}
+            {/*    <ProtectedRoute>*/}
+            {/*      <InterviewResultsPage />*/}
+            {/*    </ProtectedRoute>*/}
+            {/*  }*/}
+            {/*/>*/}
 
             <Route
               path={ROUTES.AI_CHAT}

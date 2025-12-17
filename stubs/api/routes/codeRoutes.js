@@ -1,4 +1,4 @@
-// stubs/api/routes/codeRoutes.js - добавьте:
+// stubs/api/routes/codeRoutes.js
 const express = require('express');
 const router = express.Router();
 const codeController = require('../controllers/codeController');
@@ -23,6 +23,12 @@ router.post('/execute', (req, res) => {
 router.get('/sessions/:sessionId/executions', (req, res) => {
   console.log('📊 GET история для:', req.params.sessionId);
   codeController.getExecutionHistory(req, res).then();
+});
+
+// GET /api/code/sessions/:sessionId/stats - Статистика
+router.get('/sessions/:sessionId/stats', (req, res) => {
+  console.log('📈 GET статистика для:', req.params.sessionId);
+  codeController.getExecutionStats(req, res).then();
 });
 
 module.exports = router;
