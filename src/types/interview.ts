@@ -81,6 +81,10 @@ export interface InterviewSession {
   difficulty: 'junior' | 'middle' | 'senior'
   status: 'scheduled' | 'active' | 'completed'
   createdAt: Date
+  finalReport?: FinalReport
+  interviewId?: string
+  candidateId?: string
+  notes?: string
 }
 
 export interface AudioState {
@@ -93,6 +97,9 @@ export interface CodeExecutionResult {
   output: string
   error: string
   executionTime: number
+  success?: boolean
+  passedCount?: number
+  totalCount?: number
 }
 
 // ============================================================================

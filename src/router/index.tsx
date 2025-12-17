@@ -10,7 +10,7 @@ import { ProtectedRoute } from './ProtectedRoute'
 
 // Pages
 import { LandingPage } from '../pages/common/LandingPage'
-import { ProfilePage } from '../pages/ProfilePage/ProfilePage'
+import { ProfilePage } from '../pages/candidate/ProfilePage'
 import { InterviewHomePage } from '../pages/candidate/InterviewHomePage'
 import { InterviewCallPage } from '../pages/candidate/InterviewCallPage'
 // todo: Почему нет страницы?
@@ -51,7 +51,6 @@ export const AppRouter: React.FC = () => {
           <Route element={<MainLayout />}>
             <Route path={ROUTES.HOME} element={<LandingPage />} />
 
-            {/* РЕДИРЕКТЫ для старых пулов */}
             <Route
               path="/candidate/interview"
               element={<Navigate to={ROUTES.INTERVIEW_HOME} replace />}
@@ -81,14 +80,17 @@ export const AppRouter: React.FC = () => {
               }
             />
 
-            {/*<Route*/}
-            {/*  path={ROUTES.RESULTS}*/}
-            {/*  element={*/}
-            {/*    <ProtectedRoute>*/}
-            {/*      <InterviewResultsPage />*/}
-            {/*    </ProtectedRoute>*/}
-            {/*  }*/}
-            {/*/>*/}
+            <Route
+              path={ROUTES.RESULTS}
+              element={
+                <ProtectedRoute>
+                  <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+                    <h1 className="text-2xl">Страница результатов в разработке 📊</h1>
+                  </div>
+                  {/*<InterviewResultsPage />*/}
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path={ROUTES.AI_CHAT}
@@ -153,8 +155,6 @@ export const AppRouter: React.FC = () => {
           />
         </Routes>
       </main>
-
-      {/*<Footer /> - убрала в MainLayout*/}
 
       <AuthPopup
         isOpen={isAuthOpen}

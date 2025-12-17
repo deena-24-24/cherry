@@ -1,27 +1,16 @@
-// routes/candidateRoutes.js
 const express = require('express');
 const router = express.Router();
 const { auth, requireRole } = require('../middleware/authMiddleware');
-const { getProfile, updateProfile } = require('../controllers/profileController');
-const { getResume, updateResume } = require('../controllers/resumeController');
-const { getCandidate, updateCandidate } = require('../controllers/candidateController');
+const resumeController = require('../controllers/resumeController');
+const { getCandidate } = require('../controllers/candidateController'); // Для легаси
 
-// Единый endpoint для получения всех данных кандидата
-router.get('/', auth, requireRole(['candidate']), getCandidate);
+// Работа с резюме (множественные)
+router.get('/resumes', auth, requireRole(['candidate']), resumeController.getMyResumes);
+router.post('/resumes', auth, requireRole(['candidate']), resumeController.createResume);
+router.put('/resumes/:id', auth, requireRole(['candidate']), resumeController.updateResume);
+router.delete('/resumes/:id', auth, requireRole(['candidate']), resumeController.deleteResume);
 
-// Единый endpoint для обновления всех данных кандидата
-router.put('/', auth, requireRole(['candidate']), updateCandidate);
-
-// Получение профиля кандидата (для обратной совместимости)
-router.get('/profile', auth, requireRole(['candidate']), getProfile);
-
-// Обновление профиля кандидата (для обратной совместимости)
-router.put('/profile', auth, requireRole(['candidate']), updateProfile);
-
-// Получение резюме кандидата (для обратной совместимости)
-router.get('/resume', auth, requireRole(['candidate']), getResume);
-
-// Обновление резюме кандидата (для обратной совместимости)
-router.put('/resume', auth, requireRole(['candidate']), updateResume);
+// Легаси (оставим, чтобы не ломать старое, если используется)
+router.get('/', auth, getCandidate);
 
 module.exports = router;

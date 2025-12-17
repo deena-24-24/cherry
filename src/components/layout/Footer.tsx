@@ -37,7 +37,7 @@ export const Footer: React.FC = () => {
                   <NavLink to={ROUTES.AI_CHAT} className={styles["link"]}>
                     AI-Чат
                   </NavLink>
-                  <NavLink to={ROUTES.CANDIDATE_CHAT} className={styles["link"]}>
+                  <NavLink to={ROUTES.CHAT} className={styles["link"]}>
                     HR-Чат
                   </NavLink>
                 </div>
@@ -47,7 +47,7 @@ export const Footer: React.FC = () => {
                   <NavLink to={ROUTES.HR_DASHBOARD} className={styles["link"]}>
                     Дашборд
                   </NavLink>
-                  <NavLink to={ROUTES.HR_CHAT} className={styles["link"]}>
+                  <NavLink to={ROUTES.CHAT} className={styles["link"]}>
                     Чаты
                   </NavLink>
                   <NavLink to={ROUTES.HR_CANDIDATES} className={styles["link"]}>

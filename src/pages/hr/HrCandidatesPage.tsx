@@ -1,178 +1,142 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { CandidateData } from '../../service/candidate/candidateService'
+import { useNavigate } from 'react-router-dom'
 import { fetchCandidates, fetchFavorites, addToFavorites, removeFromFavorites } from '../../service/hr/candidatesService'
-import { CandidateCard } from './components/CandidateCard/CandidateCard'
-import { CandidatesFilter, FilterState } from './components/CandidatesFilter/CandidatesFilter'
-import { ResumeModal } from './components/ResumeModal/ResumeModal'
+import { chatService } from '../../service/chat/chatService'
+import { useChatStore } from '../../store/useChatStore'
+import { CandidateCard } from '../../components/candidatesPage/CandidateCard/CandidateCard'
+import { CandidatesFilter, FilterState } from '../../components/candidatesPage/CandidatesFilter/CandidatesFilter'
+import { ResumeModal } from '../../components/candidatesPage/ResumeModal/ResumeModal'
 import * as styles from './HrCandidatesPage.module.css'
+import { Resume } from '../../types/resume'
+import { ROUTES } from '../../router/routes'
+import { CandidateData } from '../../service/candidate/candidateService'
 
-interface HrCandidatesContentProps {
-  showTitle?: boolean;
-}
-
-export const HrCandidatesContent: React.FC<HrCandidatesContentProps> = ({ showTitle = false }) => {
-  const [candidates, setCandidates] = useState<CandidateData[]>([])
+export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTitle = false }) => {
+  const navigate = useNavigate()
+  const { fetchChatById } = useChatStore()
+  const [candidates, setCandidates] = useState<Resume[]>([])
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedCandidate, setSelectedCandidate] = useState<CandidateData | null>(null)
+  const [selectedCandidate, setSelectedCandidate] = useState<Resume | null>(null)
+
   const [filters, setFilters] = useState<FilterState>({
-    city: '',
-    experience: '',
-    skills: [],
-    sortBy: 'rating',
+    position: '', city: '', experience: '', skills: [], sortBy: 'rating',
   })
 
-  // Загрузка данных
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true)
-        const [candidatesData, favoritesData] = await Promise.all([
-          fetchCandidates(),
-          fetchFavorites(),
-        ])
-        setCandidates(candidatesData)
-        setFavorites(favoritesData.map(f => f.userId || '').filter(Boolean))
-      } catch (error) {
-        console.error('Ошибка загрузки данных:', error)
-      } finally {
-        setLoading(false)
-      }
+        const [allCandidates, favData] = await Promise.all([ fetchCandidates(), fetchFavorites() ])
+        setCandidates(allCandidates as unknown as Resume[])
+        setFavorites(favData.map(f => f.userId || '').filter(Boolean))
+      } catch (error) { console.error(error) } finally { setLoading(false) }
     }
     loadData()
   }, [])
 
-  // Фильтрация и сортировка кандидатов
-  const filteredAndSortedCandidates = useMemo(() => {
-    let filtered = [...candidates]
 
-    // Фильтр по городу
-    if (filters.city) {
-      filtered = filtered.filter(c => 
-        c.country?.toLowerCase().includes(filters.city.toLowerCase())
+  // Фильтрация
+  const filteredCandidates = useMemo(() => {
+    let result = [...candidates]
+
+    if (filters.position) {
+      result = result.filter(c =>
+        c.position?.toLowerCase().includes(filters.position.toLowerCase()) ||
+        (c as unknown as CandidateData).jobTitle?.toLowerCase().includes(filters.position.toLowerCase())
       )
     }
-
-    // Фильтр по стажу (упрощенный - по количеству опыта)
-    if (filters.experience) {
-      const experienceNum = parseInt(filters.experience)
-      if (!isNaN(experienceNum)) {
-        filtered = filtered.filter(c => 
-          (c.experience?.length || 0) >= experienceNum
-        )
-      }
+    if (filters.city) {
+      result = result.filter(c =>
+        c.city?.toLowerCase().includes(filters.city.toLowerCase())
+      )
     }
-
-    // Фильтр по навыкам
     if (filters.skills.length > 0) {
-      filtered = filtered.filter(c => {
-        const candidateSkills = (c.skills || []).map(s => s.toLowerCase())
-        return filters.skills.some(filterSkill => 
-          candidateSkills.includes(filterSkill.toLowerCase())
-        )
+      result = result.filter(c => {
+        const cSkills = (c.skills || []).map(s => s.toLowerCase())
+        return filters.skills.every(fs => cSkills.includes(fs.toLowerCase()))
       })
     }
-
-    // Сортировка
     if (filters.sortBy === 'experience') {
-      filtered.sort((a, b) => {
-        const aExp = a.experience?.length || 0
-        const bExp = b.experience?.length || 0
-        return bExp - aExp
-      })
-    } else if (filters.sortBy === 'rating') {
-      // Пока рейтинг не реализован, сортируем по имени
-      filtered.sort((a, b) => {
-        const aName = `${a.firstName || ''} ${a.lastName || ''}`.trim()
-        const bName = `${b.firstName || ''} ${b.lastName || ''}`.trim()
-        return aName.localeCompare(bName)
-      })
+      result.sort((a, b) => (b.experience?.length || 0) - (a.experience?.length || 0))
     }
 
-    return filtered
+    return result
   }, [candidates, filters])
 
-  // Получение всех уникальных навыков для фильтра
   const availableSkills = useMemo(() => {
-    const skillsSet = new Set<string>()
-    candidates.forEach(c => {
-      (c.skills || []).forEach(skill => skillsSet.add(skill))
-    })
-    return Array.from(skillsSet).sort()
+    const s = new Set<string>()
+    candidates.forEach(c => c.skills?.forEach(sk => s.add(sk)))
+    return Array.from(s)
   }, [candidates])
 
-  // Обработчики для избранного
-  const handleAddToFavorites = async (candidateId: string) => {
+  // Handlers
+  const handleAddToFavorites = async (userId: string) => {
     try {
-      await addToFavorites(candidateId)
-      setFavorites(prev => [...prev, candidateId])
-    } catch (error) {
-      console.error('Ошибка добавления в избранное:', error)
+      await addToFavorites(userId)
+      setFavorites(prev => [...prev, userId])
+    } catch (e) {
+      console.error(e)
     }
   }
 
-  const handleRemoveFromFavorites = async (candidateId: string) => {
+  const handleRemoveFromFavorites = async (userId: string) => {
     try {
-      await removeFromFavorites(candidateId)
-      setFavorites(prev => prev.filter(id => id !== candidateId))
-    } catch (error) {
-      console.error('Ошибка удаления из избранного:', error)
+      await removeFromFavorites(userId)
+      setFavorites(prev => prev.filter(id => id !== userId))
+    } catch (e) {
+      console.error(e)
     }
   }
 
-  const handleViewResume = (candidate: CandidateData) => {
-    setSelectedCandidate(candidate)
-  }
+  const handleChatClick = async (targetUserId: string) => {
+    try {
+      const chatData = await chatService.startChat(targetUserId)
 
-  if (loading) {
-    return (
-      <>
-        {showTitle && <div className={styles["title"]}>КАНДИДАТЫ</div>}
-        <div className={styles["loading"]}>Загрузка кандидатов...</div>
-      </>
-    )
+      if (chatData && chatData.id) {
+        await fetchChatById(chatData.id)
+      }
+
+      navigate(ROUTES.CHAT)
+    } catch (error) {
+      console.error("Не удалось начать чат:", error)
+      alert("Ошибка при создании чата")
+    }
   }
 
   return (
     <>
       {showTitle && <div className={styles["title"]}>КАНДИДАТЫ</div>}
-      
+
       <div className={styles["container"]}>
-        {/* Фильтр */}
         <div className={styles["filterContainer"]}>
-          <CandidatesFilter
-            filters={filters}
-            onFiltersChange={setFilters}
-            availableSkills={availableSkills}
-          />
+          <CandidatesFilter filters={filters} onFiltersChange={setFilters} availableSkills={availableSkills} />
         </div>
 
-        {/* Список кандидатов */}
         <div className={styles["candidatesList"]}>
-          {filteredAndSortedCandidates.length === 0 ? (
-            <div className={styles["emptyState"]}>
-              <p>Кандидаты не найдены</p>
-              <p>Попробуйте изменить параметры фильтрации</p>
-            </div>
+          {loading ? (
+            <div className={styles["loading"]}>Загрузка...</div>
+          ) : filteredCandidates.length === 0 ? (
+            <div className={styles["emptyState"]}>Ничего не найдено</div>
           ) : (
-            filteredAndSortedCandidates.map((candidate) => (
+            filteredCandidates.map(c => (
               <CandidateCard
-                key={candidate.userId}
-                candidate={candidate}
-                isFavorite={candidate.userId ? favorites.includes(candidate.userId) : false}
+                key={c.id}
+                candidate={c} // Удален as any, так как c имеет тип Resume
+                isFavorite={c.userId ? favorites.includes(c.userId) : false}
                 onAddToFavorites={handleAddToFavorites}
                 onRemoveFromFavorites={handleRemoveFromFavorites}
-                onViewResume={handleViewResume}
+                onViewResume={() => setSelectedCandidate(c)}
+                onChatClick={handleChatClick}
               />
             ))
           )}
         </div>
       </div>
 
-      {/* Модальное окно для просмотра резюме */}
       {selectedCandidate && (
         <ResumeModal
-          candidate={selectedCandidate}
+          candidate={selectedCandidate as unknown as CandidateData}
           onClose={() => setSelectedCandidate(null)}
         />
       )}

@@ -1,59 +1,53 @@
 import { Resume } from '../../types/resume'
 import { useAuthStore } from '../../store'
+import { API_URL } from '../../config'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = `${API_URL}/api/candidate/resumes`
 
-/**
- * Получение резюме пользователя
- */
-export const fetchResume = async (): Promise<Resume> => {
+export const fetchMyResumes = async (): Promise<Resume[]> => {
   const { token } = useAuthStore.getState()
-  
-  if (!token) {
-    throw new Error('Токен не найден')
-  }
+  if (!token) throw new Error('No token')
 
-  const response = await fetch(`${API_BASE_URL}/candidate/resume`, {
-    method: 'GET',
+  const response = await fetch(API_BASE_URL, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+  if (!response.ok) throw new Error('Failed to fetch resumes')
+  return response.json()
+}
+
+export const createResume = async (title: string, position: string): Promise<Resume> => {
+  const { token } = useAuthStore.getState()
+  const response = await fetch(API_BASE_URL, {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
-    }
+    },
+    body: JSON.stringify({ title, position })
   })
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
-    throw new Error(errorData.message || 'Ошибка загрузки резюме')
-  }
-
-  return await response.json()
+  if (!response.ok) throw new Error('Failed to create resume')
+  return response.json()
 }
 
-/**
- * Обновление резюме пользователя
- */
-export const updateResume = async (resume: Resume): Promise<Resume> => {
+export const updateResume = async (id: string, data: Partial<Resume>): Promise<Resume> => {
   const { token } = useAuthStore.getState()
-  
-  if (!token) {
-    throw new Error('Токен не найден')
-  }
-
-  const response = await fetch(`${API_BASE_URL}/candidate/resume`, {
+  const response = await fetch(`${API_BASE_URL}/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify(resume)
+    body: JSON.stringify(data)
   })
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
-    throw new Error(errorData.message || 'Ошибка сохранения резюме')
-  }
-
-  const data = await response.json()
-  return data.resume
+  if (!response.ok) throw new Error('Failed to update resume')
+  return response.json()
 }
 
+export const deleteResume = async (id: string): Promise<void> => {
+  const { token } = useAuthStore.getState()
+  const response = await fetch(`${API_BASE_URL}/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+  if (!response.ok) throw new Error('Failed to delete resume')
+}

@@ -39,17 +39,14 @@ const getCandidate = async (req, res) => {
         lastName: user.lastName || '',
         email: user.email || '',
         phone: user.phone || '',
-        country: user.country || '',
+        city: user.city || '',
         about: user.about || '',
         avatar: user.avatar || '',
         // Данные резюме
-        // jobTitle больше не используется, место жительства хранится в country
         experience: [],
         education: [],
         skills: [],
-        about: user.about || '', // Информация "О себе"
         resumeFileName: resume?.resumeFileName || '',
-        resumeFileData: resume?.resumeFileData || '',
         // Метаданные
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -80,7 +77,7 @@ const getCandidate = async (req, res) => {
       candidate.lastName = user.lastName || candidate.lastName || '';
       candidate.email = user.email || candidate.email || '';
       candidate.phone = user.phone || candidate.phone || '';
-      candidate.country = user.country || candidate.country || '';
+      candidate.city = user.city || candidate.city || '';
       candidate.about = user.about || candidate.about || '';
       candidate.avatar = user.avatar || candidate.avatar || '';
     }
@@ -167,8 +164,8 @@ const updateCandidate = async (req, res) => {
     if (updateData.phone !== undefined) {
       user.phone = updateData.phone;
     }
-    if (updateData.country !== undefined) {
-      user.country = updateData.country;
+    if (updateData.city !== undefined) {
+      user.city = updateData.city;
     }
     if (updateData.about !== undefined) {
       user.about = updateData.about;
@@ -185,11 +182,9 @@ const updateCandidate = async (req, res) => {
       lastName: user.lastName || '',
       email: user.email || '',
       phone: user.phone || '',
-      country: user.country || '',
-      about: user.about || '',
+      city: user.city || '',
       avatar: user.avatar || '',
       // Данные резюме - обновляем только если они переданы, иначе сохраняем существующие
-      // jobTitle больше не используется, место жительства хранится в country
       experience: Array.isArray(updateData.experience) ? updateData.experience : (candidateIndex !== -1 ? mockDB.candidates[candidateIndex].experience : []),
       education: Array.isArray(updateData.education) ? updateData.education : (candidateIndex !== -1 ? mockDB.candidates[candidateIndex].education : []),
       skills: Array.isArray(updateData.skills) ? updateData.skills : (candidateIndex !== -1 ? mockDB.candidates[candidateIndex].skills : []),
@@ -244,7 +239,7 @@ const updateCandidate = async (req, res) => {
             : user.email || '',
           email: user.email || '',
           phone: user.phone || '',
-          jobTitle: user.country || '',
+          jobTitle: user.city || '',
           photoUrl: user.avatar || '',
           experience: candidateData.experience || [],
           education: candidateData.education || [],

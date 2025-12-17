@@ -1,15 +1,15 @@
 import { useAuthStore } from '../../store'
+import { API_URL } from '../../config'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = `${API_URL}/api`
 
 export interface CandidateData {
   userId?: string;
-  // Базовые данные профиля
   firstName?: string;
   lastName?: string;
   email: string;
   phone?: string;
-  country?: string;
+  city?: string;
   about?: string;
   avatar?: string;
   // Данные резюме
@@ -27,11 +27,11 @@ export interface CandidateData {
   }>;
   skills?: string[];
   resumeFileName?: string;
-  resumeFileData?: string; // base64 encoded PDF
-  // Метаданные
+  resumeFileData?: string;
   createdAt?: string;
   updatedAt?: string;
 }
+
 
 /**
  * Получение всех данных кандидата (профиль + резюме)

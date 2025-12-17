@@ -1,0 +1,113 @@
+.progressContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+}
+
+.positionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.positionTitle {
+  color: #082060;
+  font-size: 24px;
+  font-family: 'Anek Telugu', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 2px solid #C8E6FF;
+  padding-bottom: 10px;
+}
+
+/* Блок задач */
+.tasksBlock {
+  width: 100%;
+  max-width: 807px;
+  height: 233px;
+  position: relative;
+  background: #F5F5FF;
+  border-radius: 15px;
+  border: 1px #78AAFF solid;
+  margin-bottom: 20px;
+}
+
+/* Блок собеседований */
+.interviewsBlock {
+  width: 100%;
+  max-width: 807px;
+  height: 233px;
+  position: relative;
+  display: flex;
+  gap: 20px;
+}
+
+.interviewCardLeft {
+  flex: 1.5;
+  background: #F5F5FF;
+  border-radius: 15px;
+  border: 1px #78AAFF solid;
+  position: relative;
+  padding: 20px;
+}
+
+.interviewCardRight {
+  flex: 1;
+  background: #F5F5FF;
+  border-radius: 15px;
+  border: 1px #78AAFF solid;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Текстовые стили */
+.cardTitle {
+  color: #082060;
+  font-size: 24px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding-right: 40px;
+}
+
+.statLabel {
+  color: #082060;
+  font-size: 24px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 400;
+}
+
+.statValue {
+  color: #082060;
+  font-size: 24px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 400;
+}
+
+.scoreTitle {
+  color: #082060;
+  font-size: 16px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.scoreValue {
+  color: #082060;
+  font-size: 64px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 700;
+}

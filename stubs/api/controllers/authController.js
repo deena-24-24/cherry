@@ -32,7 +32,7 @@ const registerCandidate = async (req, res) => {
       firstName,
       lastName,
       phone: phone || '',
-      country: '',
+      city: '',
       about: '',
       avatar: '',
     };
@@ -84,7 +84,7 @@ const registerHr = async (req, res) => {
       lastName,
       companyName,
       phone: phone || '',
-      country: '',
+      city: '',
       about: '',
       avatar: '',
     };
@@ -145,7 +145,7 @@ const login = async (req, res) => {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         phone: user.phone || '',
-        country: user.country || '',
+        city: user.city || '',
         about: user.about || '',
         avatar: user.avatar || '',
         companyName: user.companyName || '', // Будет пустым для кандидата

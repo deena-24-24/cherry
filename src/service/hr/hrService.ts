@@ -1,6 +1,7 @@
 import { useAuthStore } from '../../store'
+import { API_URL } from '../../config'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = `${API_URL}/api`
 
 export interface HrData {
   userId?: string;
@@ -9,7 +10,7 @@ export interface HrData {
   lastName?: string;
   email: string;
   phone?: string;
-  country?: string;
+  city?: string;
   about?: string;
   avatar?: string;
   // HR-специфичные поля

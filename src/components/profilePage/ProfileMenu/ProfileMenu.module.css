@@ -1,0 +1,42 @@
+.tabsContainer {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  border-bottom: 2px solid #082060;
+  margin-bottom: 30px;
+  padding-left: 10px;
+}
+
+.tab {
+  padding: 12px 24px;
+  background: #E9F0FF;
+  border: 1px solid #78AAFF;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  color: #082060;
+  font-family: 'Anek Telugu', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  top: 2px;
+  outline: none;
+  text-transform: uppercase;
+}
+
+.tab:hover {
+  background: #D4E4FF;
+}
+
+.tab.active {
+  background: #fff;
+  border-color: #082060;
+  border-bottom: 2px solid #fff;
+  font-weight: 700;
+  font-size: 22px;
+  padding: 14px 30px;
+  z-index: 2;
+  transform: translateY(-4px);
+  box-shadow: 0 -4px 10px rgba(8, 32, 96, 0.05);
+}
