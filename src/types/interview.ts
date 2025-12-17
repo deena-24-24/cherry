@@ -5,22 +5,73 @@
 // ============================================================================
 // types/index.ts (добавьте поле success)
 // types/index.ts
+// types/index.ts или types/codeExecution.ts
+export enum CodeExecutionStatus {
+  OK = 'OK',
+  COMPILATION_ERROR = 'CE',
+  RUNTIME_ERROR = 'RE',
+  TIME_LIMIT_EXCEEDED = 'TL',
+  MEMORY_LIMIT_EXCEEDED = 'ML',
+  WRONG_ANSWER = 'WA',
+  PRESENTATION_ERROR = 'PE',
+  SERVER_ERROR = 'SE',
+  RUNNING = 'RUNNING',
+  PENDING = 'PENDING'
+}
+
+export interface TestResult {
+  testId: number;
+  input: string;
+  expected: string;
+  actual: string;
+  passed: boolean;
+  executionTime: number;
+  memory?: number;
+  status: CodeExecutionStatus;
+  error?: string;
+  diff?: string;
+  hidden?: boolean; // Добавляем hidden свойство
+}
+
 export interface CodeExecutionResult {
+  success: boolean;
   output: string;
   error: string;
   executionTime: number;
-  success?: boolean;
-  testResults?: Array<{
-    testId: number;
-    input: string;
-    expected: string;
-    actual: string;
-    passed: boolean;
-    executionTime: number;
-    error?: string;
-  }>;
+  memory?: number;
+  status: CodeExecutionStatus;
+  testResults?: TestResult[];
   passedCount?: number;
   totalCount?: number;
+  compileOutput?: string;
+  sessionId?: string; // Добавляем sessionId, если нужно
+}
+
+export interface CodeTask {
+  id: string;
+  title: string;
+  description: string;
+  initialCode: string;
+  language: string;
+  timeLimit?: number;
+  memoryLimit?: number;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  hints?: string[];
+  tests: Array<{
+    id: number;
+    input: string;
+    expected: string;
+    hidden?: boolean;
+  }>;
+}
+
+// Тип для сохранения в хранилище
+export interface CodeExecutionStoreResult {
+  sessionId: string;
+  code: string;
+  language: string;
+  result: CodeExecutionResult;
+  timestamp: string;
 }
 
 export interface InterviewSession {

@@ -3,14 +3,58 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button/Button'
 import { ROUTES } from '../../router/routes'
 import * as styles from './InterviewHomePage.module.css'
+import { API_URL } from '../../config'
+import { useAuthStore } from '../../store'
 
 export const InterviewHomePage: React.FC = () => {
   const navigate = useNavigate()
+  const { user, token } = useAuthStore()
 
-  const handleStartInterview = () => {
-    const sessionId = `session_${Date.now()}`
-    // Переходим на страницу звонка
-    navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', sessionId))
+  const handleStartInterview = async () => {
+    try {
+      if (!user) {
+        console.error('Пользователь не авторизован, не могу создать сессию интервью')
+        return
+      }
+
+      const response = await fetch(`${API_URL}/api/interview/sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          userId: user._id,
+          position: 'frontend', // TODO: сделать выбор позиции динамическим
+          title: 'AI собеседование',
+        }),
+      })
+
+      if (!response.ok) {
+        console.error('Не удалось создать сессию интервью, статус:', response.status)
+        // Фолбэк: поведение как раньше — локальный sessionId
+        const fallbackSessionId = `session_${Date.now()}`
+        navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', fallbackSessionId))
+        return
+      }
+
+      const data = await response.json()
+      const sessionId = data.sessionId || data.session?.id
+
+      if (!sessionId) {
+        console.error('Сервер не вернул sessionId для созданной сессии')
+        const fallbackSessionId = `session_${Date.now()}`
+        navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', fallbackSessionId))
+        return
+      }
+
+      // Переходим на страницу звонка с ID сессии из мок-БД
+      navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', sessionId))
+    } catch (error) {
+      console.error('Ошибка при старте интервью:', error)
+      const fallbackSessionId = `session_${Date.now()}`
+      navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', fallbackSessionId))
+    }
   }
 
   const handleViewResults = () => {

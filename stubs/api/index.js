@@ -3,6 +3,7 @@ const cors = require('cors');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { cleanupOldSessions } = require('./utils/sessionCleanup');
+const { mockDB } = require('./mockData');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
@@ -23,6 +24,47 @@ const io = new Server(server, {
     methods: ["GET", "POST", "PUT"]
   }
 });
+
+/**
+ * Сохраняем финальный отчет интервью в mockDB как "моковую БД"
+ * Чтобы фронтенд и другие сервисы команды могли забирать свежие результаты.
+ */
+function saveFinalReportToMockDB(sessionId, finalReport) {
+  if (!finalReport) {
+    console.warn(`⚠️ No finalReport provided for session ${sessionId}, nothing to save`);
+    return;
+  }
+
+  try {
+    let session = mockDB.sessions.find((s) => s.id === sessionId);
+
+    // Если сессии нет в mockDB (например, она была создана только через AI)
+    if (!session) {
+      console.log(`🆕 Creating mockDB session for final report ${sessionId}`);
+      session = {
+        id: sessionId,
+        title: `Собеседование ${sessionId}`,
+        position: 'frontend',
+        difficulty: 'middle',
+        status: 'completed',
+        candidateId: 'unknown',
+        interviewerId: 'ai_interviewer',
+        createdAt: new Date().toISOString(),
+        notes: '',
+        conversationHistory: []
+      };
+      mockDB.sessions.push(session);
+    }
+
+    session.status = 'completed';
+    session.completedAt = new Date().toISOString();
+    session.finalReport = finalReport;
+
+    console.log(`💾 Final report saved to mockDB for session ${sessionId}`);
+  } catch (error) {
+    console.error('❌ Error saving final report to mockDB:', error);
+  }
+}
 
 app.use(cors({ origin: FRONTEND_ORIGIN }));
 app.use(express.json({ limit: '50mb' }));
@@ -176,6 +218,13 @@ io.on('connection', (socket) => {
         console.log(`🏁 Interview completed for session ${sessionId}`);
         console.log(`📊 Final report generated:`, aiResponse.metadata.finalReport?.overall_assessment);
 
+        // Сохраняем финальный отчет в mockDB как "моковую БД"
+        try {
+          saveFinalReportToMockDB(sessionId, aiResponse.metadata.finalReport);
+        } catch (e) {
+          console.error('❌ Failed to persist final report to mockDB on completion:', e);
+        }
+
         socket.emit('interview-completed', {
           sessionId: sessionId,
           finalReport: aiResponse.metadata.finalReport,
@@ -268,6 +317,13 @@ io.on('connection', (socket) => {
       // Иначе генерируем нормальный отчет
       const finalReport = await interviewAI.generateComprehensiveReport(sessionId);
 
+      // Сохраняем финальный отчет в mockDB
+      try {
+        saveFinalReportToMockDB(sessionId, finalReport);
+      } catch (e) {
+        console.error('❌ Failed to persist final report to mockDB on manual completion:', e);
+      }
+
       socket.emit('interview-completed', {
         sessionId: sessionId,
         finalReport: finalReport,
@@ -291,6 +347,13 @@ io.on('connection', (socket) => {
 
       // Фолбэк в случае ошибки
       const fallbackReport = interviewAI.createMockFinalReport();
+
+      // Пытаемся сохранить и этот отчет как последний результат
+      try {
+        saveFinalReportToMockDB(data?.sessionId, fallbackReport);
+      } catch (e) {
+        console.error('❌ Failed to persist fallback final report to mockDB:', e);
+      }
 
       socket.emit('interview-completed', {
         sessionId: data?.sessionId,
