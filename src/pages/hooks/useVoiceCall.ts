@@ -14,6 +14,7 @@ export const useVoiceCall = (sessionId: string, position: string) => {
   const [error, setError] = useState<string | null>(null)
   const recognitionRestartAttemptsRef = useRef(0) // Счетчик попыток перезапуска
   const startRecordingRef = useRef<(() => Promise<void>) | null>(null) // Ref для актуальной функции startRecording
+  const positionRef = useRef(position) // Ref для позиции, чтобы избежать переинициализации
 
   const fullCleanup = useCallback(() => {
     console.log('🧹 Performing full cleanup of voice call...')
@@ -40,6 +41,12 @@ export const useVoiceCall = (sessionId: string, position: string) => {
   }, [])
 
   useEffect(() => {
+    // НЕ инициализируем, если позиция еще не загружена
+    if (!position || !sessionId) {
+      console.log(`⏳ Waiting for position to load: session=${sessionId}, position=${position}`)
+      return
+    }
+
     const handleAIResponse = async (data: AIResponse) => {
       console.log('🤖 AI Response received:', data.text)
       if (data.text) {
@@ -88,6 +95,9 @@ export const useVoiceCall = (sessionId: string, position: string) => {
 
     console.log(`🎯 Initializing voice call: session=${sessionId}, position=${position}`)
 
+    // Обновляем ref для позиции
+    positionRef.current = position
+
     socketService.connect(sessionId, position).then()
     socketService.onMessage(handleAIResponse)
     socketService.onError(handleAIError)
@@ -107,7 +117,20 @@ export const useVoiceCall = (sessionId: string, position: string) => {
       socketService.offError()
       fullCleanup()
     }
-  }, [sessionId, position, fullCleanup])
+  }, [sessionId, position, fullCleanup]) // Добавили position обратно в зависимости
+
+  const stopRecording = useCallback(() => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop()
+      } catch (error) {
+        console.log('Error stopping recognition:', error)
+      }
+      recognitionRef.current = null
+    }
+    setIsRecording(false)
+    console.warn('⏹️ Recording stopped')
+  }, [])
 
   const startRecording = useCallback(async () => {
     if (isRecording) {
@@ -156,7 +179,8 @@ export const useVoiceCall = (sessionId: string, position: string) => {
         setIsAIThinking(true)
         recognitionRestartAttemptsRef.current = 0 // Сбрасываем счетчик при успешном распознавании
 
-        const success = socketService.sendTranscript(sessionId, text, position)
+        // Используем актуальную позицию из ref
+        const success = socketService.sendTranscript(sessionId, text, positionRef.current)
         if (success) {
           stopRecording()
         } else {
@@ -298,18 +322,10 @@ export const useVoiceCall = (sessionId: string, position: string) => {
     startRecordingRef.current = startRecording
   }, [startRecording])
 
-  const stopRecording = useCallback(() => {
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop()
-      } catch (error) {
-        console.log('Error stopping recognition:', error)
-      }
-      recognitionRef.current = null
-    }
-    setIsRecording(false)
-    console.warn('⏹️ Recording stopped')
-  }, [])
+  // Обновляем positionRef при изменении позиции
+  useEffect(() => {
+    positionRef.current = position
+  }, [position])
 
   const toggleRecording = useCallback(() => {
     if (isRecording) {

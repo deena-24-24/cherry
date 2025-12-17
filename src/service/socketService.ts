@@ -23,10 +23,26 @@ class SocketService {
   private maxReconnectAttempts = 5
   private isManualDisconnect = false
   private pendingInterviewCompletedEvent: SocketInterviewCompleted | null = null
+  private currentSessionId: string | null = null
 
   async connect(sessionId: string, position: string = 'frontend'): Promise<boolean> {
     try {
+      // Если уже подключены к той же сессии, не переподключаемся
+      if (this.socket?.connected && this.currentSessionId === sessionId) {
+        console.log(`✅ Already connected to session ${sessionId}, skipping reconnection`)
+        return true
+      }
+
+      // Отключаем старый сокет перед созданием нового
+      if (this.socket) {
+        console.log('🔌 Disconnecting old socket before creating new one')
+        this.socket.removeAllListeners()
+        this.socket.disconnect()
+        this.socket = null
+      }
+
       this.isManualDisconnect = false
+      this.currentSessionId = sessionId
 
       console.log(`🔗 Connecting to WebSocket: session=${sessionId}, position=${position}`)
 
@@ -56,7 +72,8 @@ class SocketService {
           this.reconnectAttempts = 0
 
           const joinData: SocketJoinInterview = { sessionId, position }
-          console.log(`📤 Sending join-interview:`, joinData)
+          console.log(`📤 Sending join-interview:`, JSON.stringify(joinData, null, 2))
+          console.log(`📍 Position value: "${position}", type: ${typeof position}`)
           this.socket?.emit('join-interview', joinData)
           resolve(true)
         })
@@ -343,15 +360,31 @@ class SocketService {
     console.log('🔌 Manually disconnecting socket...')
     this.isManualDisconnect = true
     this.reconnectAttempts = 0
+    this.currentSessionId = null
 
     if (this.socket) {
       this.socket.disconnect()
       this.socket = null
     }
 
+    // НЕ удаляем обработчики при отключении, чтобы они могли получить события до полного отключения
+    // Они будут удалены только при полной очистке через cleanup()
+    // this.onMessageCallback = null
+    // this.onErrorCallback = null
+    // this.onInterviewCompletedCallback = null
+  }
+
+  // Полная очистка всех обработчиков
+  cleanup(): void {
     this.onMessageCallback = null
     this.onErrorCallback = null
     this.onInterviewCompletedCallback = null
+    this.pendingInterviewCompletedEvent = null
+    if (this.socket) {
+      this.socket.removeAllListeners()
+      this.socket.disconnect()
+      this.socket = null
+    }
   }
 }
 

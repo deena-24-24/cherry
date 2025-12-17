@@ -14,32 +14,32 @@ class InterviewController {
       let session = mockDB.sessions.find(s => s.id === sessionId);
 
       if (!session) {
-        console.log('🆕 Создаем новую сессию в mockDB');
-        session = {
-          id: sessionId,
-          title: `Собеседование на Frontend разработчика`,
-          position: 'frontend',
-          difficulty: 'middle',
-          status: 'active',
-          candidateId: 'unknown',
-          interviewerId: 'ai_interviewer',
-          createdAt: new Date().toISOString(),
-          notes: '',
-          conversationHistory: []
-        };
-        mockDB.sessions.push(session);
+        console.log('🆕 Создаем новую сессию в mockDB (fallback - сессия не найдена)');
+        // ВАЖНО: Если сессия не найдена, это ошибка - не создаем новую с дефолтной позицией
+        // Вместо этого возвращаем ошибку, так как сессия должна быть создана через createSession
+        return res.status(404).json({
+          success: false,
+          error: `Session ${sessionId} not found. Please create a session first.`
+        });
       }
 
-      // 2. Всегда создаем/проверяем AI сессию
+      // 2. Всегда создаем/проверяем AI сессию с позицией из существующей сессии
       let aiState = interviewAI.conversationStates.get(sessionId);
 
       if (!aiState) {
-        console.log(`🤖 Создаем AI сессию для ${sessionId}`);
+        console.log(`🤖 Создаем AI сессию для ${sessionId} с позицией: ${session.position}`);
         try {
+          // Используем позицию из существующей сессии в mockDB
           interviewAI.initializeSession(sessionId, session.position || 'frontend');
           aiState = interviewAI.conversationStates.get(sessionId);
         } catch (error) {
           console.log(`⚠️ Ошибка создания AI сессии: ${error.message}`);
+        }
+      } else {
+        // Если сессия уже существует, убеждаемся, что позиция совпадает
+        if (aiState.position !== session.position) {
+          console.log(`🔄 Обновляем позицию AI сессии с ${aiState.position} на ${session.position}`);
+          aiState.position = session.position;
         }
       }
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button/Button'
 import { ROUTES } from '../../router/routes'
@@ -6,12 +6,19 @@ import * as styles from './InterviewHomePage.module.css'
 import { API_URL } from '../../config'
 import { useAuthStore } from '../../store'
 import AiGirl from '../../assets/img.png'
+import { PositionSelectPopup, InterviewPosition } from '../../components/popup/PositionSelectPopup'
 
 export const InterviewHomePage: React.FC = () => {
   const navigate = useNavigate()
   const { user, token } = useAuthStore()
+  const [showPositionPopup, setShowPositionPopup] = useState(false)
 
-  const handleStartInterview = async () => {
+  const handleStartInterview = () => {
+    // Показываем попап выбора позиции
+    setShowPositionPopup(true)
+  }
+
+  const handlePositionSelect = async (position: InterviewPosition) => {
     try {
       if (!user) {
         console.error('Пользователь не авторизован, не могу создать сессию интервью')
@@ -26,7 +33,7 @@ export const InterviewHomePage: React.FC = () => {
         },
         body: JSON.stringify({
           userId: user._id,
-          position: 'frontend', // TODO: сделать выбор позиции динамическим
+          position: position,
           title: 'AI собеседование',
         }),
       })
@@ -112,6 +119,13 @@ export const InterviewHomePage: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Попап выбора направления собеседования */}
+      <PositionSelectPopup
+        isOpen={showPositionPopup}
+        onClose={() => setShowPositionPopup(false)}
+        onSelect={handlePositionSelect}
+      />
     </div>
   )
 }

@@ -92,16 +92,6 @@ export interface AudioState {
   isPlaying: boolean
   error?: string
 }
-
-export interface CodeExecutionResult {
-  output: string
-  error: string
-  executionTime: number
-  success?: boolean
-  passedCount?: number
-  totalCount?: number
-}
-
 // ============================================================================
 // ТИПЫ ДЛЯ ОЦЕНКИ И АНАЛИЗА
 // ============================================================================

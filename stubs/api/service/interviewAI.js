@@ -57,7 +57,9 @@ class SuperAiService {
    * Инициализирует сессию с улучшенным приветствием
    */
   initializeSession(sessionId, position) {
+    // ВАЖНО: Используем переданную позицию, а не позицию из существующей сессии
     const greeting = initialGreetings[position] || initialGreetings.frontend;
+    console.log(`🎯 initializeSession called: sessionId=${sessionId}, position=${position}, greeting=${greeting.substring(0, 50)}...`);
 
     // Если сессии нет - создаем новую
     if (!this.conversationStates.has(sessionId)) {
@@ -83,7 +85,7 @@ class SuperAiService {
 
       this.conversationStates.set(sessionId, newState);
 
-      console.log(`✅ Created new AI session ${sessionId}`);
+      console.log(`✅ Created new AI session ${sessionId} with position ${position}`);
 
       return {
         text: greeting,
@@ -97,10 +99,15 @@ class SuperAiService {
 
     // Если сессия уже есть, но история пуста - добавляем приветствие
     const state = this.conversationStates.get(sessionId);
-    console.log(`ℹ️ Session ${sessionId} already exists with ${state.conversationHistory?.length || 0} messages`);
+    console.log(`ℹ️ Session ${sessionId} already exists with ${state.conversationHistory?.length || 0} messages, current position: ${state.position}, requested position: ${position}`);
 
+    // ВАЖНО: Если позиция изменилась, обновляем её в состоянии
+    if (state.position !== position) {
+      console.log(`🔄 Updating session position from ${state.position} to ${position}`);
+      state.position = position;
+    }
 
-    // Всегда возвращаем приветствие для WebSocket
+    // Всегда возвращаем приветствие для WebSocket на основе ПЕРЕДАННОЙ позиции
     return {
       text: greeting,
       metadata: {

@@ -13,6 +13,7 @@ const aiChatRoutes = require('./routes/aiChatRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const candidateRoutes = require('./routes/candidateRoutes');
 const hrRoutes = require('./routes/hrRoutes');
+const interviewAI = require('./service/interviewAI');
 
 const app = express();
 const server = createServer(app);
@@ -88,7 +89,8 @@ io.on('connection', (socket) => {
   socket.on('join-interview', async (data) => {
     const { sessionId, position = 'frontend' } = data;
     socket.join(sessionId);
-    console.log(`User ${socket.id} joined interview session ${sessionId} for ${position}`);
+    console.log(`👤 User ${socket.id} joined interview session ${sessionId} for position: ${position}`);
+    console.log(`📋 Full join-interview data:`, JSON.stringify(data, null, 2));
 
     try {
       // 1. Гарантируем, что сессия существует в AI
@@ -127,8 +129,13 @@ io.on('connection', (socket) => {
             .filter(msg => msg.role === 'assistant')
             .pop();
 
-          messageToSend = lastAIMessage ? lastAIMessage.content :
-            initialGreetings[position] || initialGreetings.frontend;
+          if (lastAIMessage) {
+            messageToSend = lastAIMessage.content;
+          } else {
+            // Используем initializeSession для получения правильного приветствия
+            const greetingResult = interviewAI.initializeSession(sessionId, position);
+            messageToSend = greetingResult?.text || "Здравствуйте! Давайте начнем собеседование.";
+          }
         }
 
         metadata = {
@@ -140,8 +147,10 @@ io.on('connection', (socket) => {
       // Вариант C: Нет сессии вообще (на всякий случай)
       else {
         console.log(`⚠️ No session state found, creating greeting`);
-        messageToSend = initialGreetings[position] || initialGreetings.frontend;
-        metadata = {
+        // Используем initializeSession для получения правильного приветствия
+        const greetingResult = interviewAI.initializeSession(sessionId, position);
+        messageToSend = greetingResult?.text || "Здравствуйте! Давайте начнем собеседование.";
+        metadata = greetingResult?.metadata || {
           isInitial: true,
           currentTopic: 'введение'
         };

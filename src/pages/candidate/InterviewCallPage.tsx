@@ -44,6 +44,9 @@ export const InterviewCallPage: React.FC = () => {
   const [connectionQuality, setConnectionQuality] = useState<'good' | 'average' | 'poor'>('good')
   const [voiceActivity, setVoiceActivity] = useState(0)
   const [isConnected, setIsConnected] = useState(false)
+  
+  // Сохраняем позицию из сессии - НЕ инициализируем useVoiceCall до загрузки позиции
+  const [interviewPosition, setInterviewPosition] = useState<string | null>(null)
 
   useEffect(() => {
     if (showConsole || showNotes) {
@@ -82,6 +85,14 @@ export const InterviewCallPage: React.FC = () => {
       controller.abort()
     }
   }, [sessionId, fetchSession])
+
+  // Устанавливаем позицию из загруженной сессии
+  useEffect(() => {
+    if (currentSession?.position) {
+      setInterviewPosition(currentSession.position)
+      console.log(`📍 Setting interview position from session: ${currentSession.position}`)
+    }
+  }, [currentSession?.position])
 
   // src/pages/candidate/InterviewCallPage.tsx
 
@@ -135,6 +146,7 @@ export const InterviewCallPage: React.FC = () => {
     }
   }, [handleInterviewCompleted])
   // === ИСПОЛЬЗУЕМ ГОЛОСОВОЙ ХУК ===
+  // Передаем позицию из сессии (или 'frontend' как fallback, но хук проверит и не инициализируется до загрузки)
   const {
     isRecording,
     isAIThinking,
@@ -143,7 +155,7 @@ export const InterviewCallPage: React.FC = () => {
     transcript,
     aiResponse,
     error: voiceError
-  } = useVoiceCall(sessionId || '', currentSession?.position || '')
+  } = useVoiceCall(sessionId || '', interviewPosition || '')
 
   // 3. Только ПОСЛЕ установки колбэка используем хук useVoiceCall
   // const voiceCall = useVoiceCall(sessionId || '', currentSession?.position || '')
