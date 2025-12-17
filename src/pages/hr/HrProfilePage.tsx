@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from "react"
 import { FormData as ProfileFormData, HrMenuItem } from "../../types"
 import { compressAvatarImage } from "../../utils"
-import { ProfileAvatar } from "../../components/profilePage/ProfileAvatar/ProfileAvatar" // Больше не нужен здесь, если используем внутри формы, но для HR он может быть отдельным компонентом или тем же. Используем тот же подход.
-import { HrMenu } from "../../components/profilePage/HrMenu/HrMenu"
+import { ProfileAvatar } from "../../components/profilePage/ProfileAvatar/ProfileAvatar"
+import { ProfileMenu, TabItem } from "../../components/profilePage/ProfileMenu/ProfileMenu"
 import { FavoritesContent } from "../../components/profilePage/FavoritesContent/FavoritesContent"
-
-import { FormField } from "../../components/ui/FormField/FormField"
-import { PhoneField } from "../../components/profilePage/ProfileForm/PhoneField"
-import { CountryField } from "../../components/profilePage/ProfileForm/CountryField"
-import { TextareaField } from "../../components/profilePage/ProfileForm/TextareaField"
 import { Button } from "../../components/ui/Button/Button"
 import { validateEmail } from "../../utils"
 import { useAuthStore } from "../../store"
@@ -16,6 +11,13 @@ import { fetchHr, updateHr } from "../../service/hr/hrService"
 import "../../styles/variables.css"
 import * as styles from "../candidate/ProfilePage.module.css"
 import * as formStyles from "../../components/profilePage/ProfileForm/ProfileForm.module.css"
+
+import { ProfileField } from "../../components/profilePage/ProfileForm/ProfileField"
+
+const HR_MENU_ITEMS: TabItem[] = [
+  { id: 'about', label: 'Обо мне' },
+  { id: 'candidates', label: 'Избранные кандидаты' },
+]
 
 export const HrProfilePage: React.FC = () => {
   const { user, updateUser } = useAuthStore()
@@ -30,12 +32,11 @@ export const HrProfilePage: React.FC = () => {
     email: '',
     phone: '',
     phoneCode: '',
-    country: '',
+    city: '',
     about: ''
   })
   const [companyName, setCompanyName] = useState<string>('')
 
-  // ... (логика загрузки loadProfile, handleSave, handleCancel остается прежней) ...
   const loadProfile = async () => {
     if (!user) { setLoading(false); return }
     try {
@@ -47,25 +48,19 @@ export const HrProfilePage: React.FC = () => {
         email: hrData.email || user.email || '',
         phone: hrData.phone || '',
         phoneCode: '',
-        country: hrData.country || '',
+        city: hrData.city || '',
         about: hrData.about || ''
       })
       setCompanyName(hrData.companyName || '')
       if (hrData.avatar) setAvatarUrl(hrData.avatar)
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setLoading(false)
-    }
+    } catch (error) { console.error(error) } finally { setLoading(false) }
   }
 
   useEffect(() => { loadProfile().then() }, [user])
 
   const handleInputChange = (field: keyof ProfileFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    if (field === 'email') {
-      setEmailError(value && !validateEmail(value) ? 'Некорректный email' : '')
-    }
+    if (field === 'email') setEmailError(value && !validateEmail(value) ? 'Некорректный email' : '')
   }
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,73 +77,65 @@ export const HrProfilePage: React.FC = () => {
     try {
       const hrData = { ...formData, avatar: avatarUrl, companyName }
       const updatedHr = await updateHr(hrData)
-      if (updatedHr) {
-        updateUser({ ...updatedHr })
-      }
+      if (updatedHr) updateUser({ ...updatedHr })
       setIsEditing(false)
     } catch (error) { console.error(error) }
   }
 
   const handleEditToggle = () => isEditing ? handleSave() : setIsEditing(true)
-
-  const handleCancel = async () => {
-    setIsEditing(false)
-    loadProfile()
-  }
+  const handleCancel = async () => { setIsEditing(false); loadProfile() }
 
   if (loading) return <div>Загрузка...</div>
 
-  const getTitle = () => activeMenuItem === 'about' ? 'ЛИЧНЫЙ КАБИНЕТ' : 'ИЗБРАННЫЕ КАНДИДАТЫ'
-  const fullWidthStyle = { width: '100%' }
-
   return (
     <div className={styles["page"]}>
-      <div className={styles["title"]}>{getTitle()}</div>
-
       <div className={styles["container"]}>
+        <div className={styles["title"]}>КАБИНЕТ HR</div>
 
-        {/* ЛЕВАЯ КОЛОНКА */}
-        <div className={styles["contentColumn"]}>
+        <ProfileMenu
+          items={HR_MENU_ITEMS}
+          activeItemId={activeMenuItem}
+          onItemChange={setActiveMenuItem}
+        />
+
+        <div className={styles["tabContent"]}>
           {activeMenuItem === 'about' && (
             <div className={formStyles["formContainer"]}>
 
-              {/* Верхняя секция: Поля + Аватар */}
               <div className={formStyles["topSection"]}>
                 <div className={formStyles["mainFields"]}>
-                  <FormField
+                  <ProfileField
                     label="ИМЯ"
                     value={formData.firstName}
                     isEditing={isEditing}
                     onChange={(v) => handleInputChange('firstName', v)}
-                    styleProps={fullWidthStyle}
                   />
-                  <FormField
+                  <ProfileField
                     label="ФАМИЛИЯ"
                     value={formData.lastName}
                     isEditing={isEditing}
                     onChange={(v) => handleInputChange('lastName', v)}
-                    styleProps={fullWidthStyle}
                   />
-                  {/* Поле компании для HR */}
-                  <FormField
+                  <ProfileField
                     label="НАЗВАНИЕ КОМПАНИИ"
                     value={companyName}
                     isEditing={isEditing}
                     onChange={setCompanyName}
-                    styleProps={fullWidthStyle}
                   />
-                  <FormField
+                  <ProfileField
+                    type="email"
                     label="ЭЛЕКТРОННАЯ ПОЧТА"
                     value={formData.email}
                     isEditing={isEditing}
-                    type="email"
                     error={emailError}
                     onChange={(v) => handleInputChange('email', v)}
-                    styleProps={fullWidthStyle}
                   />
-                  <PhoneField
+                  <ProfileField
+                    type="phone"
+                    label="ТЕЛЕФОН"
                     value={formData.phone || ''}
                     isEditing={isEditing}
+                    placeholder="+7-999-999-99-99"
                     onChange={(v) => handleInputChange('phone', v)}
                   />
                 </div>
@@ -162,14 +149,17 @@ export const HrProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Нижняя секция */}
               <div className={formStyles["bottomSection"]}>
-                <CountryField
-                  value={formData.country}
+                <ProfileField
+                  type="city"
+                  label="ГОРОД"
+                  value={formData.city}
                   isEditing={isEditing}
-                  onChange={(v) => handleInputChange('country', v)}
+                  placeholder="Введите страну"
+                  onChange={(v) => handleInputChange('city', v)}
                 />
-                <TextareaField
+                <ProfileField
+                  type="textarea"
                   label="О СЕБЕ"
                   value={formData.about}
                   isEditing={isEditing}
@@ -177,7 +167,6 @@ export const HrProfilePage: React.FC = () => {
                 />
               </div>
 
-              {/* Кнопки */}
               <div className={formStyles["actions"]}>
                 {isEditing ? (
                   <>
@@ -193,15 +182,6 @@ export const HrProfilePage: React.FC = () => {
 
           {activeMenuItem === 'candidates' && <FavoritesContent />}
         </div>
-
-        {/* ПРАВАЯ КОЛОНКА (Меню) */}
-        <div className={styles["menuColumn"]}>
-          <HrMenu
-            activeMenuItem={activeMenuItem}
-            onMenuItemChange={setActiveMenuItem}
-          />
-        </div>
-
       </div>
     </div>
   )

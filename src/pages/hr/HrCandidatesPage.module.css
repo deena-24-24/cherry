@@ -40,6 +40,14 @@
   min-width: 0;
 }
 
+.loading {
+  text-align: center;
+  padding: 60px 0;
+  font-size: 20px;
+  color: #082060;
+  width: 100%;
+}
+
 .emptyState {
   text-align: center;
   padding: 60px 20px;

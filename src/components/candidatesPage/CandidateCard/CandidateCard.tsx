@@ -2,16 +2,15 @@ import React from 'react'
 import { CandidateData } from '../../../service/candidate/candidateService'
 import { Button } from '../../ui/Button/Button'
 import * as styles from './CandidateCard.module.css'
-// Временно используем any для совместимости с Resume, если типы не совпадают идеально
 import { Resume } from '../../../types/resume'
 
 interface CandidateCardProps {
-  candidate: Resume | CandidateData; // Поддержка обоих типов
+  candidate: Resume | CandidateData;
   isFavorite: boolean;
   onAddToFavorites: (candidateId: string) => void;
   onRemoveFromFavorites: (candidateId: string) => void;
-  onViewResume: (candidate: any) => void;
-  onChatClick?: (candidateId: string) => void; // Новый проп
+  onViewResume: (candidate: Resume | CandidateData) => void;
+  onChatClick?: (candidateId: string) => void;
 }
 
 export const CandidateCard: React.FC<CandidateCardProps> = ({
@@ -49,6 +48,10 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
     }
   }
 
+  const position = 'position' in candidate
+    ? candidate.position
+    : (candidate as CandidateData).jobTitle
+
   return (
     <div className={styles["card"]}>
       <div className={styles["cardContent"]}>
@@ -67,9 +70,9 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
         <div className={styles["info"]}>
           <div className={styles["name"]}>{fullName}</div>
           <div className={styles["details"]}>
-            <span className={styles["detailItem"]}>{candidate.country || 'Город не указан'}</span>
+            <span className={styles["detailItem"]}>{candidate.city || 'Город не указан'}</span>
             <span className={styles["detailItem"]}>
-              {(candidate as any).position ? (candidate as any).position : `Стаж ${calculateExperience()}`}
+              {position ? position : `Стаж ${calculateExperience()}`}
             </span>
           </div>
 

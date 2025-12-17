@@ -1,28 +1,36 @@
 import React from "react"
-import { MenuItem } from "../../../types"
-import { Menu } from "../../ui/Menu/Menu"
+import * as styles from "./ProfileMenu.module.css"
+
+export interface TabItem {
+  id: string;
+  label: string;
+}
 
 interface ProfileMenuProps {
-  activeMenuItem: MenuItem;
-  onMenuItemChange: (item: MenuItem) => void;
+  items: TabItem[];
+  activeItemId: string;
+  onItemChange: (id: string) => void;
 }
-
-const menuItems = [
-  { id: 'about', label: 'Обо мне' },
-  { id: 'progress', label: 'Прогресс' },
-  { id: 'resume', label: 'Резюме' },
-]
 
 export const ProfileMenu: React.FC<ProfileMenuProps> = ({
-  activeMenuItem,
-  onMenuItemChange,
+  items,
+  activeItemId,
+  onItemChange,
 }) => {
   return (
-    <Menu
-      items={menuItems}
-      activeItemId={activeMenuItem}
-      onItemChange={onMenuItemChange}
-    />
+    <div className={styles["tabsContainer"]}>
+      {items.map((item) => {
+        const isActive = activeItemId === item.id
+        return (
+          <button
+            key={item.id}
+            className={`${styles["tab"]} ${isActive ? styles["active"] : ''}`}
+            onClick={() => onItemChange(item.id)}
+          >
+            {item.label}
+          </button>
+        )
+      })}
+    </div>
   )
 }
-

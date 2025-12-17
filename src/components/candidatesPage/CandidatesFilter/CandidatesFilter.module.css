@@ -23,6 +23,17 @@
   margin-bottom: 20px;
 }
 
+.filterLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: #082060;
+  font-size: 14px;
+  font-family: 'Anek Telugu', sans-serif;
+  font-weight: 600;
+  text-transform: capitalize;
+  line-height: 15.4px;
+}
+
 .filterInput,
 .filterSelect {
   width: 100%;
@@ -65,6 +76,13 @@
   justify-content: center;
   transform: rotate(45deg);
   flex-shrink: 0;
+}
+
+.skillsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .skillChip {
@@ -129,4 +147,3 @@
 .radioInput:checked {
   background: #082060;
 }
-

@@ -1,12 +1,13 @@
 import { useAuthStore } from '../../store'
+import { API_URL } from '../../config'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = `${API_URL}/api`
 
 export interface ProfileData {
   name?: string
   email: string
   phone?: string
-  country?: string
+  city?: string
   about?: string
   firstName?: string
   lastName?: string
@@ -53,7 +54,7 @@ export const fetchUserProfile = async (): Promise<ProfileData> => {
       firstName: data.firstName || '',
       lastName: data.lastName || '',
       phone: data.phone || '',
-      country: data.country || '',
+      city: data.city || '',
       about: data.about || '',
       companyName: data.companyName || '',
       position: data.position || '',

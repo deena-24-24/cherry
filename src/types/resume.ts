@@ -23,7 +23,7 @@ export interface Resume {
   email?: string;
   phone?: string;
   avatar?: string;
-  country?: string;
+  city?: string;
 
   skills: string[];
   experience: Experience[];

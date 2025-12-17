@@ -2,12 +2,18 @@ import React, { useState, useEffect } from "react"
 import { FormData, MenuItem } from "../../types"
 import { compressAvatarImage } from "../../utils"
 import { ProfileForm } from "../../components/profilePage/ProfileForm/ProfileForm"
-import { ProfileMenu } from "../../components/profilePage/ProfileMenu/ProfileMenu"
+import { ProfileMenu, TabItem } from "../../components/profilePage/ProfileMenu/ProfileMenu"
 import { ProgressContent } from "../../components/profilePage/ProgressContent/ProgressContent"
 import { ResumeContent } from "../../components/profilePage/ResumeContent/ResumeContent"
 import { useAuthStore } from "../../store"
 import { fetchUserProfile, updateUserProfile } from "../../service/auth/profileService"
 import * as styles from "./ProfilePage.module.css"
+
+const MENU_ITEMS: TabItem[] = [
+  { id: 'about', label: 'Обо мне' },
+  { id: 'progress', label: 'Прогресс' },
+  { id: 'resume', label: 'Резюме' },
+]
 
 export const ProfilePage: React.FC = () => {
   const { user, updateUser } = useAuthStore()
@@ -22,16 +28,12 @@ export const ProfilePage: React.FC = () => {
     email: '',
     phone: '',
     phoneCode: '',
-    country: '',
+    city: '',
     about: ''
   })
 
-  // Функция загрузки данных профиля
   const loadProfile = async () => {
-    if (!user) {
-      setLoading(false)
-      return
-    }
+    if (!user) { setLoading(false); return }
     try {
       setLoading(true)
       const profileData = await fetchUserProfile()
@@ -41,39 +43,29 @@ export const ProfilePage: React.FC = () => {
         email: profileData.email || user.email || '',
         phone: profileData.phone || '',
         phoneCode: '',
-        country: profileData.country || '',
+        city: profileData.city || '',
         about: profileData.about || ''
       })
-      if (profileData.avatar) {
-        setAvatarUrl(profileData.avatar)
-      }
+      if (profileData.avatar) setAvatarUrl(profileData.avatar)
     } catch (error) {
-      console.error('Ошибка загрузки профиля:', error)
-
-      // Если API не доступен, используем данные из store как fallback
+      console.error(error)
+      // Исправлено: удалены (user as any), так как поля существуют в интерфейсе User
       setFormData({
-        firstName: (user as any).firstName || '',
-        lastName: (user as any).lastName || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
         email: user.email || '',
-        phone: (user as any).phone || '',
+        phone: user.phone || '',
         phoneCode: '',
-        country: (user as any).country || '',
-        about: (user as any).about || ''
+        city: user.city || '',
+        about: user.about || ''
       })
-
-      // Устанавливаем аватар из store, если он есть
-      if ((user as any).avatar) {
-        setAvatarUrl((user as any).avatar)
-      }
+      if (user.avatar) setAvatarUrl(user.avatar)
     } finally {
       setLoading(false)
     }
   }
 
-  // Загрузка данных профиля при монтировании компонента
-  useEffect(() => {
-    loadProfile().then()
-  }, [user])
+  useEffect(() => { loadProfile().then() }, [user])
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -85,15 +77,12 @@ export const ProfilePage: React.FC = () => {
       try {
         const compressedImage = await compressAvatarImage(file)
         setAvatarUrl(compressedImage)
-      } catch (error) {
-        console.error('Error processing image:', error)
-      }
+      } catch (error) { console.error(error) }
     }
   }
 
   const handleEditToggle = () => {
     if (isEditing) {
-      // handleSave logic implementation
       updateUserProfile({ ...formData, avatar: avatarUrl }).then(updated => {
         if(updated) updateUser({ ...updated })
         setIsEditing(false)
@@ -108,34 +97,27 @@ export const ProfilePage: React.FC = () => {
     loadProfile()
   }
 
-
   if (loading) return <div>Загрузка...</div>
-
-  const getPageTitle = () => {
-    switch (activeMenuItem) {
-      case 'about': return 'ЛИЧНЫЙ КАБИНЕТ'
-      case 'progress': return 'ПРОГРЕСС'
-      case 'resume': return 'РЕЗЮМЕ'
-      default: return 'ЛИЧНЫЙ КАБИНЕТ'
-    }
-  }
 
   return (
     <div className={styles["page"]}>
-      <div className={styles["title"]}>
-        {getPageTitle()}
-      </div>
-
       <div className={styles["container"]}>
+        <div className={styles["title"]}>ЛИЧНЫЙ КАБИНЕТ</div>
 
-        {/* ЛЕВАЯ КОЛОНКА: Контент */}
-        <div className={styles["contentColumn"]}>
+        {/* 1. Меню (Вкладки) сверху */}
+        <ProfileMenu
+          items={MENU_ITEMS}
+          activeItemId={activeMenuItem}
+          onItemChange={(id) => setActiveMenuItem(id as MenuItem)}
+        />
+
+        {/* 2. Контент снизу (как содержимое вкладки) */}
+        <div className={styles["tabContent"]}>
           {activeMenuItem === 'about' && (
             <ProfileForm
               formData={formData}
               isEditing={isEditing}
               emailError={emailError}
-              // Передаем аватар внутрь формы
               avatarUrl={avatarUrl}
               onAvatarChange={handleAvatarChange}
               onInputChange={handleInputChange}
@@ -151,15 +133,6 @@ export const ProfilePage: React.FC = () => {
             <ResumeContent key={`resume-${activeMenuItem}`} />
           )}
         </div>
-
-        {/* ПРАВАЯ КОЛОНКА: Только меню */}
-        <div className={styles["menuColumn"]}>
-          <ProfileMenu
-            activeMenuItem={activeMenuItem}
-            onMenuItemChange={setActiveMenuItem}
-          />
-        </div>
-
       </div>
     </div>
   )

@@ -1,11 +1,8 @@
 import React from "react"
 import { FormData } from "../../../types"
 import { validateEmail } from "../../../utils"
-import { FormField } from "../../ui/FormField/FormField"
+import { ProfileField } from "./ProfileField"
 import { Button } from "../../ui/Button/Button"
-import { PhoneField } from "./PhoneField"
-import { CountryField } from "./CountryField"
-import { TextareaField } from "./TextareaField"
 import { ProfileAvatar } from "../ProfileAvatar/ProfileAvatar"
 import * as styles from "./ProfileForm.module.css"
 
@@ -41,55 +38,50 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         onEmailErrorChange('')
       }
     }
+    if (field === 'phone') {
+      onInputChange('phoneCode', '')
+    }
   }
-
-  const fullWidthStyle = { width: '100%' }
 
   return (
     <div className={styles["formContainer"]}>
 
-      {/* ВЕРХНЯЯ ЧАСТЬ: Поля + Аватар */}
+      {/* ВЕРХНЯЯ ЧАСТЬ */}
       <div className={styles["topSection"]}>
-
-        {/* Левая колонка с основными полями */}
         <div className={styles["mainFields"]}>
-          <FormField
+          <ProfileField
             label="ИМЯ"
             value={formData.firstName}
             isEditing={isEditing}
-            onChange={(value) => handleInputChange('firstName', value)}
-            styleProps={fullWidthStyle}
+            onChange={(val) => handleInputChange('firstName', val)}
           />
 
-          <FormField
+          <ProfileField
             label="ФАМИЛИЯ"
             value={formData.lastName}
             isEditing={isEditing}
-            onChange={(value) => handleInputChange('lastName', value)}
-            styleProps={fullWidthStyle}
+            onChange={(val) => handleInputChange('lastName', val)}
           />
 
-          <FormField
+          <ProfileField
+            type="email"
             label="ЭЛЕКТРОННАЯ ПОЧТА"
             value={formData.email}
             isEditing={isEditing}
-            type="email"
             error={emailError}
-            onChange={(value) => handleInputChange('email', value)}
-            styleProps={fullWidthStyle}
+            onChange={(val) => handleInputChange('email', val)}
           />
 
-          <PhoneField
+          <ProfileField
+            type="phone"
+            label="ТЕЛЕФОН"
             value={formData.phone || ''}
             isEditing={isEditing}
-            onChange={(value) => {
-              handleInputChange('phone', value)
-              handleInputChange('phoneCode', '')
-            }}
+            placeholder="+7-999-999-99-99"
+            onChange={(val) => handleInputChange('phone', val)}
           />
         </div>
 
-        {/* Правая колонка с аватаром */}
         <div className={styles["avatarSection"]}>
           <ProfileAvatar
             avatarUrl={avatarUrl}
@@ -99,46 +91,39 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         </div>
       </div>
 
-      {/* НИЖНЯЯ ЧАСТЬ: Поля во всю ширину */}
+      {/* НИЖНЯЯ ЧАСТЬ */}
       <div className={styles["bottomSection"]}>
-        <CountryField
-          value={formData.country}
+        <ProfileField
+          type="city"
+          label="ГОРОД"
+          value={formData.city}
           isEditing={isEditing}
-          onChange={(value) => handleInputChange('country', value)}
+          placeholder="Введите страну"
+          onChange={(val) => handleInputChange('city', val)}
         />
 
-        <TextareaField
+        <ProfileField
+          type="textarea"
           label="О СЕБЕ"
           value={formData.about}
           isEditing={isEditing}
-          onChange={(value) => handleInputChange('about', value)}
+          onChange={(val) => handleInputChange('about', val)}
         />
       </div>
 
-      {/* Кнопки */}
+      {/* КНОПКИ */}
       <div className={styles["actions"]}>
         {isEditing ? (
           <>
-            <Button
-              variant="primary"
-              onClick={onEditToggle}
-              className={styles["saveButton"]}
-            >
+            <Button variant="primary" onClick={onEditToggle} className={styles["saveButton"]}>
               СОХРАНИТЬ
             </Button>
-            <Button
-              variant="secondary"
-              onClick={onCancel}
-              className={styles["cancelButton"]}
-            >
+            <Button variant="secondary" onClick={onCancel} className={styles["cancelButton"]}>
               Отмена
             </Button>
           </>
         ) : (
-          <Button
-            variant="primary"
-            onClick={onEditToggle}
-          >
+          <Button variant="primary" onClick={onEditToggle}>
             РЕДАКТИРОВАТЬ
           </Button>
         )}

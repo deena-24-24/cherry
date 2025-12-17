@@ -21,7 +21,7 @@ const getProfile = async (req, res) => {
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       phone: user.phone || '',
-      country: user.country || '',
+      city: user.city || '',
       about: user.about || '',
       companyName: user.companyName || '',
       position: user.position || '',
@@ -68,8 +68,8 @@ const updateProfile = async (req, res) => {
     if (updateData.phone !== undefined) {
       user.phone = updateData.phone;
     }
-    if (updateData.country !== undefined) {
-      user.country = updateData.country;
+    if (updateData.city !== undefined) {
+      user.city = updateData.city;
     }
     if (updateData.about !== undefined) {
       user.about = updateData.about;
@@ -100,7 +100,7 @@ const updateProfile = async (req, res) => {
         mockDB.candidates[candidateIndex].lastName = user.lastName || '';
         mockDB.candidates[candidateIndex].email = user.email || '';
         mockDB.candidates[candidateIndex].phone = user.phone || '';
-        mockDB.candidates[candidateIndex].country = user.country || '';
+        mockDB.candidates[candidateIndex].city = user.city || '';
         mockDB.candidates[candidateIndex].about = user.about || '';
         mockDB.candidates[candidateIndex].avatar = user.avatar || '';
         mockDB.candidates[candidateIndex].updatedAt = new Date().toISOString();
@@ -116,7 +116,7 @@ const updateProfile = async (req, res) => {
         mockDB.hrs[hrIndex].lastName = user.lastName || '';
         mockDB.hrs[hrIndex].email = user.email || '';
         mockDB.hrs[hrIndex].phone = user.phone || '';
-        mockDB.hrs[hrIndex].country = user.country || '';
+        mockDB.hrs[hrIndex].city = user.city || '';
         mockDB.hrs[hrIndex].about = user.about || '';
         mockDB.hrs[hrIndex].avatar = user.avatar || '';
         mockDB.hrs[hrIndex].companyName = user.companyName || '';
@@ -132,7 +132,7 @@ const updateProfile = async (req, res) => {
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       phone: user.phone || '',
-      country: user.country || '',
+      city: user.city || '',
       about: user.about || '',
       companyName: user.companyName || '',
       position: user.position || '',

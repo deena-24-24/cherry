@@ -2,17 +2,18 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchCandidates, fetchFavorites, addToFavorites, removeFromFavorites } from '../../service/hr/candidatesService'
 import { chatService } from '../../service/chat/chatService'
-import { useChatStore } from '../../store/useChatStore' // Импорт стора
+import { useChatStore } from '../../store/useChatStore'
 import { CandidateCard } from '../../components/candidatesPage/CandidateCard/CandidateCard'
 import { CandidatesFilter, FilterState } from '../../components/candidatesPage/CandidatesFilter/CandidatesFilter'
 import { ResumeModal } from '../../components/candidatesPage/ResumeModal/ResumeModal'
 import * as styles from './HrCandidatesPage.module.css'
 import { Resume } from '../../types/resume'
 import { ROUTES } from '../../router/routes'
+import { CandidateData } from '../../service/candidate/candidateService'
 
 export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTitle = false }) => {
   const navigate = useNavigate()
-  const { fetchChatById } = useChatStore() // Используем экшен из стора
+  const { fetchChatById } = useChatStore()
   const [candidates, setCandidates] = useState<Resume[]>([])
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,12 +43,12 @@ export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTit
     if (filters.position) {
       result = result.filter(c =>
         c.position?.toLowerCase().includes(filters.position.toLowerCase()) ||
-        c.title?.toLowerCase().includes(filters.position.toLowerCase())
+        (c as unknown as CandidateData).jobTitle?.toLowerCase().includes(filters.position.toLowerCase())
       )
     }
     if (filters.city) {
       result = result.filter(c =>
-        c.country?.toLowerCase().includes(filters.city.toLowerCase())
+        c.city?.toLowerCase().includes(filters.city.toLowerCase())
       )
     }
     if (filters.skills.length > 0) {
@@ -121,7 +122,7 @@ export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTit
             filteredCandidates.map(c => (
               <CandidateCard
                 key={c.id}
-                candidate={c as any}
+                candidate={c} // Удален as any, так как c имеет тип Resume
                 isFavorite={c.userId ? favorites.includes(c.userId) : false}
                 onAddToFavorites={handleAddToFavorites}
                 onRemoveFromFavorites={handleRemoveFromFavorites}
@@ -135,7 +136,7 @@ export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTit
 
       {selectedCandidate && (
         <ResumeModal
-          candidate={selectedCandidate as any}
+          candidate={selectedCandidate as unknown as CandidateData}
           onClose={() => setSelectedCandidate(null)}
         />
       )}

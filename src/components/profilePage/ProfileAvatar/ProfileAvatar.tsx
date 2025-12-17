@@ -1,5 +1,5 @@
 import React from "react"
-import { Avatar } from "../../ui/Avatar/Avatar"
+import * as styles from "./ProfileAvatar.module.css"
 
 interface ProfileAvatarProps {
   avatarUrl: string;
@@ -13,11 +13,26 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   onAvatarChange,
 }) => {
   return (
-    <Avatar
-      avatarUrl={avatarUrl}
-      isEditing={isEditing}
-      onAvatarChange={onAvatarChange}
-    />
+    <div className={styles["avatarContainer"]}>
+      <div className={styles["avatarFrame"]}>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="Avatar" className={styles["avatarImage"]} />
+        ) : (
+          <div className={styles["avatarPlaceholder"]} />
+        )}
+
+        {isEditing && (
+          <label className={styles["avatarUploadOverlay"]}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={onAvatarChange}
+              className={styles["avatarInput"]}
+            />
+            <span className={styles["avatarUploadText"]}>Изменить</span>
+          </label>
+        )}
+      </div>
+    </div>
   )
 }
-

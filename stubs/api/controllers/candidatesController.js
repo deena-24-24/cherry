@@ -20,7 +20,7 @@ const getCandidates = async (req, res) => {
         lastName: user?.lastName || '',
         email: user?.email || '',
         avatar: user?.avatarUrl || '', // mockDB uses avatarUrl in users
-        country: user?.country || '',
+        city: user?.city || '',
         phone: user?.phone || ''
       };
     });

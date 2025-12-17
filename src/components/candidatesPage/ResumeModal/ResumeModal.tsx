@@ -45,7 +45,7 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({ candidate, onClose }) 
             </div>
             <div className={styles["infoRow"]}>
               <label className={styles["label"]}>МЕСТО ЖИТЕЛЬСТВА</label>
-              <div className={styles["value"]}>{candidate.country || 'Не указано'}</div>
+              <div className={styles["value"]}>{candidate.city || 'Не указано'}</div>
             </div>
           </div>
 

@@ -28,7 +28,7 @@ const getFavorites = async (req, res) => {
           lastName: user.lastName || '',
           email: user.email || '',
           avatar: user.avatarUrl || user.avatar || '',
-          country: user.country || '',
+          city: user.city || '',
           phone: user.phone || '',
           position: resume?.position || 'Кандидат',
           skills: resume?.skills || [],

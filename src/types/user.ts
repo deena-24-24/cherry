@@ -5,7 +5,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   phone?: string;
-  country?: string;
+  city?: string;
   about?: string;
   avatar?: string;
   companyName?: string;
