@@ -18,7 +18,7 @@ interface ChatListProps {
 
 export const ChatList: React.FC<ChatListProps> = ({ conversations, activeChatId, onSelectChat }) => {
   return (
-    <aside className={styles['chat-list-sidebar']}>
+    <aside className={styles['chat-list-sidebar']} data-hidden={!!activeChatId}>
       <header className={styles['sidebar-header']}>
         <h2>Все чаты</h2>
       </header>

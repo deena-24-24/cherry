@@ -4,7 +4,7 @@
     gap: 10px;
     padding: 10px;
     border-top: 1px solid var(--color-accent-light);
-    background-color: var(--color-secondary);
+    background-color: #e8ebff;
 }
 
 .message-input-field {
@@ -16,12 +16,12 @@
     border-radius: 20px;
     outline: none;
     transition: all 0.2s;
-    color: var(--color-primary);
+    color: var(--navy);
 }
 
 .message-input-field:focus {
     background-color: var(--color-background);
-    border-color: var(--color-accent);
+    border-color: var(--lavand);
 }
 
 .icon-button {
@@ -32,7 +32,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-accent);
+    color: var(--lavand);
     transition: color 0.2s ease;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .send-button {
-    color: var(--color-accent);
+    color: var(--navy);
 }
 
 .send-button:hover:not(:disabled) {

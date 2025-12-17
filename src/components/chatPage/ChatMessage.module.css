@@ -28,7 +28,7 @@
     margin-bottom: 0.25rem;
     font-size: var(--font-size-sm);
     font-weight: bold;
-    color: var(--color-primary);
+    color: var(--navy);
 }
 
 .bubble {
@@ -119,8 +119,8 @@
 }
 
 .message-container.ai .avatar {
-    background-color: var(--color-accent-light);
-    color: var(--color-primary);
+    background-color: var(--lavand);
+    color: var(--navy);
 }
 
 .message-container.ai .sender-name {
@@ -128,7 +128,7 @@
 }
 
 .message-container.ai .bubble {
-    background-color: var(--color-accent-light);
+    background-color: white;
     color: var(--color-primary);
     border-top-left-radius: 5px;
 }
@@ -144,13 +144,13 @@
 }
 
 .message-container.user .avatar {
-    background-color: var(--color-border);
-    color: var(--color-primary);
+    background-color: var(--peach);
+    color: var(--navy);
 }
 
 .message-container.user .bubble {
-    background-color: var(--color-accent);
-    color: var(--color-text-light);
+    background-color: var(--navy);
+    color: var(--cloud);
     border-top-right-radius: 5px;
 }
 

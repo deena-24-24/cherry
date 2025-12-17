@@ -14,8 +14,8 @@
 }
 
 .buttonPrimary {
-  background: var(--color-primary);
-  outline: 1px var(--color-border) solid;
+  background: var(--navy);
+  outline: 1px var(--peach) solid;
   outline-offset: -1px;
 }
 
@@ -24,12 +24,12 @@
 
 .buttonSecondary {
   background: var(--color-secondary);
-  border: 1px var(--color-accent) solid;
+  border: 1px var(--lavand) solid;
 }
 
 .buttonSecondary:hover {
-  background: var(--color-secondary-hover);
-  border-color: var(--color-primary-light);
+  background: var(--lavand);
+  border-color: var(--navy);
 }
 
 .buttonText {
@@ -43,5 +43,5 @@
 }
 
 .buttonSecondary .buttonText {
-  color: var(--color-text);
+  color: var(--navy);
 }

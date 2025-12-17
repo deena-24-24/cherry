@@ -27,6 +27,23 @@
     color: #e5e7eb;
 }
 
+.frp-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.frp-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.frp-container::-webkit-scrollbar-thumb {
+    background: var(--peach);
+    border-radius: 3px;
+}
+
+.frp-container::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-light);
+}
+
 /* ========================= */
 /*           HEADER          */
 /* ========================= */
@@ -238,6 +255,12 @@
     font-size: 15px;
     line-height: 1.6;
     color: #e5e7eb;
+}
+
+.frp-footer {
+    display: flex;
+    margin-top: 1rem;
+    justify-content: end;
 }
 
 /* ========================= */

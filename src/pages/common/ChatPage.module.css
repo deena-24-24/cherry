@@ -18,19 +18,19 @@
 
 .chat-header {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--color-border-light);
-    background-color: var(--color-secondary);
+    border-bottom: 1px solid var(--lavand);
+    background-color: var(--lavand);
 }
 
 .chat-header h1 {
     font-size: var(--font-size-xl);
     margin: 0 0 0.25rem;
-    color: var(--color-primary);
+    color: var(--navy);
 }
 
 .chat-header .status {
-    color: var(--color-accent);
-    font-weight: 500;
+    color: var(--navy);
+    font-weight: 400;
     margin: 0;
 }
 
@@ -41,7 +41,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    background-color: var(--color-background);
+    background-color: white;
 }
 
 .chat-footer {
@@ -54,7 +54,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: var(--color-accent);
+    color: var(--lavand);
 }
 
 .messages-list::-webkit-scrollbar {
@@ -71,7 +71,7 @@
 }
 
 .messages-list::-webkit-scrollbar-thumb:hover {
-    background: var(--color-accent);
+    background: var(--lavand);
 }
 
 .centered-status, .centered-status-error {
