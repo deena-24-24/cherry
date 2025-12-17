@@ -3,7 +3,7 @@
 }
 
 .menuBackground {
-  width: var(--width-menu);
+  width: 270px;
   height: 141px;
   position: absolute;
   left: 0;
@@ -14,7 +14,7 @@
 }
 
 .menuDivider {
-  width: calc(var(--width-menu) + 5px);
+  width: calc(270px + 5px);
   height: 17px;
   padding: var(--spacing-sm) 16px;
   left: -3px;
@@ -33,7 +33,7 @@
 }
 
 .menuActiveItem {
-  width: var(--width-menu);
+  width: 270px;
   height: 49px;
   position: absolute;
   left: 0;
@@ -46,7 +46,7 @@
 }
 
 .menuButton {
-  width: calc(var(--width-menu) - 13px);
+  width: calc(270px - 13px);
   height: 48px;
   position: absolute;
   display: flex;

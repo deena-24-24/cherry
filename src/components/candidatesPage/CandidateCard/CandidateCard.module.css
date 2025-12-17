@@ -39,13 +39,41 @@
   flex-direction: column;
   gap: 10px;
   align-items: flex-end;
+  min-width: 160px;
 }
 
 .viewButton {
+  width: 100%;
   background-color: #082060;
   color: white;
-  border: none;
 }
 .viewButton:hover {
   background-color: #0A2A7A;
+}
+
+.messageButton {
+  width: 100%;
+  background-color: white;
+  color: #082060;
+  border: 1px solid #080260;
+}
+
+.messageButton:hover {
+  background-color: #E9F0FF;
+}
+
+.favoriteButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #082060;
+  background: #F5F5FF;
+  color: #082060;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-top: 5px;
 }

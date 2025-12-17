@@ -49,7 +49,6 @@ export const AppRouter: React.FC = () => {
           <Route element={<MainLayout />}>
             <Route path={ROUTES.HOME} element={<LandingPage />} />
 
-            {/* РЕДИРЕКТЫ для старых пулов */}
             <Route
               path="/candidate/interview"
               element={<Navigate to={ROUTES.INTERVIEW_HOME} replace />}
@@ -78,17 +77,6 @@ export const AppRouter: React.FC = () => {
                 </ProtectedRoute>
               }
             />
-
-            {/* Страница звонка - вынесла внизу, т.к. хедер и футер не нужен*/}
-            {/*
-          <Route
-            path={ROUTES.INTERVIEW_CALL}
-            element={
-              <ProtectedRoute>
-                <InterviewCallPage />
-              </ProtectedRoute>
-            }
-          />*/}
 
             <Route
               path={ROUTES.RESULTS}
@@ -164,8 +152,6 @@ export const AppRouter: React.FC = () => {
           />
         </Routes>
       </main>
-
-      {/*<Footer /> - убрала в MainLayout*/}
 
       <AuthPopup
         isOpen={isAuthOpen}

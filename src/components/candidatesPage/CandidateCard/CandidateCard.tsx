@@ -2,13 +2,16 @@ import React from 'react'
 import { CandidateData } from '../../../service/candidate/candidateService'
 import { Button } from '../../ui/Button/Button'
 import * as styles from './CandidateCard.module.css'
+// Временно используем any для совместимости с Resume, если типы не совпадают идеально
+import { Resume } from '../../../types/resume'
 
 interface CandidateCardProps {
-  candidate: CandidateData;
+  candidate: Resume | CandidateData; // Поддержка обоих типов
   isFavorite: boolean;
   onAddToFavorites: (candidateId: string) => void;
   onRemoveFromFavorites: (candidateId: string) => void;
-  onViewResume: (candidate: CandidateData) => void;
+  onViewResume: (candidate: any) => void;
+  onChatClick?: (candidateId: string) => void; // Новый проп
 }
 
 export const CandidateCard: React.FC<CandidateCardProps> = ({
@@ -17,25 +20,16 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
   onAddToFavorites,
   onRemoveFromFavorites,
   onViewResume,
+  onChatClick
 }) => {
   const fullName = candidate.firstName && candidate.lastName
     ? `${candidate.firstName} ${candidate.lastName}`
     : candidate.email
 
-  // Вычисляем стаж работы из опыта
   const calculateExperience = () => {
     if (!candidate.experience || candidate.experience.length === 0) {
       return 'Нет опыта'
     }
-    
-    // Простой расчет - берем первый и последний период
-    // В реальности нужен более сложный алгоритм
-    const periods = candidate.experience.map(exp => {
-      const [start, end] = exp.period.split(' - ')
-      return { start, end: end || 'настоящее время' }
-    })
-    
-    // Упрощенный расчет
     return `${candidate.experience.length} ${candidate.experience.length === 1 ? 'год' : 'лет'}`
   }
 
@@ -49,6 +43,12 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
     }
   }
 
+  const handleChatClick = () => {
+    if (onChatClick && candidate.userId) {
+      onChatClick(candidate.userId)
+    }
+  }
+
   return (
     <div className={styles["card"]}>
       <div className={styles["cardContent"]}>
@@ -58,20 +58,21 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
             <img src={candidate.avatar} alt={fullName} className={styles["avatarImage"]} />
           ) : (
             <div className={styles["avatarPlaceholder"]}>
-              {fullName.charAt(0).toUpperCase()}
+              {fullName?.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
 
-        {/* Информация о кандидате */}
+        {/* Информация */}
         <div className={styles["info"]}>
           <div className={styles["name"]}>{fullName}</div>
           <div className={styles["details"]}>
             <span className={styles["detailItem"]}>{candidate.country || 'Город не указан'}</span>
-            <span className={styles["detailItem"]}>Стаж {calculateExperience()}</span>
-            <span className={styles["detailItem"]}>Рейтинг 0.0</span>
+            <span className={styles["detailItem"]}>
+              {(candidate as any).position ? (candidate as any).position : `Стаж ${calculateExperience()}`}
+            </span>
           </div>
-          
+
           {/* Навыки */}
           {candidate.skills && candidate.skills.length > 0 && (
             <div className={styles["skills"]}>
@@ -84,15 +85,24 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
           )}
         </div>
 
-        {/* Кнопки действий */}
+        {/* Действия */}
         <div className={styles["actions"]}>
           <Button
-            variant="secondary"
+            variant="primary"
             onClick={() => onViewResume(candidate)}
             className={styles["viewButton"]}
           >
-            Просмотр резюме
+            Резюме
           </Button>
+
+          <Button
+            variant="secondary"
+            onClick={handleChatClick}
+            className={styles["messageButton"]}
+          >
+            Написать
+          </Button>
+
           <button
             type="button"
             onClick={handleFavoriteClick}
@@ -106,4 +116,3 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
     </div>
   )
 }
-

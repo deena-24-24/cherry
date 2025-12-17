@@ -134,7 +134,7 @@ export const HomeFeatures: React.FC = () => {
       title: "HR-ЧАТ",
       text: "Проверьте, не пришло ли Вам предоложение от HR",
       color: "pink",
-      route: ROUTES.CANDIDATE_CHAT,
+      route: ROUTES.CHAT,
     },
   ]
 

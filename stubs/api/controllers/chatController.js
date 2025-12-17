@@ -5,8 +5,6 @@ const { mockDB } = require('../mockData.js');
  */
 const getChats = async (req, res) => {
   try {
-    // В authMiddleware мы должны были записать user в req.user
-    // Обычно req.user = { id: '...', role: '...' }
     const userId = req.user.id || req.user.userId;
 
     // Фильтруем чаты, где участвует текущий пользователь
@@ -15,13 +13,8 @@ const getChats = async (req, res) => {
     );
 
     const result = userConversations.map(convo => {
-      // Определяем ID собеседника
       const isMeCandidate = convo.candidateId === userId;
       const partnerId = isMeCandidate ? convo.hrId : convo.candidateId;
-
-      // Ищем инфо о партнере (в реальной БД это join)
-      // В mockData у нас есть массивы candidates и hrs или users.
-      // Допустим, ищем в users для универсальности
       const partnerUser = mockDB.users.find(u => u._id === partnerId);
 
       return {
@@ -58,19 +51,17 @@ const getChatById = async (req, res) => {
       return res.status(404).json({ message: 'Чат не найден' });
     }
 
-    // Проверка доступа
     if (conversation.candidateId !== userId && conversation.hrId !== userId) {
       return res.status(403).json({ message: 'Нет доступа к этому чату' });
     }
 
-    // Данные партнера
     const isMeCandidate = conversation.candidateId === userId;
     const partnerId = isMeCandidate ? conversation.hrId : conversation.candidateId;
     const partnerUser = mockDB.users.find(u => u._id === partnerId);
 
     res.json({
       id: conversation.id,
-      messages: conversation.messages, // [{ id, senderId, text, timestamp }]
+      messages: conversation.messages,
       partner: {
         id: partnerId,
         name: partnerUser ? `${partnerUser.firstName} ${partnerUser.lastName}` : 'Пользователь',
@@ -85,7 +76,7 @@ const getChatById = async (req, res) => {
 };
 
 /**
- * Отправка сообщения (Human)
+ * Отправка сообщения
  */
 const sendMessage = async (req, res) => {
   try {
@@ -95,11 +86,6 @@ const sendMessage = async (req, res) => {
 
     const conversation = mockDB.hrConversations.find(c => c.id === chatId);
     if (!conversation) return res.status(404).json({ message: 'Чат не найден' });
-
-    // Проверка прав
-    if (conversation.candidateId !== userId && conversation.hrId !== userId) {
-      return res.status(403).json({ message: 'Нет доступа' });
-    }
 
     const newMessage = {
       id: `msg_${Date.now()}_${Math.random().toString().substr(2, 5)}`,
@@ -120,11 +106,58 @@ const sendMessage = async (req, res) => {
 };
 
 /**
- * Старт нового чата
+ * Старт нового чата или получение существующего
  */
 const startChat = async (req, res) => {
-  // Реализация создания чата
-  res.status(200).json({ message: "Функционал создания чата" })
+  try {
+    const { targetUserId } = req.body; // ID кандидата (если открывает HR) или HR (если кандидат)
+    const currentUserId = req.user.id || req.user.userId;
+    const userRole = req.user.role;
+
+    if (!targetUserId) {
+      return res.status(400).json({ message: 'Не указан ID собеседника' });
+    }
+
+    // Определяем кто есть кто
+    let candidateId, hrId;
+    if (userRole === 'hr') {
+      hrId = currentUserId;
+      candidateId = targetUserId;
+    } else {
+      candidateId = currentUserId;
+      hrId = targetUserId;
+    }
+
+    // 1. Ищем существующий чат
+    let conversation = mockDB.hrConversations.find(c =>
+      c.candidateId === candidateId && c.hrId === hrId
+    );
+
+    if (conversation) {
+      return res.json({ id: conversation.id, isNew: false });
+    }
+
+    // 2. Если нет, создаем новый
+    const newChatId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+    conversation = {
+      id: newChatId,
+      candidateId,
+      hrId,
+      lastMessage: '',
+      timestamp: new Date().toISOString(),
+      messages: []
+    };
+
+    mockDB.hrConversations.push(conversation);
+    console.log(`Создан новый чат ${newChatId} между ${hrId} и ${candidateId}`);
+
+    res.status(201).json({ id: conversation.id, isNew: true });
+
+  } catch (error) {
+    console.error('Error starting chat:', error);
+    res.status(500).json({ message: 'Ошибка создания чата' });
+  }
 };
 
 module.exports = {

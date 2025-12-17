@@ -1,67 +1,61 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { fetchCandidates } from '../../service/hr/candidatesService' // Это теперь возвращает Resume[]
+import { useNavigate } from 'react-router-dom'
+import { fetchCandidates, fetchFavorites, addToFavorites, removeFromFavorites } from '../../service/hr/candidatesService'
+import { chatService } from '../../service/chat/chatService'
+import { useChatStore } from '../../store/useChatStore' // Импорт стора
 import { CandidateCard } from '../../components/candidatesPage/CandidateCard/CandidateCard'
 import { CandidatesFilter, FilterState } from '../../components/candidatesPage/CandidatesFilter/CandidatesFilter'
 import { ResumeModal } from '../../components/candidatesPage/ResumeModal/ResumeModal'
 import * as styles from './HrCandidatesPage.module.css'
-
 import { Resume } from '../../types/resume'
+import { ROUTES } from '../../router/routes'
 
-export const HrCandidatesPage: React.FC<{ showTitle?: boolean }> = ({ showTitle = false }) => {
+export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTitle = false }) => {
+  const navigate = useNavigate()
+  const { fetchChatById } = useChatStore() // Используем экшен из стора
   const [candidates, setCandidates] = useState<Resume[]>([])
+  const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCandidate, setSelectedCandidate] = useState<Resume | null>(null)
 
   const [filters, setFilters] = useState<FilterState>({
-    position: '',
-    city: '',
-    experience: '',
-    skills: [],
-    sortBy: 'rating',
+    position: '', city: '', experience: '', skills: [], sortBy: 'rating',
   })
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true)
-        const data = await fetchCandidates()
-        setCandidates(data as unknown as Resume[]) // Приведение типа
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setLoading(false)
-      }
+        const [allCandidates, favData] = await Promise.all([ fetchCandidates(), fetchFavorites() ])
+        setCandidates(allCandidates as unknown as Resume[])
+        setFavorites(favData.map(f => f.userId || '').filter(Boolean))
+      } catch (error) { console.error(error) } finally { setLoading(false) }
     }
     loadData()
   }, [])
 
+
+  // Фильтрация
   const filteredCandidates = useMemo(() => {
     let result = [...candidates]
 
-    // Фильтр по Позиции (вакансии)
     if (filters.position) {
       result = result.filter(c =>
         c.position?.toLowerCase().includes(filters.position.toLowerCase()) ||
         c.title?.toLowerCase().includes(filters.position.toLowerCase())
       )
     }
-
-    // Фильтр по Городу
     if (filters.city) {
       result = result.filter(c =>
         c.country?.toLowerCase().includes(filters.city.toLowerCase())
       )
     }
-
-    // Фильтр по Навыкам
     if (filters.skills.length > 0) {
       result = result.filter(c => {
         const cSkills = (c.skills || []).map(s => s.toLowerCase())
         return filters.skills.every(fs => cSkills.includes(fs.toLowerCase()))
       })
     }
-
-    // Сортировка по опыту (кол-во лет или записей)
     if (filters.sortBy === 'experience') {
       result.sort((a, b) => (b.experience?.length || 0) - (a.experience?.length || 0))
     }
@@ -69,12 +63,45 @@ export const HrCandidatesPage: React.FC<{ showTitle?: boolean }> = ({ showTitle 
     return result
   }, [candidates, filters])
 
-  // Список всех навыков для автокомплита
   const availableSkills = useMemo(() => {
     const s = new Set<string>()
     candidates.forEach(c => c.skills?.forEach(sk => s.add(sk)))
     return Array.from(s)
   }, [candidates])
+
+  // Handlers
+  const handleAddToFavorites = async (userId: string) => {
+    try {
+      await addToFavorites(userId)
+      setFavorites(prev => [...prev, userId])
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleRemoveFromFavorites = async (userId: string) => {
+    try {
+      await removeFromFavorites(userId)
+      setFavorites(prev => prev.filter(id => id !== userId))
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleChatClick = async (targetUserId: string) => {
+    try {
+      const chatData = await chatService.startChat(targetUserId)
+
+      if (chatData && chatData.id) {
+        await fetchChatById(chatData.id)
+      }
+
+      navigate(ROUTES.CHAT)
+    } catch (error) {
+      console.error("Не удалось начать чат:", error)
+      alert("Ошибка при создании чата")
+    }
+  }
 
   return (
     <>
@@ -82,11 +109,7 @@ export const HrCandidatesPage: React.FC<{ showTitle?: boolean }> = ({ showTitle 
 
       <div className={styles["container"]}>
         <div className={styles["filterContainer"]}>
-          <CandidatesFilter
-            filters={filters}
-            onFiltersChange={setFilters}
-            availableSkills={availableSkills}
-          />
+          <CandidatesFilter filters={filters} onFiltersChange={setFilters} availableSkills={availableSkills} />
         </div>
 
         <div className={styles["candidatesList"]}>
@@ -97,12 +120,13 @@ export const HrCandidatesPage: React.FC<{ showTitle?: boolean }> = ({ showTitle 
           ) : (
             filteredCandidates.map(c => (
               <CandidateCard
-                key={c.id} // используем ID резюме
-                candidate={c as any} // CandidateCard ожидает CandidateData, но поля совпадают
-                isFavorite={false} // Добавить логику избранного по желанию
-                onAddToFavorites={() => {}}
-                onRemoveFromFavorites={() => {}}
+                key={c.id}
+                candidate={c as any}
+                isFavorite={c.userId ? favorites.includes(c.userId) : false}
+                onAddToFavorites={handleAddToFavorites}
+                onRemoveFromFavorites={handleRemoveFromFavorites}
                 onViewResume={() => setSelectedCandidate(c)}
+                onChatClick={handleChatClick}
               />
             ))
           )}
@@ -116,5 +140,13 @@ export const HrCandidatesPage: React.FC<{ showTitle?: boolean }> = ({ showTitle 
         />
       )}
     </>
+  )
+}
+
+export const HrCandidatesPage: React.FC = () => {
+  return (
+    <div className={styles["page"]}>
+      <HrCandidatesContent showTitle={true} />
+    </div>
   )
 }

@@ -1,6 +1,6 @@
 export const ROUTES = {
   HOME: '/',
-  CHAT: 'candidate/chat',
+  CHAT: '/candidate/chat',
   // Candidate routes
   RESUME: '/candidate/resume',
   AI_CHAT: '/candidate/ai_chat',
