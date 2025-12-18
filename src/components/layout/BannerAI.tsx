@@ -14,7 +14,7 @@ export const BannerAI: React.FC = () => {
 
 
         {/* ЛЕВЫЕ ВОЛНЫ */}
-        <div className={styles["wave-side left"]}>
+        <div className={styles["wave-side"]}>
           <div className={styles["audio-track"]}>
             {Array.from({ length: 32 }).map((_, i) => (
               <div
@@ -39,7 +39,7 @@ export const BannerAI: React.FC = () => {
         </div>
 
         {/* ПРАВЫЕ ВОЛНЫ */}
-        <div className={styles["wave-side right"]}>
+        <div className={styles["wave-side"]}>
           <div className={styles["audio-track"]}>
             {Array.from({ length: 32 }).map((_, i) => (
               <div
