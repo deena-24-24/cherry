@@ -70,9 +70,9 @@
 }
 
 /* зеркалим правую сторону */
-.wave-side.right {
+/*.wave-side.right {
     transform: scaleX(-1);
-}
+}*/
 
 /* ===== Animation ===== */
 

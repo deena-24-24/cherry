@@ -96,7 +96,7 @@ export const Header: React.FC = () => {
               ) : (<HrNavigation />)
             )}
 
-            <Button className={styles["loginButton"]} onClick={handleAuthClick}>
+            <Button className={styles["loginButton"]} onClick={handleAuthClick} styleProps={{ width: '100px' }} >
               <span className={styles["loginButtonText"]}>
                 {user ? 'ВЫХОД' : 'ВХОД'}
               </span>

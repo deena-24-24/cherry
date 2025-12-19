@@ -45,3 +45,9 @@
 .buttonSecondary .buttonText {
   color: var(--navy);
 }
+
+@media (max-width: 420px) {
+  .buttonText{
+    font-size: var(--font-size-md);
+  }
+}

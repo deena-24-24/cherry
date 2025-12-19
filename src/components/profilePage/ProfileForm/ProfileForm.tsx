@@ -123,7 +123,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
             </Button>
           </>
         ) : (
-          <Button variant="primary" onClick={onEditToggle}>
+          <Button variant="primary" onClick={onEditToggle} styleProps={{ textColor: '#fffcf5' }}>
             РЕДАКТИРОВАТЬ
           </Button>
         )}

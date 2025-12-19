@@ -3,7 +3,7 @@
     flex-direction: column;
     height: 80vh;
     max-width: 800px;
-    margin: 80px auto;
+    margin: calc(80px + 2rem) auto;
     border-radius: 12px;
     background-color: var(--color-secondary);
     box-shadow: 0 4px 12px rgba(8, 32, 96, 0.15);
@@ -67,4 +67,14 @@
     0% { opacity: 0.4; }
     50% { opacity: 1; }
     100% { opacity: 0.4; }
+}
+
+@media (max-width: 768px) {
+    .mobile-no-padding {
+        padding: 0 !important;
+    }
+    .chat-container{
+        margin: calc(80px + 1rem) auto 1rem auto;
+    }
+
 }
