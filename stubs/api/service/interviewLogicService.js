@@ -8,11 +8,11 @@ const initialGreetings = {
 };
 
 const COMPLETION_CRITERIA = {
-  minExchanges: 8,
+  minExchanges: 3,
   targetScore: 7.0,
-  maxExchanges: 25,
-  minTopics: 4,
-  minDuration: 5
+  maxExchanges: 7,
+  minTopics: 1,
+  minDuration: 2
 };
 
 class InterviewLogicService {
@@ -52,7 +52,6 @@ class InterviewLogicService {
     }
 
     const state = await stateService.getSession(sessionId);
-    // Обновляем позицию, если она изменилась (например, перезаход с другой страницы)
     if (state.position !== position) {
       state.position = position;
       await stateService.updateSession(sessionId, state);
@@ -72,7 +71,6 @@ class InterviewLogicService {
    * Основной метод для потоковой генерации ответа
    */
   async getAIResponseStream(transcript, position, sessionId, onChunk) {
-    // 1. Проверка сессии
     const exists = await stateService.hasSession(sessionId);
     if (!exists) {
       await this.initializeSession(sessionId, position);
@@ -88,36 +86,37 @@ class InterviewLogicService {
     });
 
     try {
-      // 3. ПРОВЕРКА НА ЗАВЕРШЕНИЕ
+      // 3. ПРОВЕРКА НА ЗАВЕРШЕНИЕ ПО ЛИМИТАМ (ДО ГЕНЕРАЦИИ)
       const completionCheck = await this.shouldCompleteInterview(sessionId);
 
       if (completionCheck.complete) {
-        let finalReport;
-        try {
-          finalReport = await this.generateComprehensiveReport(sessionId);
-        } catch (error) {
-          console.error('Error generating report:', error);
-          const duration = await this.calculateDurationMinutes(sessionId);
-          finalReport = this.createEmptyInterviewReport(sessionId, duration, 'llm_error');
-        }
+        console.log(`🤖 AI decided to finish session ${sessionId} BEFORE generation. Reason: ${completionCheck.reason}`);
+
+        const goodbyeMessage = "Спасибо за ваши ответы. Мы достаточно обсудили основные темы. На этом техническая часть интервью завершена. Сейчас я подготовлю финальный отчет.";
+
+        if (onChunk) onChunk(goodbyeMessage);
+
+        state.conversationHistory.push({
+          role: 'assistant',
+          content: goodbyeMessage,
+          timestamp: new Date()
+        });
+        await stateService.updateSession(sessionId, state);
 
         return {
-          text: this.getSmartCompletionMessage(finalReport),
+          text: goodbyeMessage,
           metadata: {
             isInterviewComplete: true,
-            finalReport: finalReport,
             completionReason: completionCheck.reason,
-            wasAutomatic: !completionCheck.userRequested
+            wasAutomatic: !completionCheck.userRequested,
+            finalReport: await this.generateComprehensiveReport(sessionId)
           }
         };
       }
 
-      // 4. Если не завершаем — формируем промпт
+      // 4. ГЕНЕРАЦИЯ ОБЫЧНОГО ОТВЕТА (ЕСЛИ ЛИМИТЫ НЕ ПРЕВЫШЕНЫ)
       const prompt = this.buildTextOnlyPrompt(state, transcript);
-
-      // 5. Запускаем стриминг
       const llm = getModel({ provider: 'gigachat', model: 'GigaChat-2-Max', streaming: true, temperature: 0.7 });
-
       const stream = await llm.stream(prompt);
 
       let aiReplyText = "";
@@ -126,26 +125,45 @@ class InterviewLogicService {
         const content = chunk.content;
         if (content) {
           aiReplyText += content;
-          // Сразу отправляем части текста на клиент
           if (onChunk) onChunk(content);
         }
       }
 
-      // 6. Обновляем историю
       state.conversationHistory.push({
         role: 'assistant',
         content: aiReplyText,
         timestamp: new Date()
       });
 
-      // 7. Фоновый анализ (не блокирует ответ)
       this.backgroundAnalysis(state, transcript, aiReplyText, sessionId);
-
       await stateService.updateSession(sessionId, state);
 
+      // 5. ПРОВЕРКА НА ЗАВЕРШЕНИЕ ПО СОДЕРЖАНИЮ ОТВЕТА (НОВОЕ!)
+      // Если ИИ сам решил попрощаться (сгенерировал "Всего доброго" и т.п.)
+      const lowerReply = aiReplyText.toLowerCase();
+      const isNaturalGoodbye = ["всего доброго", "до свидания", "завершаем", "на этом всё", "спасибо за уделенное время", "подготовлю отчет"].some(phrase => lowerReply.includes(phrase));
+
+      if (isNaturalGoodbye) {
+        console.log(`🤖 AI said goodbye naturally in session ${sessionId}`);
+        return {
+          text: aiReplyText,
+          isStreamed: true,
+          metadata: {
+            isInterviewComplete: true, // Включаем завершение
+            completionReason: "ИИ завершил диалог",
+            wasAutomatic: true,
+            finalReport: await this.generateComprehensiveReport(sessionId)
+          }
+        };
+      }
+
+      // Иначе возвращаем обычный ответ
       return {
         text: aiReplyText,
-        isStreamed: true
+        isStreamed: true,
+        metadata: {
+          isInterviewComplete: false
+        }
       };
 
     } catch (error) {
@@ -160,16 +178,14 @@ class InterviewLogicService {
   async backgroundAnalysis(state, userResponse, aiResponse, sessionId) {
     try {
       const responseLower = aiResponse.toLowerCase();
-
       // Эвристика для переключения тем
       if (responseLower.includes("давайте перейдем") || responseLower.includes("следующая тема")) {
         const nextTopic = this.getNextTopic(state.position, state.currentTopic);
-        if (nextTopic !== 'завершение') {
+        if (nextTopic) {
           state.currentTopic = nextTopic;
           state.topicProgress.add(nextTopic);
         }
       }
-
       await stateService.updateSession(sessionId, state);
     } catch (e) {
       console.error("Background analysis failed", e);
@@ -181,10 +197,9 @@ class InterviewLogicService {
     if (!state) return { complete: false };
 
     // 1. Проверка явного запроса пользователя
-    // Берем последние 3 сообщения пользователя
     const lastUserMsgs = state.conversationHistory
       .filter(m => m.role === 'user')
-      .slice(-3)
+      .slice(-1)
       .map(m => m.content.toLowerCase());
 
     const stopWords = ['стоп', 'хватит', 'закончить', 'завершить', 'конец', 'остановись'];
@@ -194,10 +209,17 @@ class InterviewLogicService {
     }
 
     // 2. Проверка лимитов
-    const progress = await this.getInterviewProgress(sessionId);
+    const currentExchanges = Math.floor(state.conversationHistory.length / 2);
 
-    if (progress.totalExchanges >= COMPLETION_CRITERIA.maxExchanges) {
+    console.log(`Session ${sessionId}: Exchanges ${currentExchanges}/${COMPLETION_CRITERIA.maxExchanges}`);
+
+    if (currentExchanges >= COMPLETION_CRITERIA.maxExchanges) {
       return { complete: true, reason: "Достигнут лимит вопросов" };
+    }
+
+    // 3. Если тема стала "завершение"
+    if (state.currentTopic === 'завершение') {
+      return { complete: true, reason: "Темы исчерпаны" };
     }
 
     return { complete: false };
@@ -205,20 +227,20 @@ class InterviewLogicService {
 
   buildTextOnlyPrompt(state, userInput) {
     const history = state.conversationHistory.slice(-6).map(m => `${m.role === 'user' ? 'Кандидат' : 'Интервьюер'}: ${m.content}`).join('\n');
-    return `Ты - дружелюбный и профессиональный IT-интервьюер. Ты проводишь собеседование на позицию ${state.position}.
-    Текущая тема обсуждения: ${state.currentTopic}.
+    return `Ты - профессиональный IT-интервьюер. Позиция: ${state.position}. Тема: ${state.currentTopic}.
     
-    Твоя цель:
-    1. Оценить ответ кандидата (про себя).
-    2. Задать ОДИН следующий вопрос по текущей теме или углубиться в детали.
-    3. Если тема исчерпана, предложить перейти к следующей.
+    Твоя цель: оценить знания, задать уточняющий вопрос или перейти к следующей теме.
+    Не будь слишком многословным (не более 2-3 предложений). Не повторяй приветствие.
     
-    История диалога (последние сообщения):
+    Если кандидат ответил, оцени и задай следующий вопрос.
+    Если кандидат ответил неправильно, мягко поправь и задай другой вопрос.
+    
+    История диалога:
     ${history}
     
-    Кандидат только что сказал: "${userInput}"
+    Ответ кандидата: "${userInput}"
     
-    Твой ответ (только текст вопроса или комментария, без разметки, без JSON):`;
+    Твой ответ (текст):`;
   }
 
   getNextTopic(position, currentTopic) {
@@ -232,28 +254,139 @@ class InterviewLogicService {
     if (!state) return null;
     return {
       totalExchanges: Math.floor(state.conversationHistory.length / 2),
-      averageScore: 7.5, // Mock
+      averageScore: 7.5,
       topicsCovered: Array.from(state.topicProgress || []),
-      completionPercentage: Math.min(100, (state.conversationHistory.length / 50) * 100)
+      completionPercentage: Math.min(100, (state.conversationHistory.length / COMPLETION_CRITERIA.maxExchanges) * 100)
     };
   }
 
   async generateComprehensiveReport(sessionId) {
+    console.log(`📊 Generating REAL report for session ${sessionId}...`);
+
+    // 1. Получаем историю сообщений
     const state = await stateService.getSession(sessionId);
-    if (state) {
-      stateService.deleteSession(sessionId);
+    if (!state || !state.conversationHistory || state.conversationHistory.length === 0) {
+      console.warn("⚠️ No history found, returning mock report");
+      return this.createMockFinalReport();
     }
-    return this.createMockFinalReport();
+
+    // 2. Формируем контекст диалога для LLM
+    const conversationText = state.conversationHistory
+      .map(m => `${m.role === 'user' ? 'Кандидат' : 'Интервьюер (AI)'}: ${m.content}`)
+      .join('\n');
+
+    const prompt = `
+      Ты - старший технический интервьюер (Senior Technical Interviewer). 
+      Твоя задача - проанализировать проведенное собеседование и составить финальный отчет в формате JSON.
+      
+      ПОЗИЦИЯ: ${state.position}
+      
+      ИСТОРИЯ ДИАЛОГА:
+      ${conversationText}
+      
+      ТРЕБОВАНИЯ К ОТЧЕТУ:
+      1. Оцени кандидата строго, но справедливо.
+      2. Выдели реальные сильные и слабые стороны на основе ответов.
+      3. Определи уровень (Junior, Middle, Senior).
+      4. Дай рекомендацию (hire, no_hire, etc).
+      
+      ФОРМАТ ОТВЕТА (JSON):
+      Ты ДОЛЖЕН вернуть ТОЛЬКО валидный JSON без Markdown разметки. Структура:
+      {
+        "overall_assessment": {
+          "final_score": (число 1-10),
+          "level": "Junior/Middle/Senior",
+          "recommendation": "strong_hire" | "hire" | "maybe_hire" | "no_hire",
+          "confidence": (число 0-1),
+          "strengths": ["список сильных сторон"],
+          "improvements": ["список зон роста"],
+          "potential_areas": []
+        },
+        "technical_skills": {
+          "topics_covered": ["список тем"],
+          "strong_areas": ["сильные темы"],
+          "weak_areas": ["слабые темы"],
+          "technical_depth": (число 1-10),
+          "recommendations": ["что поучить"]
+        },
+        "behavioral_analysis": {
+          "communication_skills": { "score": (1-10), "feedback": "текст" },
+          "problem_solving": { "score": (1-10), "feedback": "текст" },
+          "learning_ability": { "score": (1-10), "feedback": "текст" },
+          "adaptability": { "score": (1-10), "feedback": "текст" }
+        },
+        "interview_analytics": {
+          "total_duration": "XX мин",
+          "total_questions": (число),
+          "topics_covered_count": (число),
+          "average_response_quality": (число 1-10),
+          "topic_progression": [],
+          "action_pattern": { 
+             "total_actions": 0, 
+             "action_breakdown": {}, 
+             "most_common_action": "none", 
+             "completion_rate": "completed" 
+          }
+        },
+        "detailed_feedback": "Развернутый текстовый фидбек для кандидата (на 'вы').",
+        "next_steps": ["рекомендованные следующие шаги"],
+        "raw_data": { "evaluationHistory": [], "actionsHistory": [] }
+      }
+    `;
+
+    try {
+      const llm = getModel({ provider: 'gigachat', model: 'GigaChat-2-Max', streaming: false, temperature: 0.4 });
+
+      const response = await llm.invoke(prompt);
+      const responseText = typeof response === 'string' ? response : response.content;
+
+      const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+      const report = JSON.parse(cleanJson);
+
+      console.log("✅ Report generated successfully");
+      return report;
+
+    } catch (error) {
+      console.error("❌ Error generating report with LLM:", error);
+      return this.createMockFinalReport();
+    }
   }
 
   createMockFinalReport() {
     return {
-      overall_assessment: { final_score: 8.0, level: "Middle", recommendation: "hire", confidence: 0.9, strengths: ["React", "CSS"], improvements: ["Node.js"], potential_areas: [] },
-      technical_skills: { topics_covered: ["Frontend", "React"], strong_areas: ["UI"], weak_areas: ["Backend"], technical_depth: 8, recommendations: ["Изучить Docker"] },
-      behavioral_analysis: { communication_skills: { score: 8, feedback: "Отлично" }, problem_solving: { score: 7, feedback: "Хорошо" }, learning_ability: { score: 8, feedback: "Быстро" }, adaptability: { score: 8, feedback: "Гибко" } },
-      interview_analytics: { total_duration: "15 мин", total_questions: 10, topics_covered_count: 3, average_response_quality: 8, topic_progression: [], action_pattern: { total_actions: 10, action_breakdown: {}, most_common_action: "", completion_rate: "completed" } },
-      detailed_feedback: "Кандидат показал хорошие знания.",
-      next_steps: ["Техническое интервью"],
+      overall_assessment: {
+        final_score: 8.5,
+        level: "Middle+",
+        recommendation: "hire",
+        confidence: 0.9,
+        strengths: ["React Hooks", "CSS Grid", "Communication"],
+        improvements: ["WebSockets deep dive", "Docker optimization"],
+        potential_areas: []
+      },
+      technical_skills: {
+        topics_covered: ["Frontend Core", "React", "State Management"],
+        strong_areas: ["UI Development"],
+        weak_areas: ["DevOps basics"],
+        technical_depth: 8,
+        recommendations: ["Поглубже изучить CI/CD"]
+      },
+      behavioral_analysis: {
+        communication_skills: { score: 9, feedback: "Кандидат говорит уверенно и четко." },
+        problem_solving: { score: 8, feedback: "Хорошо структурирует ответ." },
+        learning_ability: { score: 8, feedback: "Быстро схватывает контекст." },
+        adaptability: { score: 8, feedback: "Адекватно реагирует на сложные вопросы." }
+      },
+      interview_analytics: {
+        total_duration: "20 мин",
+        total_questions: 5,
+        topics_covered_count: 4,
+        average_response_quality: 8,
+        topic_progression: ["Intro", "JS", "React", "Outro"],
+        action_pattern: { total_actions: 5, action_breakdown: {}, most_common_action: "question", completion_rate: "completed" }
+      },
+      detailed_feedback: "Собеседование прошло успешно. Кандидат продемонстрировал глубокие знания в основной специализации.",
+      next_steps: ["Назначить техническое интервью с тимлидом", "Предложить оффер"],
       raw_data: { evaluationHistory: [], actionsHistory: [] }
     };
   }
@@ -271,7 +404,7 @@ class InterviewLogicService {
   }
 
   getSmartCompletionMessage(report) {
-    return "Собеседование завершено. Спасибо за уделенное время.";
+    return "Отчет готов. Вы можете ознакомиться с ним.";
   }
 }
 

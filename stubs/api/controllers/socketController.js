@@ -1,4 +1,3 @@
-// backend/src/controllers/socketController.js
 const { mockDB } = require('../mockData');
 const interviewLogic = require('../service/interviewLogicService');
 const stateService = require('../service/interviewStateService');
@@ -26,6 +25,7 @@ function saveFinalReportToMockDB(sessionId, finalReport) {
     session.status = 'completed';
     session.completedAt = new Date().toISOString();
     session.finalReport = finalReport;
+    console.log(`💾 Report saved for session ${sessionId} with score ${finalReport.overall_assessment.final_score}`);
   } catch (error) {
     console.error('DB Save Error:', error);
   }
@@ -34,9 +34,7 @@ function saveFinalReportToMockDB(sessionId, finalReport) {
 module.exports = function initializeSocket(io) {
   io.on('connection', (socket) => {
 
-    // ... join-interview ... (без изменений)
     socket.on('join-interview', async (data) => {
-      // ... старый код ...
       const { sessionId, position = 'frontend' } = data;
       socket.join(sessionId);
 
@@ -64,6 +62,7 @@ module.exports = function initializeSocket(io) {
 
         socket.emit('ai-stream-start', { sessionId });
 
+        // Генерация ответа ИИ
         const aiResponse = await interviewLogic.getAIResponseStream(
           text,
           position,
@@ -75,28 +74,38 @@ module.exports = function initializeSocket(io) {
 
         socket.emit('ai-stream-end', { sessionId });
 
+        // === ПРОВЕРКА НА АВТОМАТИЧЕСКОЕ ЗАВЕРШЕНИЕ ПОСЛЕ ОТВЕТА ИИ ===
         if (aiResponse.metadata?.isInterviewComplete) {
-          // Уведомляем фронтенд, что началось завершение
+          console.log(`🏁 Session ${sessionId} marked as complete by AI logic`);
+
+          // 1. СРАЗУ уведомляем фронтенд о начале завершения (блокируем интерфейс)
           socket.emit('interview-completion-started', { sessionId });
           socket.to(sessionId).emit('interview-completion-started', { sessionId });
 
-          const finalReport = aiResponse.metadata.finalReport;
+          // 2. Генерируем финальный отчет (если он еще не был сгенерирован внутри логики)
+          let finalReport = aiResponse.metadata.finalReport;
+
+          if (!finalReport) {
+            console.log('Generating report...');
+            finalReport = await interviewLogic.generateComprehensiveReport(sessionId);
+          }
+
           saveFinalReportToMockDB(sessionId, finalReport);
 
-          socket.emit('interview-completed', {
-            sessionId,
-            finalReport,
-            completionReason: aiResponse.metadata.completionReason,
-            wasAutomatic: true,
-            finalText: interviewLogic.getSmartCompletionMessage(finalReport)
-          });
-          socket.to(sessionId).emit('interview-completed', {
-            sessionId,
-            finalReport,
-            completionReason: aiResponse.metadata.completionReason,
-            wasAutomatic: true,
-            finalText: interviewLogic.getSmartCompletionMessage(finalReport)
-          });
+          // Имитируем небольшую задержку (1с) для плавности UX
+          setTimeout(() => {
+            const payload = {
+              sessionId,
+              finalReport,
+              completionReason: aiResponse.metadata.completionReason || "Автоматическое завершение",
+              wasAutomatic: true,
+              finalText: interviewLogic.getSmartCompletionMessage(finalReport)
+            };
+
+            console.log('📤 Sending interview-completed event');
+            socket.emit('interview-completed', payload);
+            socket.to(sessionId).emit('interview-completed', payload);
+          }, 1000);
         }
 
       } catch (error) {
@@ -108,8 +117,9 @@ module.exports = function initializeSocket(io) {
     socket.on('complete-interview', async (data) => {
       try {
         const { sessionId, force = false } = data;
+        console.log(`🛑 Manual completion requested for ${sessionId}`);
 
-        // 1. СРАЗУ уведомляем фронтенд о начале генерации
+        // 1. уведомляем фронтенд о начале генерации
         socket.emit('interview-completion-started', { sessionId });
 
         if (force) {
@@ -124,18 +134,30 @@ module.exports = function initializeSocket(io) {
           return;
         }
 
-        // 2. Генерируем отчет (это долго)
-        const finalReport = await interviewLogic.generateComprehensiveReport(sessionId);
-        saveFinalReportToMockDB(sessionId, finalReport);
+        // 2. Генерируем отчет
+        try {
+          const finalReport = await interviewLogic.generateComprehensiveReport(sessionId);
+          saveFinalReportToMockDB(sessionId, finalReport);
 
-        // 3. Отправляем готовый отчет
-        socket.emit('interview-completed', {
-          sessionId,
-          finalReport,
-          completionReason: "Ручное завершение",
-          wasAutomatic: false,
-          finalText: interviewLogic.getSmartCompletionMessage(finalReport)
-        });
+          // 3. Отправляем отчет
+          socket.emit('interview-completed', {
+            sessionId,
+            finalReport,
+            completionReason: "Ручное завершение",
+            wasAutomatic: false,
+            finalText: interviewLogic.getSmartCompletionMessage(finalReport)
+          });
+        } catch (reportError) {
+          console.error("Report Generation Critical Fail:", reportError);
+          // Фолбэк, чтобы фронт не завис
+          const fallbackReport = interviewLogic.createMockFinalReport();
+          socket.emit('interview-completed', {
+            sessionId,
+            finalReport: fallbackReport,
+            completionReason: "Ошибка генерации (фолбэк)",
+            wasAutomatic: false
+          });
+        }
 
       } catch (error) {
         console.error('Completion error:', error);
@@ -143,10 +165,9 @@ module.exports = function initializeSocket(io) {
       }
     });
 
-    // ... остальное без изменений
     socket.on('disconnect', () => {});
+
     socket.on('get-session-state', async (data) => {
-      // ... старый код ...
       const state = await stateService.getSession(data.sessionId);
       if (state) {
         const progress = await interviewLogic.getInterviewProgress(data.sessionId);

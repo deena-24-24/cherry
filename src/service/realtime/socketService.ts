@@ -69,6 +69,13 @@ class SocketService {
     }
   }
 
+  // Added missing method
+  sendAudioChunk(sessionId: string, chunk: ArrayBuffer): boolean {
+    if (!this.socket?.connected) return false
+    this.socket.emit('audio-chunk', { sessionId, chunk })
+    return true
+  }
+
   sendCompleteInterview(sessionId: string): boolean {
     if (!this.socket?.connected) return false
     this.socket.emit('complete-interview', { sessionId })

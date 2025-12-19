@@ -1,4 +1,3 @@
-// src/components/interview/FinalReportPopup.tsx
 import React from 'react'
 import { Button } from '../ui/Button/Button'
 import { FinalReport } from '../../types'
@@ -9,48 +8,59 @@ interface FinalReportPopupProps {
   completionReason: string
   wasAutomatic: boolean
   onClose: () => void
+  isLoading?: boolean // Добавлен флаг загрузки
 }
 
 export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
   report,
   completionReason,
   wasAutomatic,
-  onClose
+  onClose,
+  isLoading = false
 }) => {
-  console.log('🎪 FinalReportPopup rendering with:', {
-    report,
-    hasReport: !!report,
-    reportKeys: report ? Object.keys(report) : 'none',
-    hasOverallAssessment: report?.overall_assessment
-  })
-  if (!report || !report.overall_assessment) {
-    console.error('❌ Invalid report data in FinalReportPopup:', {
-      report,
-      completionReason,
-      wasAutomatic
-    })
+  // 1. Состояние загрузки
+  if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div className="bg-gray-800 rounded-2xl max-w-md w-full p-6">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            ⚠️ Данные отчета недоступны
+      <div className="frp-overlay">
+        <div className="frp-container" style={{ textAlign: 'center', padding: '60px' }}>
+          <h2 className="frp-title" style={{ marginBottom: '20px' }}>
+            ⏳ Формируем финальный отчет...
           </h2>
-          <p className="text-gray-300 mb-4">
-            Не удалось загрузить полный отчет. Основные данные отсутствуют.
+          <p className="frp-reason-text" style={{ fontSize: '16px' }}>
+            ИИ анализирует ваши ответы, оценивает навыки и составляет рекомендации.
+            <br />
+            Это может занять от 10 до 30 секунд.
           </p>
-          <p className="text-sm text-gray-400 mb-4">
-            Причина: {completionReason || 'Неизвестно'}
-          </p>
-          <Button
-            onClick={onClose}
-            className="w-full bg-blue-500 hover:bg-blue-600"
-          >
-            Закрыть
-          </Button>
+          <div style={{ marginTop: '30px' }}>
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          </div>
         </div>
       </div>
     )
   }
+
+  // 2. Состояние ошибки (если загрузка кончилась, а отчета нет)
+  if (!report || !report.overall_assessment) {
+    return (
+      <div className="frp-overlay">
+        <div className="frp-container" style={{ maxWidth: '500px' }}>
+          <h2 className="frp-title" style={{ color: '#f87171' }}>
+            ⚠️ Данные отчета недоступны
+          </h2>
+          <p className="frp-reason-text" style={{ marginTop: '15px' }}>
+            Не удалось загрузить полный отчет. Возможно, произошла ошибка на сервере при генерации.
+          </p>
+          <p className="frp-finish-type" style={{ marginTop: '10px' }}>
+            Причина: {completionReason || 'Неизвестно'}
+          </p>
+          <div className="frp-footer" style={{ marginTop: '25px' }}>
+            <Button onClick={onClose}>Закрыть</Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const {
     overall_assessment,
     technical_skills,
@@ -72,7 +82,6 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
 
   const recommendation = getRecommendationText(overall_assessment.recommendation)
 
-  // Вспомогательная функция для рендеринга сильных сторон
   const renderStrength = (strength: string | { strength: string; frequency: number; confidence: number }) => {
     if (typeof strength === 'string') {
       return strength
@@ -85,7 +94,7 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
       <div className="frp-container">
         {/* Хедер */}
         <div className="frp-header-wrapper">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between w-full">
             <div>
               <h2 className="frp-title">🎯 Финальный отчет по собеседованию</h2>
               <div className="frp-recommendation-row">
@@ -97,9 +106,7 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
                 </span>
               </div>
             </div>
-            {/*<Button onClick={onClose} className="frp-close-btn">✕</Button>*/}
           </div>
-          {/*<p className="frp-reason-text">{completionReason}</p>*/}
         </div>
 
         {/* Контент */}
@@ -130,7 +137,6 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
               </div>
               <div>
                 <h4 className="frp-section-title">📈 Улучшения:</h4>
-                {/*<ul className=" list-disc list-inside text-gray-300 text-sm">*/}
                 <ul className="frp-list">
                   {overall_assessment.improvements?.map((improvement: string, index: number) => (
                     <li key={index}>{improvement}</li>
@@ -171,7 +177,7 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
               {technical_skills.weak_areas && technical_skills.weak_areas.length > 0 && (
                 <div>
                   <h4 className="frp-section-title">Зоны роста:</h4>
-                  <div className="frp-section-title">
+                  <div className="frp-badges-row">
                     {technical_skills.weak_areas.map((area: string, index: number) => (
                       <span key={index} className="frp-badge yellow">
                         {area}
@@ -253,7 +259,7 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
           {/* Следующие шаги */}
           <div className="frp-section-box">
             <h3 className="frp-section-title">🎯 Следующие шаги</h3>
-            <ul className="space-y-2">
+            <ul className="frp-list">
               {next_steps?.map((step: string, index: number) => (
                 <li key={index}>{step}</li>
               ))}

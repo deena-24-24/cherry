@@ -5,13 +5,14 @@ import { Button } from '../../components/ui/Button/Button'
 import { CodeConsole } from '../../components/interview/CodeConsole'
 import { NotesPanel } from '../../components/interview/NotesPanel'
 import { ROUTES } from '../../router/routes'
-import { FinalReportPopup } from '../../components/interview/FinalReportPopup'
+import { FinalReportPopup } from '../../components/popup/FinalReportPopup'
 import { FinalReport, SocketInterviewCompleted } from '../../types'
-import { InterviewInterruptedPopup } from '../../components/interview/InterviewInterruptedPopup'
+import { InterviewInterruptedPopup } from '../../components/popup/InterviewInterruptedPopup'
 import { useVoiceCall } from '../hooks/useVoiceCall'
 import { saluteFrontendService } from '../../service/api/saluteFrontendService'
 import { socketService } from '../../service/realtime/socketService'
 import * as styles from './InterviewCallPage.module.css'
+import { API_URL } from '../../config' // Убедитесь, что импорт правильный
 
 export const InterviewCallPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -29,21 +30,31 @@ export const InterviewCallPage: React.FC = () => {
   // === СОСТОЯНИЯ ===
   const [showNotes, setShowNotes] = useState(false)
   const [showConsole, setShowConsole] = useState(false)
+
+  // Состояния завершения
   const [showFinalReport, setShowFinalReport] = useState(false)
   const [finalReport, setFinalReport] = useState<FinalReport | null>(null)
+
+  // Блокирующий стейт: интервью завершено, идет генерация отчета
+  const [isInterviewEnded, setIsInterviewEnded] = useState(false)
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
+
   const [completionReason, setCompletionReason] = useState<string>('')
   const [wasAutomatic, setWasAutomatic] = useState<boolean>(false)
+
+  // Ошибки и прерывания
   const [showInterrupted, setShowInterrupted] = useState(false)
   const [interruptionReason, setInterruptionReason] = useState<string>('')
-  const [isFinishing, setIsFinishing] = useState(false)
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false)
-  const reportTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const [connectionQuality, setConnectionQuality] = useState<'good' | 'average' | 'poor'>('good')
+  // Refs для таймеров
+  const reportTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
   const [voiceActivity, setVoiceActivity] = useState(0)
   const [isConnected, setIsConnected] = useState(false)
   const [interviewPosition, setInterviewPosition] = useState<string | null>(null)
 
+  // Блокировка скролла
   useEffect(() => {
     if (showConsole || showNotes) {
       document.body.style.overflow = 'hidden'
@@ -53,6 +64,7 @@ export const InterviewCallPage: React.FC = () => {
     return () => { document.body.style.overflow = '' }
   }, [showConsole, showNotes])
 
+  // Загрузка сессии
   useEffect(() => {
     const controller = new AbortController()
     const loadSession = async () => {
@@ -75,37 +87,105 @@ export const InterviewCallPage: React.FC = () => {
     }
   }, [currentSession?.position])
 
-  useEffect(() => {
-    socketService.onCompletionStarted(() => {
-      setIsGeneratingReport(true)
-      saluteFrontendService.stopAudio()
-    })
-    return () => socketService.offCompletionStarted()
+  // === ФУНКЦИЯ ДЛЯ ПОЛЛИНГА ОТЧЕТА (HTTP FALLBACK) ===
+  const startPollingForReport = useCallback(() => {
+    if (pollingIntervalRef.current) return // Уже опрашиваем
+
+    console.log("🔄 Starting HTTP polling for final report...")
+
+    pollingIntervalRef.current = setInterval(async () => {
+      if (!sessionId) return
+
+      try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`${API_URL}/api/interview/sessions/${sessionId}/report`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.report) {
+            console.log("✅ Report received via HTTP polling!")
+            // Вызываем тот же обработчик, что и для сокета
+            handleInterviewCompleted({
+              sessionId,
+              finalReport: data.report,
+              completionReason: "Завершено (HTTP)",
+              wasAutomatic: true
+            })
+          }
+        }
+      } catch (err) {
+        console.warn("Polling attempt failed, retrying...", err)
+      }
+    }, 3000) // Опрос каждые 3 секунды
+  }, [sessionId])
+
+  const stopPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current)
+      pollingIntervalRef.current = null
+      console.log("🛑 Polling stopped")
+    }
   }, [])
 
-  const handleInterviewCompleted = useCallback((data: SocketInterviewCompleted) => {
-    if (reportTimeoutRef.current) {
-      clearTimeout(reportTimeoutRef.current)
-      reportTimeoutRef.current = null
-    }
-
-    setIsGeneratingReport(false)
-
-    if (data.finalReport) {
-      setFinalReport(data.finalReport)
-      setCompletionReason(data.completionReason || 'Собеседование завершено')
-      setWasAutomatic(data.wasAutomatic || false)
-      setShowInterrupted(false)
+  // === 1. Обработка НАЧАЛА ЗАВЕРШЕНИЯ ===
+  useEffect(() => {
+    const onCompletionStart = () => {
+      console.log("🏁 Начало завершения интервью (event received)")
+      setIsInterviewEnded(true)
+      setIsGeneratingReport(true)
       setShowFinalReport(true)
-    } else {
-      setInterruptionReason(data.completionReason || 'Собеседование завершено без отчета')
-      setShowInterrupted(true)
+
+      // Запускаем поллинг как подстраховку от разрыва сокета
+      startPollingForReport()
     }
+
+    socketService.onCompletionStarted(onCompletionStart)
+    return () => {
+      socketService.offCompletionStarted()
+      stopPolling()
+    }
+  }, [startPollingForReport, stopPolling])
+
+  // === 2. Обработка ГОТОВОГО ОТЧЕТА (Socket + HTTP Handler) ===
+  const handleInterviewCompleted = useCallback((data: SocketInterviewCompleted) => {
+    // Если уже загрузили отчет (например, через HTTP раньше сокета), игнорируем
+    // Но проверяем isGeneratingReport, так как он сбрасывается первым
+    setFinalReport((prev) => {
+      if (prev) return prev // Уже есть отчет
+
+      console.log("✅ Interview Completed Processing:", data)
+
+      // Очищаем таймеры
+      if (reportTimeoutRef.current) {
+        clearTimeout(reportTimeoutRef.current)
+        reportTimeoutRef.current = null
+      }
+      stopPolling()
+
+      setIsGeneratingReport(false)
+
+      if (data.finalReport && data.finalReport.overall_assessment) {
+        setCompletionReason(data.completionReason || 'Собеседование завершено')
+        setWasAutomatic(data.wasAutomatic || false)
+        setShowInterrupted(false)
+        setShowFinalReport(true)
+        return data.finalReport
+      } else {
+        console.error("❌ Invalid report structure received:", data.finalReport)
+        setInterruptionReason('Ошибка: отчет сформирован некорректно. Проверьте историю в профиле.')
+        setShowInterrupted(true)
+        setShowFinalReport(false)
+        return null
+      }
+    })
 
     socketService.disconnect()
     endStoreCall()
-    setIsFinishing(false)
-  }, [endStoreCall])
+  }, [endStoreCall, stopPolling])
 
   useLayoutEffect(() => {
     socketService.onInterviewCompleted(handleInterviewCompleted)
@@ -114,6 +194,7 @@ export const InterviewCallPage: React.FC = () => {
     }
   }, [handleInterviewCompleted])
 
+  // ... (Остальная часть хука useVoiceCall без изменений)
   const shouldInitVoice = !!sessionId && !!interviewPosition
 
   const {
@@ -130,10 +211,12 @@ export const InterviewCallPage: React.FC = () => {
     shouldInitVoice ? interviewPosition! : ''
   )
 
+  // Старт звонка в сторе
   useEffect(() => {
-    if (!isCallActive) startStoreCall()
-  }, [isCallActive, startStoreCall])
+    if (!isCallActive && !isInterviewEnded) startStoreCall()
+  }, [isCallActive, startStoreCall, isInterviewEnded])
 
+  // Проверка коннекта
   useEffect(() => {
     const checkConnection = () => {
       const state = socketService.getConnectionState?.() || 'disconnected'
@@ -144,28 +227,16 @@ export const InterviewCallPage: React.FC = () => {
     return () => clearInterval(interval)
   }, [])
 
+  // Текст кнопки
   const getMicButtonText = () => {
+    if (isInterviewEnded) return 'Собеседование завершено'
     if (isRecording) return 'Остановить и отправить'
     if (isAIThinking) return 'ИИ думает...'
     if (isAISpeaking) return 'ИИ говорит...'
     return 'Включить микрофон'
   }
 
-  const getMicButtonStyle = () => {
-    if (isRecording) return styles['mic-recording']
-    if (isMicrophoneBlocked) return styles['mic-disabled']
-    return styles['mic']
-  }
-
-  useEffect(() => {
-    if (!isCallActive) return
-    const interval = setInterval(() => {
-      const qualities: Array<'good' | 'average' | 'poor'> = ['good', 'average', 'poor']
-      setConnectionQuality(qualities[Math.floor(Math.random() * qualities.length)])
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [isCallActive])
-
+  // Визуализация
   useEffect(() => {
     if (!isRecording || !isCallActive) {
       setVoiceActivity(0)
@@ -178,48 +249,53 @@ export const InterviewCallPage: React.FC = () => {
     return () => clearInterval(interval)
   }, [isRecording, transcript, isCallActive])
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isCallActive) {
-        handleEndCall('user').then()
-      }
-    }
-    document.addEventListener('keydown', handleKeyPress)
-    return () => document.removeEventListener('keydown', handleKeyPress)
-  }, [isCallActive])
-
+  // Ручное завершение кнопкой "Завершить"
   const handleEndCall = useCallback(async (reason: 'user' | 'system' | 'error' = 'user') => {
-    if (!isCallActive || isFinishing) return
+    if (!isCallActive || isInterviewEnded) return
 
-    setIsFinishing(true)
+    setIsInterviewEnded(true)
     setIsGeneratingReport(true)
+    setShowFinalReport(true) // Показываем лоадер
+
+    // Запускаем поллинг
+    startPollingForReport()
 
     if (isRecording) toggleRecording()
     saluteFrontendService.stopAudio()
 
     try {
       socketService.sendCompleteInterview(sessionId || '')
+
+      // Тайм-аут на случай, если вообще ничего не произойдет 60 сек
       reportTimeoutRef.current = setTimeout(() => {
-        if (!showFinalReport) {
-          setInterruptionReason('Сервер долго формирует отчет. Попробуйте проверить результаты в личном кабинете.')
-          setShowInterrupted(true)
-          setIsFinishing(false)
-        }
-      }, 15000)
+        // Проверяем через реф, т.к. замыкание может быть старым,
+        // но лучше проверить наличие finalReport в стейте
+        setFinalReport(currentReport => {
+          if (!currentReport) {
+            stopPolling()
+            setIsGeneratingReport(false)
+            setShowFinalReport(false)
+            setInterruptionReason('Сервер долго формирует отчет. Результаты будут доступны позже в личном кабинете.')
+            setShowInterrupted(true)
+          }
+          return currentReport
+        })
+      }, 60000)
     } catch (error) {
       console.error('Error ending call:', error)
-      setIsFinishing(false)
       setIsGeneratingReport(false)
+      setShowFinalReport(false)
+      stopPolling()
     }
-  }, [isCallActive, isFinishing, isRecording, toggleRecording, sessionId, showFinalReport])
+  }, [isCallActive, isInterviewEnded, isRecording, toggleRecording, sessionId, startPollingForReport, stopPolling])
 
 
   const handleCloseReport = useCallback(() => {
-    console.log("🚀 Закрытие отчета и переход на Interview Home")
     setShowFinalReport(false)
     setFinalReport(null)
+    stopPolling()
     navigate(ROUTES.INTERVIEW_HOME)
-  }, [navigate])
+  }, [navigate, stopPolling])
 
   const handleCloseInterruption = useCallback(() => {
     setShowInterrupted(false)
@@ -238,6 +314,8 @@ export const InterviewCallPage: React.FC = () => {
 
   if (error) return <div className={styles['loading-screen']}><p className="text-red-400">{error}</p><Button onClick={() => navigate(ROUTES.HOME)} className={styles['back-btn']}>Вернуться на главную</Button></div>
 
+  const isMicDisabled = isInterviewEnded || isMicrophoneBlocked
+
   return (
     <div className={styles['call-page']}>
       <div className={styles['call-header']}>
@@ -249,6 +327,7 @@ export const InterviewCallPage: React.FC = () => {
         </div>
 
         <div className={styles['interview-main']}>
+          {/* AI BLOCK */}
           <div className={`${styles['block']} ${styles['ai-block']}`}>
             <h2>ИИ-СОБЕСЕДУЮЩИЙ</h2>
             <div className={styles['avatar']}>
@@ -256,6 +335,7 @@ export const InterviewCallPage: React.FC = () => {
             </div>
           </div>
 
+          {/* USER BLOCK */}
           <div className={`${styles['block']} ${styles['user-block']}`}>
             <h2>КАНДИДАТ</h2>
             <div className={styles['avatar']}>
@@ -264,13 +344,14 @@ export const InterviewCallPage: React.FC = () => {
             <p className={styles['subtitle']}>Вы</p>
           </div>
 
+          {/* CONTROL PANEL */}
           <aside className={styles["panel"]}>
             <header className={styles['header']}>
               <span className={styles['status']}>
                 <i className={isConnected ? styles['online'] : styles['offline']} />
                 {isConnected ? <div className={styles['connection']}><div className={styles['dot']}></div>Подключено</div> : 'Нет подключения'}
               </span>
-              {(isAISpeaking || isAIThinking) && (
+              {!isInterviewEnded && (isAISpeaking || isAIThinking) && (
                 <span className={styles['aiLive']}>
                   {isAIThinking ? '⚡ Генерирует ответ...' : '🔊 Озвучивает...'}
                 </span>
@@ -278,8 +359,7 @@ export const InterviewCallPage: React.FC = () => {
             </header>
 
             <div className={styles['ai']}>
-              {/* Если ИИ думает, можно показать скелетон или лоадер */}
-              {isAIThinking && !aiResponse && <div className="text-gray-400 text-sm animate-pulse">Печатает...</div>}
+              {isAIThinking && !aiResponse && !isInterviewEnded && <div className="text-gray-400 text-sm animate-pulse">Печатает...</div>}
               {aiResponse && <div className={styles['subtitle']}>“{aiResponse}”</div>}
             </div>
 
@@ -291,25 +371,47 @@ export const InterviewCallPage: React.FC = () => {
             </div>
 
             <footer className={styles['bottom-controls']}>
-              <Button className={styles['round-btn']} variant={"secondary"} onClick={() => setShowNotes(!showNotes)}>📝</Button>
-              <Button className={styles['round-btn']} variant="secondary" onClick={() => setShowConsole(!showConsole)}>💻</Button>
+              <Button
+                className={styles['round-btn']}
+                variant={"secondary"}
+                onClick={() => setShowNotes(!showNotes)}
+                disabled={isInterviewEnded}
+              >
+                📝
+              </Button>
+              <Button
+                className={styles['round-btn']}
+                variant="secondary"
+                onClick={() => setShowConsole(!showConsole)}
+                disabled={isInterviewEnded}
+              >
+                💻
+              </Button>
+
               <button
-                className={`${styles['mic']} ${isMicrophoneBlocked ? 'opacity-50 cursor-not-allowed bg-gray-600' : ''}`}
+                className={`${styles['mic']} ${isMicDisabled ? 'opacity-50 cursor-not-allowed bg-gray-600' : ''}`}
                 onClick={toggleRecording}
-                disabled={isMicrophoneBlocked} // Физическая блокировка
+                disabled={isMicDisabled}
                 style={{
-                  backgroundColor: isRecording ? '#ff3b3b' : (isMicrophoneBlocked ? '#4b5563' : '#2a2f3a'),
-                  cursor: isMicrophoneBlocked ? 'not-allowed' : 'pointer'
+                  backgroundColor: isRecording ? '#ff3b3b' : (isMicDisabled ? '#4b5563' : '#2a2f3a'),
+                  cursor: isMicDisabled ? 'not-allowed' : 'pointer'
                 }}
               >
                 {getMicButtonText()}
               </button>
 
-              <button className={styles['end']} onClick={() => handleEndCall('user')}>Завершить собеседование</button>
+              <button
+                className={`${styles['end']} ${isInterviewEnded ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={() => handleEndCall('user')}
+                disabled={isInterviewEnded}
+              >
+                Завершить
+              </button>
             </footer>
           </aside>
         </div>
 
+        {/* SIDE PANELS */}
         <div className={`${styles['side-overlay']} ${showNotes || showConsole ? styles['open'] : ''}`} onClick={closeSidePanels}>
           <aside className={`${styles['side-panel']} ${showNotes || showConsole ? styles['open'] : ''}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles['tabs']}>
@@ -323,18 +425,24 @@ export const InterviewCallPage: React.FC = () => {
           </aside>
         </div>
 
-        {isGeneratingReport && (
-          <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[2000]">
-            <div className="bg-gray-800 rounded-2xl p-8 max-w-sm w-full text-center border border-gray-700">
-              <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <h3 className="text-xl font-bold text-white mb-2">Генерация фидбэка</h3>
-              <p className="text-gray-400">ИИ анализирует ваши ответы и составляет отчет. Это может занять до минуты...</p>
-            </div>
-          </div>
+        {/* --- POPUP: ФИНАЛЬНЫЙ ОТЧЕТ --- */}
+        {showFinalReport && (
+          <FinalReportPopup
+            report={finalReport}
+            completionReason={completionReason}
+            wasAutomatic={wasAutomatic}
+            onClose={handleCloseReport}
+            isLoading={isGeneratingReport}
+          />
         )}
 
-        {showFinalReport && <FinalReportPopup report={finalReport} completionReason={completionReason} wasAutomatic={wasAutomatic} onClose={handleCloseReport} />}
-        {showInterrupted && <InterviewInterruptedPopup reason={interruptionReason} onClose={handleCloseInterruption} />}
+        {/* --- POPUP: ОШИБКА / ПРЕРЫВАНИЕ --- */}
+        {showInterrupted && (
+          <InterviewInterruptedPopup
+            reason={interruptionReason}
+            onClose={handleCloseInterruption}
+          />
+        )}
       </div>
     </div>
   )

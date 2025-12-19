@@ -4,7 +4,7 @@ import { useAuthStore } from '../../store'
 import { API_URL } from '../../config'
 import { FinalReport, InterviewSession } from '../../types'
 import { Button } from '../../components/ui/Button/Button'
-import { FinalReportPopup } from '../../components/interview/FinalReportPopup'
+import { FinalReportPopup } from '../../components/popup/FinalReportPopup'
 
 interface SessionWithReport extends InterviewSession {
   completedAt?: string
