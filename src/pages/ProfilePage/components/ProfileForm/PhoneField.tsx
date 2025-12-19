@@ -1,6 +1,6 @@
-import React from "react";
-import { formatPhoneNumber } from "../../utils";
-import { FormField } from "../../../../components/ui/FormField/FormField";
+import React from "react"
+import { formatPhoneNumber } from "../../utils"
+import { FormField } from "../../../../components/ui/FormField/FormField"
 
 interface PhoneFieldProps {
   value: string;
@@ -14,9 +14,9 @@ export const PhoneField: React.FC<PhoneFieldProps> = ({
   onChange,
 }) => {
   const handleChange = (inputValue: string) => {
-    const formatted = formatPhoneNumber(inputValue);
-    onChange(formatted);
-  };
+    const formatted = formatPhoneNumber(inputValue)
+    onChange(formatted)
+  }
 
   return (
     <FormField
@@ -27,6 +27,6 @@ export const PhoneField: React.FC<PhoneFieldProps> = ({
       onChange={handleChange}
       placeholder="+7-887-87-98-77"
     />
-  );
-};
+  )
+}
 

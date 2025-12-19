@@ -1,9 +1,9 @@
-import React from 'react';
-import { useAuthStore } from '../../store';
-import * as styles from './HrDashboardPage.module.css';
+import React from 'react'
+import { useAuthStore } from '../../store'
+import * as styles from './HrDashboardPage.module.css'
 
 export const HrDashboardPage: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user } = useAuthStore()
 
   return (
     <div className={styles["page"]}>
@@ -13,7 +13,7 @@ export const HrDashboardPage: React.FC = () => {
       
       <div className={styles["container"]}>
         <div className={styles["welcome"]}>
-          <h2>Добро пожаловать, {user?.firstName || 'HR-специалист'}!</h2>
+          <h2>Добро пожаловать, {user?.firstName || 'HR-агент'}!</h2>
           <p>Здесь вы можете управлять кандидатами и просматривать статистику</p>
         </div>
         
@@ -33,6 +33,6 @@ export const HrDashboardPage: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 

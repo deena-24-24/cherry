@@ -1,12 +1,12 @@
-import React from "react";
-import { FormData } from "../../types";
-import { validateEmail } from "../../utils";
-import { FormField } from "../../../../components/ui/FormField/FormField";
-import { Button } from "../../../../components/ui/Button/Button";
-import { PhoneField } from "./PhoneField";
-import { CountryField } from "./CountryField";
-import { TextareaField } from "./TextareaField";
-import * as styles from "./ProfileForm.module.css";
+import React from "react"
+import { FormData } from "../../types"
+import { validateEmail } from "../../utils"
+import { FormField } from "../../../../components/ui/FormField/FormField"
+import { Button } from "../../../../components/ui/Button/Button"
+import { PhoneField } from "./PhoneField"
+import { CountryField } from "./CountryField"
+import { TextareaField } from "./TextareaField"
+import * as styles from "./ProfileForm.module.css"
 
 interface ProfileFormProps {
   formData: FormData;
@@ -28,17 +28,17 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   onCancel,
 }) => {
   const handleInputChange = (field: keyof FormData, value: string) => {
-    onInputChange(field, value);
+    onInputChange(field, value)
     
     // Валидация email
     if (field === 'email') {
       if (value && !validateEmail(value)) {
-        onEmailErrorChange('Введите корректный email адрес');
+        onEmailErrorChange('Введите корректный email адрес')
       } else {
-        onEmailErrorChange('');
+        onEmailErrorChange('')
       }
     }
-  };
+  }
 
   return (
     <div className={styles["formSection"]}>
@@ -74,8 +74,8 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         isEditing={isEditing}
         onChange={(value) => {
           // Сохраняем как одно поле phone, очищаем phoneCode
-          handleInputChange('phone', value);
-          handleInputChange('phoneCode', '');
+          handleInputChange('phone', value)
+          handleInputChange('phoneCode', '')
         }}
       />
 
@@ -121,6 +121,6 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         </Button>
       )}
     </div>
-  );
-};
+  )
+}
 

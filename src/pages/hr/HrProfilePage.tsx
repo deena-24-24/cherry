@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { FormData as ProfileFormData } from "../ProfilePage/types";
-import { HrMenuItem } from "./types";
-import { compressAvatarImage } from "../ProfilePage/utils";
-import { ProfileAvatar } from "../ProfilePage/components/ProfileAvatar/ProfileAvatar";
-import { HrMenu } from "./components/HrMenu/HrMenu";
-import { HrCandidatesContent } from "./HrCandidatesPage";
-import { FavoritesContent } from "./components/FavoritesContent/FavoritesContent";
-import { FormField } from "../../components/ui/FormField/FormField";
-import { PhoneField } from "../ProfilePage/components/ProfileForm/PhoneField";
-import { CountryField } from "../ProfilePage/components/ProfileForm/CountryField";
-import { TextareaField } from "../ProfilePage/components/ProfileForm/TextareaField";
-import { Button } from "../../components/ui/Button/Button";
-import { validateEmail } from "../ProfilePage/utils";
-import { useAuthStore } from "../../store";
-import { fetchHr, updateHr } from "../../service/hr/hrService";
-import "../ProfilePage/styles/variables.css";
-import * as styles from "../ProfilePage/ProfilePage.module.css";
+import React, { useState, useEffect } from "react"
+import { FormData as ProfileFormData } from "../ProfilePage/types"
+import { HrMenuItem } from "./types"
+import { compressAvatarImage } from "../ProfilePage/utils"
+import { ProfileAvatar } from "../ProfilePage/components/ProfileAvatar/ProfileAvatar"
+import { HrMenu } from "./components/HrMenu/HrMenu"
+import { FavoritesContent } from "./components/FavoritesContent/FavoritesContent"
+import { FormField } from "../../components/ui/FormField/FormField"
+import { PhoneField } from "../ProfilePage/components/ProfileForm/PhoneField"
+import { CountryField } from "../ProfilePage/components/ProfileForm/CountryField"
+import { TextareaField } from "../ProfilePage/components/ProfileForm/TextareaField"
+import { Button } from "../../components/ui/Button/Button"
+import { validateEmail } from "../ProfilePage/utils"
+import { useAuthStore } from "../../store"
+import { fetchHr, updateHr } from "../../service/hr/hrService"
+import "../ProfilePage/styles/variables.css"
+import * as styles from "../ProfilePage/ProfilePage.module.css"
 
 export const HrProfilePage: React.FC = () => {
-  const { user, updateUser } = useAuthStore();
-  const [activeMenuItem, setActiveMenuItem] = useState<HrMenuItem>('about');
-  const [isEditing, setIsEditing] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string>('');
-  const [emailError, setEmailError] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+  const { user, updateUser } = useAuthStore()
+  const [activeMenuItem, setActiveMenuItem] = useState<HrMenuItem>('about')
+  const [isEditing, setIsEditing] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
+  const [emailError, setEmailError] = useState<string>('')
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState<ProfileFormData>({
     firstName: '',
     lastName: '',
@@ -32,22 +31,21 @@ export const HrProfilePage: React.FC = () => {
     phoneCode: '',
     country: '',
     about: ''
-  });
-  const [companyName, setCompanyName] = useState<string>('');
-  const [position, setPosition] = useState<string>('');
+  })
+  const [companyName, setCompanyName] = useState<string>('')
 
   // Функция загрузки данных профиля
   const loadProfile = async () => {
     if (!user) {
-      setLoading(false);
-      return;
+      setLoading(false)
+      return
     }
 
     try {
-      setLoading(true);
+      setLoading(true)
       
       // Загружаем данные из API (это источник истины)
-      const hrData = await fetchHr();
+      const hrData = await fetchHr()
       
       // Устанавливаем данные из API
       setFormData({
@@ -58,18 +56,17 @@ export const HrProfilePage: React.FC = () => {
         phoneCode: '',
         country: hrData.country || '',
         about: hrData.about || ''
-      });
+      })
       
       // Устанавливаем HR-специфичные поля
-      setCompanyName(hrData.companyName || '');
-      setPosition(hrData.position || '');
+      setCompanyName(hrData.companyName || '')
       
       // Устанавливаем аватар, если он есть
       if (hrData.avatar) {
-        setAvatarUrl(hrData.avatar);
+        setAvatarUrl(hrData.avatar)
       }
     } catch (error) {
-      console.error('Ошибка загрузки профиля:', error);
+      console.error('Ошибка загрузки профиля:', error)
       
       // Если API не доступен, используем данные из store как fallback
       setFormData({
@@ -80,61 +77,60 @@ export const HrProfilePage: React.FC = () => {
         phoneCode: '',
         country: (user as any).country || '',
         about: (user as any).about || ''
-      });
+      })
       
-      setCompanyName((user as any).companyName || '');
-      setPosition((user as any).position || '');
+      setCompanyName((user as any).companyName || '')
       
       // Устанавливаем аватар из store, если он есть
       if ((user as any).avatar) {
-        setAvatarUrl((user as any).avatar);
+        setAvatarUrl((user as any).avatar)
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Загрузка данных профиля при монтировании компонента
   useEffect(() => {
-    loadProfile();
-  }, [user]);
+    loadProfile().then()
+  }, [user])
 
   // Перезагрузка данных при переключении разделов
   useEffect(() => {
     // Перезагружаем данные профиля при переходе в раздел "Обо мне"
     if (activeMenuItem === 'about') {
-      loadProfile();
+      loadProfile().then()
     }
-  }, [activeMenuItem]);
+  }, [activeMenuItem])
 
   const handleInputChange = (field: keyof ProfileFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ ...prev, [field]: value }))
     
     // Валидация email
     if (field === 'email') {
       if (value && !validateEmail(value)) {
-        setEmailError('Введите корректный email адрес');
+        setEmailError('Введите корректный email адрес')
       } else {
-        setEmailError('');
+        setEmailError('')
       }
     }
-  };
+  }
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
       try {
-        const compressedImage = await compressAvatarImage(file);
-        setAvatarUrl(compressedImage);
+        const compressedImage = await compressAvatarImage(file)
+        setAvatarUrl(compressedImage)
       } catch (error) {
-        console.error('Ошибка обработки изображения:', error);
+        console.error('Ошибка обработки изображения:', error)
       }
     }
-  };
+  }
 
   const handleSave = async () => {
     try {
-      setIsEditing(false);
+      setIsEditing(false)
       
       // Подготавливаем данные для отправки
       const hrData = {
@@ -145,12 +141,11 @@ export const HrProfilePage: React.FC = () => {
         country: formData.country,
         about: formData.about,
         avatar: avatarUrl || '',
-        companyName: companyName,
-        position: position
-      };
+        companyName: companyName
+      }
 
-      const updatedHr = await updateHr(hrData);
-      console.log('Профиль успешно обновлен');
+      const updatedHr = await updateHr(hrData)
+      console.log('Профиль успешно обновлен')
       
       // Обновляем данные в store
       if (updatedHr) {
@@ -163,13 +158,12 @@ export const HrProfilePage: React.FC = () => {
           about: updatedHr.about || formData.about,
           avatar: updatedHr.avatar || avatarUrl || '',
           companyName: updatedHr.companyName || companyName,
-          position: updatedHr.position || position,
-        } as Partial<typeof user>);
+        } as Partial<typeof user>)
       }
       
       // Перезагружаем данные профиля из API для получения всех обновленных данных
       try {
-        const freshHrData = await fetchHr();
+        const freshHrData = await fetchHr()
         setFormData(prev => ({
           ...prev,
           firstName: freshHrData.firstName || prev.firstName,
@@ -178,41 +172,40 @@ export const HrProfilePage: React.FC = () => {
           phone: freshHrData.phone || prev.phone,
           country: freshHrData.country || prev.country,
           about: freshHrData.about || prev.about
-        }));
+        }))
         
-        setCompanyName(freshHrData.companyName || '');
-        setPosition(freshHrData.position || '');
+        setCompanyName(freshHrData.companyName || '')
         
         // Обновляем аватар, если он есть
         if (freshHrData.avatar) {
-          setAvatarUrl(freshHrData.avatar);
+          setAvatarUrl(freshHrData.avatar)
         }
       } catch (error) {
-        console.error('Ошибка перезагрузки профиля:', error);
+        console.error('Ошибка перезагрузки профиля:', error)
       }
     } catch (error) {
-      console.error('Ошибка сохранения профиля:', error);
+      console.error('Ошибка сохранения профиля:', error)
       // Можно добавить уведомление об ошибке
     }
-  };
+  }
 
   const handleEdit = () => {
-    setIsEditing(true);
-  };
+    setIsEditing(true)
+  }
 
   const handleEditToggle = () => {
     if (isEditing) {
-      handleSave();
+      handleSave().then()
     } else {
-      handleEdit();
+      handleEdit()
     }
-  };
+  }
 
   const handleCancel = async () => {
-    setIsEditing(false);
+    setIsEditing(false)
     // Перезагружаем данные профиля из API для отмены локальных изменений
     try {
-      const freshHrData = await fetchHr();
+      const freshHrData = await fetchHr()
       setFormData(prev => ({
         ...prev,
         firstName: freshHrData.firstName || prev.firstName,
@@ -221,16 +214,15 @@ export const HrProfilePage: React.FC = () => {
         phone: freshHrData.phone || prev.phone,
         country: freshHrData.country || prev.country,
         about: freshHrData.about || prev.about
-      }));
-      setCompanyName(freshHrData.companyName || '');
-      setPosition(freshHrData.position || '');
+      }))
+      setCompanyName(freshHrData.companyName || '')
       if (freshHrData.avatar) {
-        setAvatarUrl(freshHrData.avatar);
+        setAvatarUrl(freshHrData.avatar)
       }
     } catch (error) {
-      console.error('Ошибка перезагрузки профиля при отмене:', error);
+      console.error('Ошибка перезагрузки профиля при отмене:', error)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -242,19 +234,19 @@ export const HrProfilePage: React.FC = () => {
           Загрузка данных...
         </div>
       </div>
-    );
+    )
   }
 
   const getTitle = () => {
     switch (activeMenuItem) {
       case 'about':
-        return 'ЛИЧНЫЙ КАБИНЕТ';
+        return 'ЛИЧНЫЙ КАБИНЕТ'
       case 'candidates':
-        return 'ИЗБРАННЫЕ КАНДИДАТЫ';
+        return 'ИЗБРАННЫЕ КАНДИДАТЫ'
       default:
-        return 'ЛИЧНЫЙ КАБИНЕТ';
+        return 'ЛИЧНЫЙ КАБИНЕТ'
     }
-  };
+  }
 
   return (
     <div className={styles["page"]}>
@@ -268,7 +260,7 @@ export const HrProfilePage: React.FC = () => {
         {/* Левая часть - контент в зависимости от выбранного пункта меню */}
         <div className={
           activeMenuItem === 'about' ? styles["contentContainerAbout"] :
-          styles["contentContainerResume"]
+            styles["contentContainerResume"]
         }>
           {activeMenuItem === 'about' && (
             <div className={styles["formSection"]}>
@@ -295,13 +287,6 @@ export const HrProfilePage: React.FC = () => {
                 isEditing={isEditing}
                 onChange={(value) => setCompanyName(value)}
               />
-              
-              <FormField
-                label="ДОЛЖНОСТЬ"
-                value={position}
-                isEditing={isEditing}
-                onChange={(value) => setPosition(value)}
-              />
 
               {/* Поле "Электронная почта" */}
               <FormField
@@ -318,8 +303,8 @@ export const HrProfilePage: React.FC = () => {
                 value={formData.phone || ''}
                 isEditing={isEditing}
                 onChange={(value) => {
-                  handleInputChange('phone', value);
-                  handleInputChange('phoneCode', '');
+                  handleInputChange('phone', value)
+                  handleInputChange('phoneCode', '')
                 }}
               />
 
@@ -394,6 +379,6 @@ export const HrProfilePage: React.FC = () => {
       </div>
       
     </div>
-  );
-};
+  )
+}
 

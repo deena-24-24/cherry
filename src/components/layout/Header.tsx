@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState,  } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { Button } from '../ui/Button/Button'
 import { ROUTES } from '../../router/routes'
 import { usePopupStore } from '../../store'
 import { useAuthStore } from '../../store'
@@ -15,7 +16,7 @@ export const Header: React.FC = () => {
   const navigate = useNavigate()
   const { openAuth } = usePopupStore()
   const { user, logout } = useAuthStore()
-  
+
   const handleAuthClick = () => {
     if (user) {
       logout()
@@ -64,7 +65,6 @@ export const Header: React.FC = () => {
     })
   }, [isNavVisible])
 
-  
   return (
     <div ref={navContainerRef} className={styles["floatingWrapper"]}>
       <div className={styles["headerContainer"]}>
@@ -72,7 +72,7 @@ export const Header: React.FC = () => {
           {/* Логотип */}
           <NavLink to={ROUTES.HOME} className={styles["logoLink"]}>
             <img src={logoTitle}
-              alt="Career Up Logo" 
+              alt="Career Up Logo"
               className={styles["logo"]}/>
           </NavLink>
 
@@ -83,11 +83,11 @@ export const Header: React.FC = () => {
               ) : (<HrNavigation />)
             )}
 
-            <button className={styles["loginButton"]} onClick={handleAuthClick}>
+            <Button className={styles["loginButton"]} onClick={handleAuthClick}>
               <span className={styles["loginButtonText"]}>
                 {user ? 'ВЫХОД' : 'ВХОД'}
               </span>
-            </button>
+            </Button>
           </div>
 
           {/* БУРГЕР ДЛЯ МОБИЛКИ */}
@@ -103,12 +103,12 @@ export const Header: React.FC = () => {
         <div className={`${styles["mobileMenu"]}`}>
           <div className={styles["mobileMenuContent"]}>
             {user && (user.role === "candidate" ? <CandidateNavigation /> : <HrNavigation />)}
-            <button className={styles["mobileLoginButton"]} onClick={handleAuthClick}>
-              {user ? "ВЫЙТИ" : "ВОЙТИ"} </button>
+            <Button className={styles["mobileLoginButton"]} onClick={handleAuthClick}>
+              {user ? "ВЫЙТИ" : "ВОЙТИ"}
+            </Button>
           </div>
         </div>
       </div>
-
     </div>
   )
 }

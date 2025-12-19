@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { InterviewSession, CodeExecutionResult } from '../types'
+import { API_URL } from '../config'
 
 interface InterviewState {
   currentSession: InterviewSession | null
@@ -9,7 +10,7 @@ interface InterviewState {
   notes: string
   codeResults: CodeExecutionResult[]
 
-  fetchSession: (sessionId: string) => Promise<void>
+  fetchSession: (sessionId: string, options?: { signal?: AbortSignal }) => Promise<void>
   startCall: () => void
   endCall: () => void
   updateNotes: (notes: string) => void
@@ -24,16 +25,39 @@ export const useInterviewStore = create<InterviewState>((set) => ({
   notes: '',
   codeResults: [],
 
-  fetchSession: async (sessionId: string) => {
+  fetchSession: async (sessionId: string, options?: { signal?: AbortSignal }) => {
+    const signal = options?.signal
+
     set({ isLoading: true, error: null })
+
     try {
-      const response = await fetch(`http://localhost:5000/api/interview/sessions/${sessionId}`, {
-        headers: {
-          // Если есть авторизация, добавьте токен здесь
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+      const response = await fetch(
+        `${API_URL}/api/interview/sessions/${sessionId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          signal // передаем AbortSignal в fetch
         }
-      })
+      )
+
+      // Проверяем, был ли запрос отменен
+      if (signal?.aborted) {
+        console.log('Запрос был отменен')
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const data = await response.json()
+
+      // Проверяем еще раз на отмену после получения данных
+      if (signal?.aborted) {
+        console.log('Запрос был отменен после получения данных')
+        return
+      }
 
       if (data.success) {
         set({
@@ -42,10 +66,20 @@ export const useInterviewStore = create<InterviewState>((set) => ({
           isLoading: false
         })
       } else {
-        set({ error: data.error, isLoading: false })
+        set({ error: data.error || 'Unknown error', isLoading: false })
       }
     } catch (err) {
-      set({ error: 'Failed to load session', isLoading: false })
+      // Игнорируем ошибки отмены запроса
+      if (err.name === 'AbortError') {
+        console.log('Fetch запрос отменен')
+        return
+      }
+
+      console.error('Ошибка при загрузке сессии:', err)
+      set({
+        error: err instanceof Error ? err.message : 'Failed to load session',
+        isLoading: false
+      })
     }
   },
 

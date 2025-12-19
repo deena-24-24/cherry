@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { useAuthStore } from '../../store'
+import { API_URL } from '../../config'
 
 // Создаем экземпляр axios с базовым URL
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5000/api/',
+  baseURL: `${API_URL}/api`,
 })
 
 // Перехватчик запросов для добавления токена авторизации
@@ -26,7 +27,7 @@ class ChatService {
    */
   sendMessage = async (message: string): Promise<{ reply: string }> => {
     try {
-      const response = await apiClient.post('/chat/message', { message })
+      const response = await apiClient.post('/ai_chat/message', { message })
       return response.data
     } catch (error) {
       console.error("Ошибка при отправке сообщения:", error)

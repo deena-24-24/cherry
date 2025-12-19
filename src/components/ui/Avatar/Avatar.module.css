@@ -45,6 +45,6 @@
 .avatarUploadText {
   color: var(--color-text-light);
   font-size: var(--font-size-sm);
-  font-family: var(--font-family-sans);
+  font-family: var(--font-family-sans), sans-serif;
   font-weight: 400;
 }

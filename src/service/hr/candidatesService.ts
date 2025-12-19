@@ -1,16 +1,16 @@
-import { useAuthStore } from '../../store';
-import { CandidateData } from '../candidate/candidateService';
+import { useAuthStore } from '../../store'
+import { CandidateData } from '../candidate/candidateService'
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5000/api'
 
 /**
  * Получение списка всех кандидатов
  */
 export const fetchCandidates = async (): Promise<CandidateData[]> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/hr/candidates`, {
@@ -19,25 +19,24 @@ export const fetchCandidates = async (): Promise<CandidateData[]> => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     }
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка загрузки кандидатов');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка загрузки кандидатов')
   }
 
-  const data = await response.json();
-  return data;
-};
+  return await response.json()
+}
 
 /**
  * Получение избранных кандидатов
  */
 export const fetchFavorites = async (): Promise<CandidateData[]> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/hr/favorites`, {
@@ -46,25 +45,24 @@ export const fetchFavorites = async (): Promise<CandidateData[]> => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     }
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка загрузки избранных кандидатов');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка загрузки избранных кандидатов')
   }
 
-  const data = await response.json();
-  return data;
-};
+  return await response.json()
+}
 
 /**
  * Добавление кандидата в избранное
  */
 export const addToFavorites = async (candidateId: string): Promise<void> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/hr/favorites/${candidateId}`, {
@@ -73,22 +71,22 @@ export const addToFavorites = async (candidateId: string): Promise<void> => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     }
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка добавления в избранное');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка добавления в избранное')
   }
-};
+}
 
 /**
  * Удаление кандидата из избранного
  */
 export const removeFromFavorites = async (candidateId: string): Promise<void> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/hr/favorites/${candidateId}`, {
@@ -97,11 +95,11 @@ export const removeFromFavorites = async (candidateId: string): Promise<void> =>
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     }
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка удаления из избранного');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка удаления из избранного')
   }
-};
+}
 

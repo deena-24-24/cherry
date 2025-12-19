@@ -1,7 +1,7 @@
-import React from 'react';
-import { CandidateData } from '../../../../service/candidate/candidateService';
-import { Button } from '../../../../components/ui/Button/Button';
-import * as styles from './CandidateCard.module.css';
+import React from 'react'
+import { CandidateData } from '../../../../service/candidate/candidateService'
+import { Button } from '../../../../components/ui/Button/Button'
+import * as styles from './CandidateCard.module.css'
 
 interface CandidateCardProps {
   candidate: CandidateData;
@@ -20,34 +20,34 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
 }) => {
   const fullName = candidate.firstName && candidate.lastName
     ? `${candidate.firstName} ${candidate.lastName}`
-    : candidate.email;
+    : candidate.email
 
   // Вычисляем стаж работы из опыта
   const calculateExperience = () => {
     if (!candidate.experience || candidate.experience.length === 0) {
-      return 'Нет опыта';
+      return 'Нет опыта'
     }
     
     // Простой расчет - берем первый и последний период
     // В реальности нужен более сложный алгоритм
     const periods = candidate.experience.map(exp => {
-      const [start, end] = exp.period.split(' - ');
-      return { start, end: end || 'настоящее время' };
-    });
+      const [start, end] = exp.period.split(' - ')
+      return { start, end: end || 'настоящее время' }
+    })
     
     // Упрощенный расчет
-    return `${candidate.experience.length} ${candidate.experience.length === 1 ? 'год' : 'лет'}`;
-  };
+    return `${candidate.experience.length} ${candidate.experience.length === 1 ? 'год' : 'лет'}`
+  }
 
   const handleFavoriteClick = () => {
     if (candidate.userId) {
       if (isFavorite) {
-        onRemoveFromFavorites(candidate.userId);
+        onRemoveFromFavorites(candidate.userId)
       } else {
-        onAddToFavorites(candidate.userId);
+        onAddToFavorites(candidate.userId)
       }
     }
-  };
+  }
 
   return (
     <div className={styles["card"]}>
@@ -104,6 +104,6 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 

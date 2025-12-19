@@ -1,5 +1,5 @@
-import React from "react";
-import { FormField } from "../../../../components/ui/FormField/FormField";
+import React from "react"
+import { FormField } from "../../../../components/ui/FormField/FormField"
 
 interface TextareaFieldProps {
   label: string;
@@ -26,6 +26,6 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
         width: '155%',
       }}
     />
-  );
-};
+  )
+}
 

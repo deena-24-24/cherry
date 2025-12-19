@@ -3,23 +3,25 @@
     align-items: center;
     gap: 10px;
     padding: 10px;
-    border-top: 1px solid #e0e0e0;
-    background-color: #ffffff;
+    border-top: 1px solid #c8e6ff;
+    background-color: #f5f5ff;
 }
 
 .message-input-field {
     flex-grow: 1;
-    border: none;
+    border: 1px solid #c8e6ff;
     padding: 12px;
     font-size: 1rem;
-    background-color: #f8f9fa;
+    background-color: #ffffff;
     border-radius: 20px;
     outline: none;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    color: #082060;
 }
 
 .message-input-field:focus {
-    background-color: #f1f3f5;
+    background-color: #ffffff;
+    border-color: #78aaff;
 }
 
 .icon-button {
@@ -30,12 +32,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6c757d;
+    color: #78aaff;
     transition: color 0.2s ease;
 }
 
 .icon-button:hover:not(:disabled) {
-    color: #007bff;
+    color: #082060;
 }
 
 .icon-button:disabled {
@@ -44,5 +46,9 @@
 }
 
 .send-button {
-    color: #007bff;
+    color: #78aaff;
+}
+
+.send-button:hover:not(:disabled) {
+    color: #082060;
 }

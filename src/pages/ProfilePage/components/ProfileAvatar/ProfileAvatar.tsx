@@ -1,5 +1,5 @@
-import React from "react";
-import { Avatar } from "../../../../components/ui/Avatar/Avatar";
+import React from "react"
+import { Avatar } from "../../../../components/ui/Avatar/Avatar"
 
 interface ProfileAvatarProps {
   avatarUrl: string;
@@ -18,6 +18,6 @@ export const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       isEditing={isEditing}
       onAvatarChange={onAvatarChange}
     />
-  );
-};
+  )
+}
 

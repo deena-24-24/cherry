@@ -1,6 +1,7 @@
 import { User } from '../../types'
+import { API_URL } from '../../config'
 
-const API_BASE_URL = 'http://localhost:5000/api/auth'
+const API_BASE_URL = `${API_URL}/api/auth`
 
 interface AuthResponse {
   token: string;

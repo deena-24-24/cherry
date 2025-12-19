@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import * as styles from "./CandidateHomeFeatures.module.css"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { ROUTES } from '../../router/routes'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -114,20 +115,21 @@ export const HomeFeatures: React.FC = () => {
       title: "ИИ-СОБЕСЕДОВАНИЕ",
       text: "Оттачивайте навыки прохождения технического интервью с нашим ИИ-ассистентом",
       color: "pink",
-      route: "/interview",
+      route: ROUTES.INTERVIEW_HOME,
     },
     {
       title: "ЧАТ",
       text: "Изучайте новое и повторяйте известное в чате с искусственным интеллектом",
       color: "blue",
-      route: "/chat",
+      route: ROUTES.AI_CHAT,
     },
     {
       title: "РЕЗЮМЕ",
       text: "Заполняйте резюме, которое увидят HR-специалисты из реальных компаний",
       color: "blue",
-      route: "/resume",
+      route: ROUTES.RESUME,
     },
+    // todo: УДАЛИТЬ
     {
       title: "ОНЛАЙН-КОМПИЛЯТОР",
       text: "Решайте реальные задачи в интегрированном онлайн-компиляторе",
@@ -138,7 +140,7 @@ export const HomeFeatures: React.FC = () => {
 
   return (
     <section className={styles["section"]}>
-      <h2 className={styles["title"]}>НАШИ ВОЗМОЖНОСТИ</h2>
+      <h2 className={styles["title"]}>ПРИСТУПИТЕ К РАБОТЕ</h2>
 
       <div className={styles["grid"]} ref={gridRef}>
         {cards.map((card, index) => (

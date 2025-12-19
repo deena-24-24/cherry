@@ -1,5 +1,5 @@
-import React from "react";
-import { FormField } from "../../../../components/ui/FormField/FormField";
+import React from "react"
+import { FormField } from "../../../../components/ui/FormField/FormField"
 
 interface CountryFieldProps {
   value: string;
@@ -23,6 +23,6 @@ export const CountryField: React.FC<CountryFieldProps> = ({
         width: '155%',
       }}
     />
-  );
-};
+  )
+}
 

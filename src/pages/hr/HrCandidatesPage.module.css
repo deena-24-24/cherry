@@ -1,18 +1,16 @@
 @import '../ProfilePage/styles/variables.css';
 
 .page {
-  padding-top: 67px;
-  padding-left: 90px;
-  padding-right: 90px;
-  padding-bottom: 60px;
+  padding: 67px 90px 60px;
   background: var(--color-background);
   min-height: 100vh;
+  margin-top: 80px;
 }
 
 .title {
   color: var(--color-text);
   font-size: var(--font-size-3xl);
-  font-family: var(--font-family-title);
+  font-family: var(--font-family-title), serif;
   font-weight: 600;
   text-transform: uppercase;
   line-height: var(--line-height-lg);

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import * as styles from './CandidatesFilter.module.css';
+import React, { useState } from 'react'
+import * as styles from './CandidatesFilter.module.css'
 
 export interface FilterState {
   city: string;
@@ -19,25 +19,25 @@ export const CandidatesFilter: React.FC<CandidatesFilterProps> = ({
   onFiltersChange,
   availableSkills,
 }) => {
-  const [newSkill, setNewSkill] = useState('');
+  const [newSkill, setNewSkill] = useState('')
 
   const handleFilterChange = (field: keyof FilterState, value: string | string[]) => {
     onFiltersChange({
       ...filters,
       [field]: value,
-    });
-  };
+    })
+  }
 
   const handleAddSkill = () => {
     if (newSkill.trim() && !filters.skills.includes(newSkill.trim())) {
-      handleFilterChange('skills', [...filters.skills, newSkill.trim()]);
-      setNewSkill('');
+      handleFilterChange('skills', [...filters.skills, newSkill.trim()])
+      setNewSkill('')
     }
-  };
+  }
 
   const handleRemoveSkill = (skill: string) => {
-    handleFilterChange('skills', filters.skills.filter(s => s !== skill));
-  };
+    handleFilterChange('skills', filters.skills.filter(s => s !== skill))
+  }
 
   return (
     <div className={styles["filter"]}>
@@ -128,6 +128,6 @@ export const CandidatesFilter: React.FC<CandidatesFilterProps> = ({
         </label>
       </div>
     </div>
-  );
-};
+  )
+}
 

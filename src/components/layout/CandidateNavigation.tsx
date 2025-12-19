@@ -7,7 +7,7 @@ export const CandidateNavigation: React.FC = () => {
   return (
     <>
       <NavLink 
-        to={`${ROUTES.AI_INTERVIEW.replace(':session_id', 'session_1')}`}
+        to={`${ROUTES.INTERVIEW_HOME.replace(':session_id', 'session_1')}`}
         className={({ isActive }) => 
           `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
         }
@@ -15,20 +15,20 @@ export const CandidateNavigation: React.FC = () => {
         ИНТЕРВЬЮ
       </NavLink>
       <NavLink 
-        to={ROUTES.TECH_CHAT}
+        to={ROUTES.AI_CHAT}
         className={({ isActive }) => 
           `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
         }
       >
-        ЧАТ
+        AI ЧАТ
       </NavLink>
-      <NavLink 
-        to={ROUTES.COMPILER} 
-        className={({ isActive }) => 
+      <NavLink
+        to={ROUTES.CANDIDATE_CHAT}
+        className={({ isActive }) =>
           `${styles["navLink"]} ${isActive ? styles["navLinkActive"] : ''}`
         }
       >
-        КОМПИЛЯТОР
+        HR ЧАТ
       </NavLink>
       <NavLink 
         to={ROUTES.RESUME} 

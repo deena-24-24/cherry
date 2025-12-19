@@ -1,5 +1,5 @@
 import React from 'react'
-import * as styles from './FeatureCard.module.css'
+import { Button } from '../Button/Button'
 
 export interface FeatureCardProps {
   title: string
@@ -110,7 +110,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
         </div>
       </div>
       {buttonLeft && buttonTop && (
-        <button style={buttonStyle} onClick={onButtonClick}>
+        <Button style={buttonStyle} onClick={onButtonClick}>
           <div style={{
             color: '#082060',
             fontSize: '15px',
@@ -122,7 +122,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
           }}>
             перейти
           </div>
-        </button>
+        </Button>
       )}
     </>
   )

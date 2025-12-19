@@ -1,5 +1,5 @@
-import React from "react";
-import * as styles from "./Avatar.module.css";
+import React from "react"
+import * as styles from "./Avatar.module.css"
 
 export interface AvatarStyleProps {
   width?: string;
@@ -32,7 +32,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     borderColor: styleProps.borderColor,
     borderRadius: styleProps.borderRadius,
     marginLeft: styleProps.marginLeft,
-  } : {};
+  } : {}
 
   return (
     <>
@@ -63,6 +63,6 @@ export const Avatar: React.FC<AvatarProps> = ({
         </div>
       )}
     </>
-  );
-};
+  )
+}
 

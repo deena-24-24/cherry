@@ -1,7 +1,7 @@
 .hero-banner {
     position: relative;
     width: 100vw;
-    height: 90vh;
+    height: 95vh;
     margin-bottom: 0;
     overflow: hidden;
 }
@@ -10,7 +10,7 @@
 .hero-bg {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, var(--lavand), var(--peach));
+    background: linear-gradient(135deg, var(--peach), var(--lavand));
     z-index: 1;
     margin: 50px clamp(30px, 5vw, 200px) 0;
 }
@@ -92,6 +92,9 @@
     }
     .hero-bg{
         margin: 0;
+    }
+    .hero-text h1 {
+        font-size: 40px;
     }
 
     .hero-text {

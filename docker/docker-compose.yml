@@ -1,0 +1,19 @@
+# docker/docker-compose.yml
+version: '3.8'
+
+services:
+  cherry-backend:
+    build:
+      context: ..  # корень проекта
+      dockerfile: docker/Dockerfile.backend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - FRONTEND_ORIGIN=http://localhost:8099
+    volumes:
+      # Монтируем весь проект для hot-reload при разработке
+      - ../:/app
+      - /app/node_modules
+      - /app/dist
+    working_dir: /app

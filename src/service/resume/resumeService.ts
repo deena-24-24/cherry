@@ -1,16 +1,16 @@
-import { Resume } from '../../types/resume';
-import { useAuthStore } from '../../store';
+import { Resume } from '../../types/resume'
+import { useAuthStore } from '../../store'
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5000/api'
 
 /**
  * Получение резюме пользователя
  */
 export const fetchResume = async (): Promise<Resume> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/candidate/resume`, {
@@ -19,25 +19,24 @@ export const fetchResume = async (): Promise<Resume> => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     }
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка загрузки резюме');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка загрузки резюме')
   }
 
-  const data = await response.json();
-  return data;
-};
+  return await response.json()
+}
 
 /**
  * Обновление резюме пользователя
  */
 export const updateResume = async (resume: Resume): Promise<Resume> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/candidate/resume`, {
@@ -47,14 +46,14 @@ export const updateResume = async (resume: Resume): Promise<Resume> => {
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify(resume)
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка сохранения резюме');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка сохранения резюме')
   }
 
-  const data = await response.json();
-  return data.resume;
-};
+  const data = await response.json()
+  return data.resume
+}
 

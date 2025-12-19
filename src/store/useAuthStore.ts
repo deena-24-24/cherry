@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { User } from '../types'
+import * as localStorageService from '../service/storage/localStorageService'
 
 interface AuthState {
   user: User | null;
@@ -10,23 +11,28 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: JSON.parse(localStorage.getItem('user') || 'null'),
-  token: localStorage.getItem('token'),
+  user: localStorageService.getUser(),
+  token: localStorageService.getToken(),
+
   login: (user, token) => {
-    localStorage.setItem('user', JSON.stringify(user))
-    localStorage.setItem('token', token)
+    localStorageService.saveUser(user)
+    localStorageService.saveToken(token)
     set({ user, token })
   },
+
   logout: () => {
-    localStorage.removeItem('user')
-    localStorage.removeItem('token')
+    localStorageService.removeUser()
+    localStorageService.removeToken()
     set({ user: null, token: null })
   },
+
   updateUser: (userData) => {
     const currentUser = get().user
     if (currentUser) {
       const updatedUser = { ...currentUser, ...userData }
-      localStorage.setItem('user', JSON.stringify(updatedUser))
+
+      localStorageService.saveUser(updatedUser)
+
       set({ user: updatedUser })
     }
   },

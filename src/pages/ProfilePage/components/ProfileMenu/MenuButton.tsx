@@ -1,6 +1,6 @@
-import React from "react";
-import { MenuItem } from "../../types";
-import * as styles from "./ProfileMenu.module.css";
+import React from "react"
+import { MenuItem } from "../../types"
+import * as styles from "./ProfileMenu.module.css"
 
 interface MenuButtonProps {
   item: MenuItem;
@@ -17,7 +17,7 @@ export const MenuButton: React.FC<MenuButtonProps> = ({
   positionClass,
   onClick,
 }) => {
-  const isActive = activeMenuItem === item;
+  const isActive = activeMenuItem === item
   
   return (
     <button
@@ -29,6 +29,6 @@ export const MenuButton: React.FC<MenuButtonProps> = ({
     >
       {label}
     </button>
-  );
-};
+  )
+}
 

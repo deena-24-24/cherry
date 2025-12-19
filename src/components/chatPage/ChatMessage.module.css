@@ -10,12 +10,10 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #e9ecef;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: #495057;
 }
 
 .message-content {
@@ -27,7 +25,7 @@
     margin-bottom: 0.25rem;
     font-size: 0.85rem;
     font-weight: bold;
-    color: #6c757d;
+    color: #082060;
 }
 
 .bubble {
@@ -37,9 +35,13 @@
     word-wrap: break-word;
 }
 
-/* Стили для сообщений от ИИ (слева) */
 .message-container.ai {
     align-self: flex-start;
+}
+
+.message-container.ai .avatar {
+    background-color: #c8e6ff;
+    color: #082060;
 }
 
 .message-container.ai .sender-name {
@@ -47,15 +49,14 @@
 }
 
 .message-container.ai .bubble {
-    background-color: #f1f3f5;
-    color: #212529;
+    background-color: #c8e6ff;
+    color: #082060;
     border-top-left-radius: 5px;
 }
 
-/* Стили для сообщений от пользователя (справа) */
 .message-container.user {
     align-self: flex-end;
-    flex-direction: row-reverse; /* Меняем порядок: сначала контент, потом аватар */
+    flex-direction: row-reverse;
 }
 
 .message-container.user .sender-name {
@@ -63,11 +64,12 @@
 }
 
 .message-container.user .avatar {
-    background-color: #cce5ff;
+    background-color: #f2c2c8;
+    color: #082060;
 }
 
 .message-container.user .bubble {
-    background-color: #007bff;
-    color: white;
+    background-color: #78aaff;
+    color: #f5f5ff;
     border-top-right-radius: 5px;
 }

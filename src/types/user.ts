@@ -9,7 +9,6 @@ export interface User {
   about?: string;
   avatar?: string;
   companyName?: string;
-  position?: string;
   isVerified?: boolean;
   profileCompleted?: boolean;
 }

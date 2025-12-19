@@ -1,6 +1,6 @@
-import { useAuthStore } from '../../store';
+import { useAuthStore } from '../../store'
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5000/api'
 
 export interface HrData {
   userId?: string;
@@ -24,10 +24,10 @@ export interface HrData {
  * Получение всех данных HR (профиль)
  */
 export const fetchHr = async (): Promise<HrData> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/hr`, {
@@ -36,25 +36,24 @@ export const fetchHr = async (): Promise<HrData> => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     }
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка загрузки данных HR');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка загрузки данных HR')
   }
 
-  const data = await response.json();
-  return data;
-};
+  return await response.json()
+}
 
 /**
  * Обновление всех данных HR
  */
 export const updateHr = async (hrData: Partial<HrData>): Promise<HrData> => {
-  const { token } = useAuthStore.getState();
+  const { token } = useAuthStore.getState()
   
   if (!token) {
-    throw new Error('Токен не найден');
+    throw new Error('Токен не найден')
   }
 
   const response = await fetch(`${API_BASE_URL}/hr`, {
@@ -64,14 +63,14 @@ export const updateHr = async (hrData: Partial<HrData>): Promise<HrData> => {
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify(hrData)
-  });
+  })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }));
-    throw new Error(errorData.message || 'Ошибка сохранения данных HR');
+    const errorData = await response.json().catch(() => ({ message: 'Ошибка сервера' }))
+    throw new Error(errorData.message || 'Ошибка сохранения данных HR')
   }
 
-  const data = await response.json();
-  return data.hr;
-};
+  const data = await response.json()
+  return data.hr
+}
 

@@ -1,5 +1,5 @@
-import React from "react";
-import * as styles from "./ProgressContent.module.css";
+import React from "react"
+import * as styles from "./ProgressContent.module.css"
 
 export const ProgressContent: React.FC = () => {
   return (
@@ -49,5 +49,5 @@ export const ProgressContent: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}

@@ -1,5 +1,5 @@
-import React from "react";
-import * as styles from "./Menu.module.css";
+import React from "react"
+import * as styles from "./Menu.module.css"
 
 export interface MenuItem {
   id: string;
@@ -38,7 +38,7 @@ export const Menu: React.FC<MenuProps> = ({
   const menuStyles: React.CSSProperties = styleProps ? {
     width: styleProps.width,
     height: styleProps.height,
-  } : {};
+  } : {}
 
   const backgroundStyles: React.CSSProperties = styleProps ? {
     width: styleProps.width,
@@ -46,36 +46,36 @@ export const Menu: React.FC<MenuProps> = ({
     background: styleProps.backgroundColor,
     borderColor: styleProps.borderColor,
     borderRadius: styleProps.borderRadius,
-  } : {};
+  } : {}
 
   const activeItemStyles: React.CSSProperties = styleProps ? {
     background: styleProps.activeBackground,
     borderColor: styleProps.activeBorderColor,
     borderRadius: styleProps.borderRadius,
-  } : {};
+  } : {}
 
   const itemStyles: React.CSSProperties = styleProps ? {
     height: styleProps.itemHeight,
     fontSize: styleProps.itemFontSize,
     color: styleProps.itemColor,
     fontFamily: styleProps.itemFontFamily,
-  } : {};
+  } : {}
 
   // Фиксированные позиции как в оригинале
   const getActiveItemTop = (index: number) => {
-    const positions = ['0px', '47px', '95px'];
-    return positions[index] || '0px';
-  };
+    const positions = ['0px', '47px', '95px']
+    return positions[index] || '0px'
+  }
 
   const getButtonTop = (index: number) => {
-    const positions = ['1px', '47px', '95px'];
-    return positions[index] || '1px';
-  };
+    const positions = ['1px', '47px', '95px']
+    return positions[index] || '1px'
+  }
 
   const getDividerTop = (index: number) => {
-    const positions = ['40px', '88px'];
-    return positions[index] || '40px';
-  };
+    const positions = ['40px', '88px']
+    return positions[index] || '40px'
+  }
 
   return (
     <div className={`${styles["menu"]} ${className}`} style={menuStyles}>
@@ -106,14 +106,14 @@ export const Menu: React.FC<MenuProps> = ({
                 left: '0px',
               }}
             />
-          );
+          )
         }
-        return null;
+        return null
       })}
 
       {/* Кнопки меню */}
       {items.map((item, index) => {
-        const isActive = item.id === activeItemId;
+        const isActive = item.id === activeItemId
         return (
           <button
             key={item.id}
@@ -127,9 +127,9 @@ export const Menu: React.FC<MenuProps> = ({
           >
             {item.label}
           </button>
-        );
+        )
       })}
     </div>
-  );
-};
+  )
+}
 
