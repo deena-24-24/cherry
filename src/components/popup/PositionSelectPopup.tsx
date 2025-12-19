@@ -1,6 +1,5 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '../ui/Button/Button'
 import * as styles from './PositionSelectPopup.module.css'
 
 export type InterviewPosition = 'frontend' | 'backend' | 'fullstack'

@@ -1,6 +1,6 @@
 // components/interview/CodeConsole.tsx
 import React, { useState, useEffect } from 'react'
-import { compilerService } from '../../service/interview/compilerService'
+import { compilerService } from '../../service/api/compilerService'
 import { Button } from '../ui/Button/Button'
 import Editor from 'react-simple-code-editor'
 import hljs from 'highlight.js'

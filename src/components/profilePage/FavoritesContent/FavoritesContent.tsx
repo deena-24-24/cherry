@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { CandidateData } from '../../../service/candidate/candidateService'
-import { fetchFavorites, removeFromFavorites } from '../../../service/hr/candidatesService'
+import { CandidateData } from '../../../service/api/candidateService'
+import { fetchFavorites, removeFromFavorites } from '../../../service/api/candidatesService'
 import { CandidateCard } from '../../candidatesPage/CandidateCard/CandidateCard'
 import { ResumeModal } from '../../candidatesPage/ResumeModal/ResumeModal'
 import * as styles from './FavoritesContent.module.css'

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react"
 import * as styles from "./ProgressContent.module.css"
 import { useAuthStore } from "../../../store"
-import { fetchMyResumes } from "../../../service/resume/resumeService"
-import { interviewService } from '../../../service/interview/interviewService'
+import { fetchMyResumes } from "../../../service/api/resumeService"
+import { interviewService } from '../../../service/api/interviewService'
 import { Resume } from "../../../types/resume"
 import { InterviewSession } from "../../../types"
 

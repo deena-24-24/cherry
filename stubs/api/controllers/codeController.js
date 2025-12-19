@@ -103,7 +103,6 @@ class CodeController {
       if (language === 'javascript') {
         filepath = path.join(this.tempDir, `${filename}.js`);
 
-        // КРИТИЧНО: Добавляем вызов функции sum с аргументами из stdin
         const wrappedCode = this.wrapJavaScriptCode(code, stdin);
         await fs.writeFile(filepath, wrappedCode);
         command = `node "${filepath}"`;
@@ -111,7 +110,6 @@ class CodeController {
       } else if (language === 'python') {
         filepath = path.join(this.tempDir, `${filename}.py`);
 
-        // КРИТИЧНО: Добавляем вызов функции sum с аргументами из stdin
         const wrappedCode = this.wrapPythonCode(code, stdin);
         await fs.writeFile(filepath, wrappedCode);
         command = `python "${filepath}"`;

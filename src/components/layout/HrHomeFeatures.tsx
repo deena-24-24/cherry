@@ -17,7 +17,6 @@ export const HrHomeFeatures: React.FC = () => {
     const cards = cardsRef.current
     const grid = gridRef.current
 
-    // ВАЖНО: теперь mouseleave будет ТОЛЬКО на grid
     const resetAll = () => {
       cards.forEach((c) => {
         gsap.to(c, {

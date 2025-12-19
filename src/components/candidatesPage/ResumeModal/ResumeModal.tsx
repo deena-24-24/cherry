@@ -1,5 +1,5 @@
 import React from 'react'
-import { CandidateData } from '../../../service/candidate/candidateService'
+import { CandidateData } from '../../../service/api/candidateService'
 import * as styles from './ResumeModal.module.css'
 
 interface ResumeModalProps {

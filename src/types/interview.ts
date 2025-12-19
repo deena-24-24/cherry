@@ -30,7 +30,7 @@ export interface TestResult {
   status: CodeExecutionStatus;
   error?: string;
   diff?: string;
-  hidden?: boolean; // Добавляем hidden свойство
+  hidden?: boolean;
 }
 
 export interface CodeExecutionResult {
@@ -44,7 +44,7 @@ export interface CodeExecutionResult {
   passedCount?: number;
   totalCount?: number;
   compileOutput?: string;
-  sessionId?: string; // Добавляем sessionId, если нужно
+  sessionId?: string;
 }
 
 export interface CodeTask {
@@ -457,14 +457,7 @@ export type SocketAIResponseExtended =
   | SocketAIAudioResponseExtended
   | { text: FlexibleText; metadata?: AIMetadata }
 // ============================================================================
-// ОБНОВЛЯЕМ TYPE GUARDS
-//
-// src/types/interview.ts - ДОБАВЛЯЕМ ПОСЛЕ СУЩЕСТВУЮЩИХ ТИПОВ
-
-// ============================================================================
 // БАЗОВЫЕ TYPE GUARDS
-// ============================================================================
-// src/types/interview.ts - ДОБАВЛЯЕМ ПОСЛЕ СУЩЕСТВУЮЩИХ TYPE GUARDS
 
 /**
  * Type guard для проверки InterviewProgress

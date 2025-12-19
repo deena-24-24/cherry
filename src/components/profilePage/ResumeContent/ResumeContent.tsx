@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import { Button } from "../../ui/Button/Button"
 import * as styles from "./ResumeContent.module.css"
 import { Resume } from "../../../types/resume"
-import { fetchMyResumes, createResume, updateResume, deleteResume } from "../../../service/resume/resumeService"
+import { fetchMyResumes, createResume, updateResume, deleteResume } from "../../../service/api/resumeService"
 import { AVAILABLE_POSITIONS } from '../../../constants/positions'
 
 export const ResumeContent: React.FC = () => {

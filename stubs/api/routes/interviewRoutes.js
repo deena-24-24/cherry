@@ -10,7 +10,7 @@ const { validateSessionExists } = require('../middleware/interviewMiddleware');
 router.get('/debug/sessions/:sessionId/check', (req, res) => {
   const { sessionId } = req.params;
   const { mockDB } = require('../mockData');
-  const interviewAI = require('../service/interviewAI');
+  const interviewAI = require('../service/interviewLogicService');
 
   const sessionInDB = mockDB.sessions.find(s => s.id === sessionId);
   const sessionInAI = interviewAI.conversationStates.get(sessionId);

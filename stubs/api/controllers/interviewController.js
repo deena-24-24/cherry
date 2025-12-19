@@ -1,54 +1,39 @@
-// stubs/api/controllers/interviewController.js
+// backend/src/controllers/interviewController.js
 const { mockDB } = require('../mockData');
-const interviewAI = require('../service/interviewAI');
+const interviewLogic = require('../service/interviewLogicService');
+const stateService = require('../service/interviewStateService');
 
 class InterviewController {
-  // stubs/api/controllers/interviewController.js
   async getSession(req, res) {
     try {
       const { sessionId } = req.params;
 
-      console.log(`📡 GET запрос на сессию: ${sessionId}`);
-
-      // 1. Всегда создаем/проверяем в mockDB
-      let session = mockDB.sessions.find(s => s.id === sessionId);
+      // 1. Получаем сессию из БД
+      const session = mockDB.sessions.find(s => s.id === sessionId);
 
       if (!session) {
-        console.log('🆕 Создаем новую сессию в mockDB (fallback - сессия не найдена)');
-        // ВАЖНО: Если сессия не найдена, это ошибка - не создаем новую с дефолтной позицией
-        // Вместо этого возвращаем ошибку, так как сессия должна быть создана через createSession
-        return res.status(404).json({
-          success: false,
-          error: `Session ${sessionId} not found. Please create a session first.`
-        });
+        // Теоретически middleware не пустит сюда без сессии, но для надежности:
+        return res.status(404).json({ success: false, error: 'Session not found in DB' });
       }
 
-      // 2. Всегда создаем/проверяем AI сессию с позицией из существующей сессии
-      let aiState = interviewAI.conversationStates.get(sessionId);
+      // 2. Получаем состояние AI (если есть)
+      let aiState = await stateService.getSession(sessionId);
 
+      // Если в памяти нет, но в БД есть - восстанавливаем/инициализируем
       if (!aiState) {
-        console.log(`🤖 Создаем AI сессию для ${sessionId} с позицией: ${session.position}`);
-        try {
-          // Используем позицию из существующей сессии в mockDB
-          interviewAI.initializeSession(sessionId, session.position || 'frontend');
-          aiState = interviewAI.conversationStates.get(sessionId);
-        } catch (error) {
-          console.log(`⚠️ Ошибка создания AI сессии: ${error.message}`);
-        }
+        console.log(`🤖 Re-initializing AI session for ${sessionId}`);
+        await interviewLogic.initializeSession(sessionId, session.position || 'frontend');
+        aiState = await stateService.getSession(sessionId);
       } else {
-        // Если сессия уже существует, убеждаемся, что позиция совпадает
+        // Синхронизация позиции
         if (aiState.position !== session.position) {
-          console.log(`🔄 Обновляем позицию AI сессии с ${aiState.position} на ${session.position}`);
           aiState.position = session.position;
+          await stateService.updateSession(sessionId, aiState);
         }
       }
 
-      const progress = interviewAI.getInterviewProgress(sessionId) || {
-        totalExchanges: 0,
-        averageScore: 0,
-        topicsCovered: ['введение'],
-        completionPercentage: 0
-      };
+      // 3. Получаем прогресс
+      const progress = interviewLogic.getInterviewProgress(sessionId); // Этот метод внутри вызывает stateService.getSession
 
       res.json({
         success: true,
@@ -59,143 +44,77 @@ class InterviewController {
           messageCount: aiState.conversationHistory?.length || 0,
           position: aiState.position
         } : null,
-        progress
+        progress: await progress // getInterviewProgress теперь может быть async в зависимости от реализации
       });
 
-      console.log(`✅ Сессия ${sessionId} отправлена клиенту`);
     } catch (error) {
-      console.error('❌ Ошибка в getSession:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      console.error('❌ Error in getSession:', error);
+      res.status(500).json({ success: false, error: error.message });
     }
   }
-  // Обновление заметок
+
   async updateNotes(req, res) {
     try {
       const { sessionId } = req.params;
       const { notes } = req.body;
 
-      let session = mockDB.sessions.find(s => s.id === sessionId);
-
-      if (!session) {
-        // Создаем сессию с полной структурой как в mockData.js
-        session = {
-          id: sessionId,
-          title: `Собеседование ${sessionId}`,
-          position: 'Frontend Developer',
-          difficulty: 'middle',
-          status: 'active',
-          candidateId: 'unknown',
-          interviewerId: 'ai_interviewer',
-          createdAt: new Date().toISOString(),
-          notes: notes || '',
-          conversationHistory: []
-        };
-        mockDB.sessions.push(session);
-      } else {
+      const session = mockDB.sessions.find(s => s.id === sessionId);
+      if (session) {
         session.notes = notes || '';
       }
 
-      console.log(`📝 Notes updated for session ${sessionId}`);
-
-      res.json({
-        success: true,
-        session,
-        message: 'Notes updated successfully'
-      });
+      res.json({ success: true, session, message: 'Notes updated' });
     } catch (error) {
-      console.error('Error updating notes:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Обновленный метод для обработки диалога через HTTP
   async handleConversation(req, res) {
     try {
       const { sessionId } = req.params;
       const { message, position = 'frontend' } = req.body;
 
-      console.log(`💬 HTTP Conversation for session ${sessionId}: "${message}"`);
+      const aiResponse = await interviewLogic.getAIResponse(message, position, sessionId);
 
-      // Проверяем существование сессии в БД
-      const session = mockDB.sessions.find(s => s.id === sessionId);
-      if (!session) {
-        return res.status(404).json({
-          success: false,
-          error: 'Session not found'
-        });
-      }
-
-      // Используем позицию из сессии, если не указана в запросе
-      const interviewPosition = position || session.position;
-
-      // Используем новый сервис
-      const aiResponse = await interviewAI.getAIResponse(message, interviewPosition, sessionId);
-
-      // Проверяем завершение интервью
       if (aiResponse.metadata?.isInterviewComplete) {
-        console.log(`🏁 Interview completed via HTTP for session ${sessionId}`);
-
-        // Обновляем статус сессии в БД
+        // Обновляем статус в БД
+        const session = mockDB.sessions.find(s => s.id === sessionId);
         if (session) {
           session.status = 'completed';
           session.completedAt = new Date().toISOString();
           session.finalReport = aiResponse.metadata.finalReport;
         }
-
-        return res.json({
-          success: true,
-          assistantResponse: aiResponse.text,
-          conversation: interviewAI.getConversationHistory(sessionId),
-          interviewCompleted: true,
-          finalReport: aiResponse.metadata.finalReport,
-          completionReason: aiResponse.metadata.completionReason
-        });
       }
+
+      // Получаем историю для ответа
+      const state = await stateService.getSession(sessionId);
 
       res.json({
         success: true,
         assistantResponse: aiResponse.text,
-        conversation: interviewAI.getConversationHistory(sessionId),
+        conversation: state ? state.conversationHistory : [],
         metadata: aiResponse.metadata,
-        interviewCompleted: false
+        interviewCompleted: !!aiResponse.metadata?.isInterviewComplete
       });
     } catch (error) {
-      console.error('Error in handleConversation:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      console.error('Conversation Error:', error);
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Получение истории диалога
   async getConversationHistory(req, res) {
     try {
       const { sessionId } = req.params;
 
-      // Проверяем существование сессии
-      const session = mockDB.sessions.find(s => s.id === sessionId);
-      if (!session) {
-        return res.status(404).json({
-          success: false,
-          error: 'Session not found'
-        });
-      }
+      // Используем stateService напрямую
+      const conversationHistory = await stateService.getConversationHistory(sessionId);
+      const progress = await interviewLogic.getInterviewProgress(sessionId);
+      const hasSession = await stateService.hasSession(sessionId);
+      const state = await stateService.getSession(sessionId);
 
-      // Используем новый сервис
-      const conversationHistory = interviewAI.getConversationHistory(sessionId);
-      const progress = interviewAI.getInterviewProgress(sessionId);
-      const aiState = interviewAI.conversationStates.get(sessionId);
-
-      // Если нет активной сессии, проверяем финальный отчет
-      if (!conversationHistory || conversationHistory.length === 0) {
-        const report = interviewAI.evaluationHistory.get(sessionId);
+      // Если активной сессии нет, проверяем отчет
+      if (conversationHistory.length === 0) {
+        const report = await stateService.getReport(sessionId);
         if (report) {
           return res.json({
             success: true,
@@ -208,114 +127,72 @@ class InterviewController {
 
       res.json({
         success: true,
-        conversation: conversationHistory || [],
+        conversation: conversationHistory,
         progress: progress || {},
-        hasActiveSession: !!aiState,
-        currentTopic: aiState?.currentTopic || 'не начато'
+        hasActiveSession: hasSession,
+        currentTopic: state?.currentTopic || 'не начато'
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Ручное завершение собеседования
   async completeInterview(req, res) {
     try {
       const { sessionId } = req.params;
 
-      console.log(`🛑 Manual HTTP interview completion for session ${sessionId}`);
+      const finalReport = await interviewLogic.generateComprehensiveReport(sessionId);
 
-      // Генерируем финальный отчет через новый сервис
-      const finalReport = await interviewAI.generateComprehensiveReport(sessionId);
-
-      // Обновляем статус в mockDB
-      let session = mockDB.sessions.find(s => s.id === sessionId);
+      const session = mockDB.sessions.find(s => s.id === sessionId);
       if (session) {
         session.status = 'completed';
         session.completedAt = new Date().toISOString();
         session.finalReport = finalReport;
       }
 
-      // Очищаем состояние в AI сервисе
-      if (interviewAI.conversationStates && interviewAI.conversationStates.has(sessionId)) {
-        interviewAI.conversationStates.delete(sessionId);
-      }
-
-      // Получаем историю перед очисткой
-      const finalHistory = interviewAI.getConversationHistory(sessionId);
-
-      console.log(`✅ Interview completed for session ${sessionId}`);
-
       res.json({
         success: true,
         session,
         finalReport,
-        conversationHistory: finalHistory,
-        message: `Interview completed with ${finalHistory?.length || 0} messages`
+        message: 'Interview completed'
       });
     } catch (error) {
-      console.error('Error in completeInterview:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Получение сессий пользователя
   async getUserSessions(req, res) {
     try {
       const { userId } = req.params;
       const userSessions = mockDB.sessions.filter(s => s.candidateId === userId);
 
-      // Добавляем информацию из AI-сервиса
-      const sessionsWithAIState = userSessions.map(session => {
-        const aiState = interviewAI.conversationStates.get(session.id);
+      // Обогащаем данными о состоянии AI
+      const sessionsWithState = await Promise.all(userSessions.map(async (session) => {
+        const aiState = await stateService.getSession(session.id);
         return {
           ...session,
           aiActive: !!aiState,
           topic: aiState?.currentTopic,
           messageCount: aiState?.conversationHistory?.length || 0
         };
-      });
+      }));
 
-      res.json({
-        success: true,
-        sessions: sessionsWithAIState,
-        count: sessionsWithAIState.length
-      });
+      res.json({ success: true, sessions: sessionsWithState });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Создание сессии интервью
   async createSession(req, res) {
     try {
       const { userId, position = 'frontend', title } = req.body;
 
-      // Проверяем существование пользователя
-      const user = mockDB.users.find(u => u._id === userId);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          error: 'User not found'
-        });
-      }
-
-      // Генерируем уникальный ID сессии
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
       const newSession = {
         id: sessionId,
-        title: title || `Собеседование на ${position} разработчика`,
-        position: position,
+        title: title || `Собеседование ${position}`,
+        position,
         difficulty: 'middle',
         status: 'active',
         candidateId: userId,
@@ -327,110 +204,73 @@ class InterviewController {
 
       mockDB.sessions.push(newSession);
 
-      // Инициализируем сессию в AI-сервисе
-      const greeting = interviewAI.initializeSession(sessionId, position);
-
-      console.log(`✅ New session created: ${sessionId} for ${position}`);
+      // Инициализируем AI
+      const greeting = await interviewLogic.initializeSession(sessionId, position);
 
       res.status(201).json({
         success: true,
         session: newSession,
-        greeting: greeting?.text || "Готов начать собеседование",
-        sessionId: sessionId
+        greeting: greeting.text,
+        sessionId
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Получение заметок
   async getNotes(req, res) {
     try {
       const { sessionId } = req.params;
       const session = mockDB.sessions.find(s => s.id === sessionId);
 
-      if (!session) {
-        return res.status(404).json({
-          success: false,
-          error: 'Session not found'
-        });
-      }
+      if (!session) return res.status(404).json({ success: false, error: 'Session not found' });
 
-      res.json({
-        success: true,
-        notes: session.notes || ''
-      });
+      res.json({ success: true, notes: session.notes || '' });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Получение финального отчета
   async getFinalReport(req, res) {
     try {
       const { sessionId } = req.params;
 
-      // Проверяем существование сессии
-      const session = mockDB.sessions.find(s => s.id === sessionId);
-      if (!session) {
-        return res.status(404).json({
-          success: false,
-          error: 'Session not found'
-        });
-      }
+      // 1. Проверяем в AI сервисе
+      let report = await stateService.getReport(sessionId);
 
-      // Проверяем в evaluationHistory нового сервиса
-      const report = interviewAI.evaluationHistory.get(sessionId);
+      // 2. Если нет, проверяем в БД
+      if (!report) {
+        const session = mockDB.sessions.find(s => s.id === sessionId);
+        if (session && session.finalReport) {
+          report = session.finalReport;
+        }
+      }
 
       if (!report) {
-        // Если отчета нет, но сессия завершена, генерируем его
-        if (session.status === 'completed' && session.finalReport) {
-          return res.json({
-            success: true,
-            report: session.finalReport,
-            fromCache: true
-          });
-        }
-
-        return res.status(404).json({
-          success: false,
-          error: 'Report not found. Interview might still be active.'
-        });
+        return res.status(404).json({ success: false, error: 'Report not found' });
       }
 
-      res.json({
-        success: true,
-        report
-      });
+      res.json({ success: true, report });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 
-  // Дебаг информация о сессиях
   async debugSessions(req, res) {
     try {
-      const debugInfo = interviewAI.debugServiceUsage();
+      const sessions = await stateService.getAllSessions();
+      const sessionsArray = Array.from(sessions.entries());
 
       res.json({
-        success: true,
-        ...debugInfo,
-        mockDBSessions: mockDB.sessions.length
+        activeSessionsCount: sessions.size,
+        sessions: sessionsArray.map(([id, state]) => ({
+          id,
+          position: state.position,
+          messages: state.conversationHistory?.length
+        }))
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 }

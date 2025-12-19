@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 import { Button } from '../ui/Button/Button'
 import { type User } from '../../types'
-import * as authService from '../../service/auth/authService'
+import * as authService from '../../service/api/authService'
 import * as styles from './AuthPopup.module.css'
 
 interface FormData {
@@ -161,7 +161,6 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
       console.log('Auth response:', data)
 
       if (data && data.user && data.token) {
-        // Добавляем данные из формы регистрации в объект user
         if (activeTab === 'register') {
           const userWithFormData = {
             ...data.user,

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { User } from '../types'
-import * as localStorageService from '../service/storage/localStorageService'
+import * as localStorageService from '../service/api/localStorageService'
 
 interface AuthState {
   user: User | null;

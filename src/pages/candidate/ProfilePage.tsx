@@ -6,7 +6,7 @@ import { ProfileMenu, TabItem } from "../../components/profilePage/ProfileMenu/P
 import { ProgressContent } from "../../components/profilePage/ProgressContent/ProgressContent"
 import { ResumeContent } from "../../components/profilePage/ResumeContent/ResumeContent"
 import { useAuthStore } from "../../store"
-import { fetchUserProfile, updateUserProfile } from "../../service/auth/profileService"
+import { fetchUserProfile, updateUserProfile } from "../../service/api/profileService"
 import * as styles from "./ProfilePage.module.css"
 
 const MENU_ITEMS: TabItem[] = [

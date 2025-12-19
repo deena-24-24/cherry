@@ -1,5 +1,5 @@
 import { useAuthStore } from '../../store'
-import { CandidateData } from '../candidate/candidateService'
+import { CandidateData } from './candidateService'
 import { API_URL } from '../../config'
 
 const API_BASE_URL = `${API_URL}/api`

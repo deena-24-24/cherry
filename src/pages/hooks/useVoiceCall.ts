@@ -1,349 +1,229 @@
-// src/pages/hooks/useVoiceCall.ts
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { socketService } from '../../service/socketService'
-import { voiceService } from '../../service/interview/voiceService'
-import { AIResponse } from '../../types'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { saluteFrontendService } from '../../service/api/saluteFrontendService'
+import { interviewService } from '../../service/api/interviewService'
+import { socketService } from '../../service/realtime/socketService'
 
-export const useVoiceCall = (sessionId: string, position: string) => {
-  const [isRecording, setIsRecording] = useState<boolean>(false)
-  const [transcript, setTranscript] = useState('')
-  const [aiResponse, setAiResponse] = useState('')
+interface UseVoiceCallReturn {
+  isRecording: boolean
+  isAIThinking: boolean
+  isAISpeaking: boolean
+  isMicrophoneBlocked: boolean
+  toggleRecording: () => void
+  transcript: string
+  aiResponse: string
+  error: string | null
+}
+
+export const useVoiceCall = (sessionId: string, position: string): UseVoiceCallReturn => {
+  const [isRecording, setIsRecording] = useState(false)
   const [isAIThinking, setIsAIThinking] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const [transcript, setTranscript] = useState('')
+  const [aiResponse, setAiResponse] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const recognitionRestartAttemptsRef = useRef(0) // Счетчик попыток перезапуска
-  const startRecordingRef = useRef<(() => Promise<void>) | null>(null) // Ref для актуальной функции startRecording
-  const positionRef = useRef(position) // Ref для позиции, чтобы избежать переинициализации
 
-  const fullCleanup = useCallback(() => {
-    console.log('🧹 Performing full cleanup of voice call...')
+  // Блокируем микрофон, если ИИ думает или говорит
+  const isMicrophoneBlocked = isAIThinking || isAISpeaking
 
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop()
-      } catch (e) {
-        console.log(`Recognition already stopped: ${e}`)
-      }
-      recognitionRef.current = null
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const mediaStreamRef = useRef<MediaStream | null>(null)
+  const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null)
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
+  const audioChunksRef = useRef<Float32Array[]>([])
+
+  // Эффект для подписки на события Аудио-сервиса
+  useEffect(() => {
+    // Когда аудио-сервис говорит "я всё", мы снимаем флаг говорения
+    saluteFrontendService.setAudioEndListener(() => {
+      setIsAISpeaking(false)
+    })
+
+    return () => {
+      // Очистка при размонтировании
+      saluteFrontendService.setAudioEndListener(() => {})
     }
-
-    voiceService.stopAudio().catch(console.error)
-    //socketService.disconnect()
-
-    setIsRecording(false)
-    setIsAIThinking(false)
-    setIsAISpeaking(false)
-    setTranscript('')
-    setAiResponse('')
-    setError(null)
-    recognitionRestartAttemptsRef.current = 0
   }, [])
 
   useEffect(() => {
-    // НЕ инициализируем, если позиция еще не загружена
-    if (!position || !sessionId) {
-      console.log(`⏳ Waiting for position to load: session=${sessionId}, position=${position}`)
-      return
-    }
+    if (!sessionId || !position) return
 
-    const handleAIResponse = async (data: AIResponse) => {
-      console.log('🤖 AI Response received:', data.text)
-      if (data.text) {
-        setAiResponse(data.text)
-        setIsAIThinking(false)
-        setError(null)
-
-        setIsAISpeaking(true)
-        try {
-          console.log('🎵 Playing AI audio...')
-          await voiceService.playAssistantResponse(data.text)
-          console.log('✅ AI finished speaking')
-
-          // УВЕЛИЧИВАЕМ ЗАДЕРЖКУ ПЕРЕД ЗАПУСКОМ ЗАПИСИ
-          setTimeout(() => {
-            if (!isRecording && startRecordingRef.current) {
-              console.log('🎤 Starting recording after AI response')
-              startRecordingRef.current()
-            }
-          }, 800) // Было 500, стало 1500 мс
-        } catch (error) {
-          console.error('❌ Error playing AI audio:', error)
-          setTimeout(() => {
-            if (!isRecording && startRecordingRef.current) {
-              startRecordingRef.current()
-            }
-          }, 2000)
-        } finally {
-          setIsAISpeaking(false)
+    const initSocket = async () => {
+      try {
+        if (socketService.getConnectionState() === 'disconnected') {
+          await interviewService.startInterview(sessionId, position)
         }
+
+        // Обработка обычных полных сообщений
+        socketService.onMessage(async (data) => {
+          setIsAIThinking(false)
+          setAiResponse(data.text)
+          setIsAISpeaking(true) // Блокируем микрофон
+          await saluteFrontendService.playAudioFromText(data.text)
+        })
+
+        // --- STREAMING HANDLERS ---
+
+        socketService.onStreamStart(() => {
+          setIsAIThinking(false) // Больше не думает
+          setIsAISpeaking(true)  // Теперь говорит (блокируем микрофон)
+          setAiResponse("")
+        })
+
+        socketService.onStreamChunk((textChunk) => {
+          setAiResponse(prev => prev + textChunk)
+          saluteFrontendService.playAudioFromText(textChunk)
+        })
+
+        socketService.onStreamEnd(() => {
+          // Стрим закончился, но мы НЕ разблокируем микрофон здесь.
+          // Мы ждем, пока saluteFrontendService.onPlaybackEnded вызовет setIsAISpeaking(false)
+          // Это произойдет, когда доиграет последний кусочек из очереди.
+        })
+      } catch (error) {
+        setError(`Ошибка подключения к серверу: ${error}`)
       }
     }
 
-    const handleAIError = (errorMsg: string) => {
-      console.error('AI Error in useVoiceCall:', errorMsg)
-      setError(errorMsg)
-      setIsAIThinking(false)
-      setIsAISpeaking(false)
-
-      setTimeout(() => {
-        if (!isRecording && startRecordingRef.current) {
-          startRecordingRef.current().then()
-        }
-      }, 2000)
-    }
-
-    console.log(`🎯 Initializing voice call: session=${sessionId}, position=${position}`)
-
-    // Обновляем ref для позиции
-    positionRef.current = position
-
-    socketService.connect(sessionId, position).then()
-    socketService.onMessage(handleAIResponse)
-    socketService.onError(handleAIError)
-
-    // УВЕЛИЧИВАЕМ НАЧАЛЬНУЮ ЗАДЕРЖКУ
-    const timer = setTimeout(() => {
-      console.log('🎤 Starting initial recording...')
-      if (startRecordingRef.current) {
-        startRecordingRef.current().then()
-      }
-    }, 2000)
+    initSocket()
 
     return () => {
-      console.log('🔴 useVoiceCall unmounting - cleaning up...')
-      clearTimeout(timer)
-      socketService.offMessage()
-      socketService.offError()
-      fullCleanup()
+      interviewService.cleanup()
+      saluteFrontendService.stopAudio()
+      stopAudioCapture()
     }
-  }, [sessionId, position, fullCleanup]) // Добавили position обратно в зависимости
+  }, [sessionId, position])
 
-  const stopRecording = useCallback(() => {
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop()
-      } catch (error) {
-        console.log('Error stopping recognition:', error)
-      }
-      recognitionRef.current = null
+  const stopAudioCapture = () => {
+    if (scriptProcessorRef.current) {
+      scriptProcessorRef.current.disconnect(); scriptProcessorRef.current = null
     }
-    setIsRecording(false)
-    console.warn('⏹️ Recording stopped')
-  }, [])
+    if (sourceRef.current) {
+      sourceRef.current.disconnect(); sourceRef.current = null
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop()); mediaStreamRef.current = null
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close(); audioContextRef.current = null
+    }
+  }
 
   const startRecording = useCallback(async () => {
-    if (isRecording) {
-      console.log('Recording already started')
+    // Строгая блокировка
+    if (isMicrophoneBlocked) {
+      console.warn('Микрофон заблокирован, пока ИИ активен')
       return
-    }
-
-    if (isAISpeaking || isAIThinking) {
-      console.log('⏳ Cannot start recording - AI is speaking or thinking')
-      return
-    }
-
-    const SpeechRecognitionImpl = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SpeechRecognitionImpl) {
-      console.error('Speech Recognition API is not supported in this browser.')
-      setError('Speech Recognition API не поддерживается в этом браузере')
-      return
-    }
-
-    console.log('✅ Speech Recognition API available')
-
-    // Останавливаем предыдущее распознавание
-    if (recognitionRef.current) {
-      recognitionRef.current.stop()
-    }
-
-    // SpeechRecognition сам запрашивает доступ к микрофону
-    // НЕ нужно вызывать getUserMedia - это создает конфликт!
-    const recognition = new SpeechRecognitionImpl()
-    recognition.lang = 'ru-RU'
-    recognition.continuous = false  // Как в старом рабочем коде
-    recognition.interimResults = true
-    recognition.maxAlternatives = 1
-
-    recognition.onstart = () => {
-      console.log('🎤 Speech recognition started, waiting for speech...')
-    }
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const last = event.results.length - 1
-      const text = event.results[last][0].transcript.trim()
-      setTranscript(text)
-
-      if (event.results[last].isFinal) {
-        console.log('🎯 Final transcript:', text)
-        setIsAIThinking(true)
-        recognitionRestartAttemptsRef.current = 0 // Сбрасываем счетчик при успешном распознавании
-
-        // Используем актуальную позицию из ref
-        const success = socketService.sendTranscript(sessionId, text, positionRef.current)
-        if (success) {
-          stopRecording()
-        } else {
-          console.error('Failed to send transcript, keeping recording active')
-          setIsAIThinking(false)
-        }
-      }
-    }
-
-    recognition.onerror = (event: any) => {
-      console.error('❌ Speech recognition error:', event.error, event)
-
-      // Ошибки доступа к микрофону
-      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        console.error('🚫 Microphone access denied in Speech Recognition')
-        setError('Доступ к микрофону запрещен. Пожалуйста, разрешите доступ к микрофону в настройках браузера.')
-        setIsRecording(false)
-        return
-      }
-
-      // Ошибки отсутствия микрофона
-      if (event.error === 'no-speech') {
-        console.log('🔇 No speech detected - increasing restart delay')
-        recognitionRestartAttemptsRef.current++
-
-        // УВЕЛИЧИВАЕМ ЗАДЕРЖКУ ПЕРЕД ПЕРЕЗАПУСКОМ ПРИ no-speech
-        const delay = Math.min(1000 * recognitionRestartAttemptsRef.current, 5000)
-        console.log(`🔄 Restarting recognition in ${delay}ms (attempt ${recognitionRestartAttemptsRef.current})`)
-
-        setTimeout(() => {
-          if (isRecording && !isAIThinking && !isAISpeaking) {
-            try {
-              // Используем recognition напрямую из замыкания, как в старом коде
-              recognition.start()
-            } catch (error) {
-              console.error('Error restarting recognition:', error)
-            }
-          }
-        }, delay)
-        return
-      }
-
-      // Ошибка сети - перезапускаем
-      if (event.error === 'network') {
-        console.warn('🌐 Network error in speech recognition - will retry')
-        recognitionRestartAttemptsRef.current++
-        
-        const delay = Math.min(2000 * recognitionRestartAttemptsRef.current, 10000)
-        console.log(`🔄 Retrying recognition after network error in ${delay}ms (attempt ${recognitionRestartAttemptsRef.current})`)
-        
-        setTimeout(() => {
-          if (isRecording && !isAIThinking && !isAISpeaking) {
-            try {
-              // Используем recognition напрямую из замыкания, как в старом коде
-              recognition.start()
-              console.log('🔄 Recognition restarted after network error')
-            } catch (error) {
-              console.error('❌ Error restarting recognition after network error:', error)
-            }
-          }
-        }, delay)
-        return
-      }
-
-      // Нормальная остановка
-      if (event.error === 'aborted') {
-        console.log('⏹️ Recognition aborted - normal when stopping')
-        return
-      }
-
-      // Другие ошибки
-      console.error('❌ Unhandled recognition error:', event.error)
-      setError(`Ошибка распознавания речи: ${event.error}`)
-      setIsRecording(false)
-    }
-
-    recognition.onend = () => {
-      console.log('Recognition ended')
-
-      // УВЕЛИЧИВАЕМ БАЗОВУЮ ЗАДЕРЖКУ ПЕРЕЗАПУСКА
-      // ВАЖНО: используем recognition напрямую из замыкания, как в старом рабочем коде
-      if (isRecording && !isAIThinking && !isAISpeaking) {
-        const baseDelay = 2000 // Было 500, стало 2000 мс
-        const attemptDelay = Math.min(baseDelay * (recognitionRestartAttemptsRef.current + 1), 10000)
-
-        console.log(`🔄 Restarting recognition in ${attemptDelay}ms`)
-        setTimeout(() => {
-          if (isRecording && !isAIThinking && !isAISpeaking) {
-            try {
-              // Используем recognition напрямую из замыкания, как в старом коде
-              recognition.start()
-              console.log('🎤 Recognition restarted successfully')
-            } catch (error) {
-              console.error('Error restarting recognition:', error)
-            }
-          }
-        }, attemptDelay)
-      } else {
-        // Если не перезапускаем, сбрасываем флаг записи
-        setIsRecording(false)
-      }
     }
 
     try {
-      console.log('🚀 Attempting to start speech recognition...')
-      console.log('🔍 Recognition object:', {
-        lang: recognition.lang,
-        continuous: recognition.continuous,
-        interimResults: recognition.interimResults,
-        serviceURI: (recognition as any).serviceURI || 'default'
-      })
-      
-      // Проверяем, что мы на HTTPS или localhost (требование SpeechRecognition)
-      const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      if (!isSecure) {
-        console.warn('⚠️ SpeechRecognition requires HTTPS or localhost. Current protocol:', window.location.protocol)
-        setError('SpeechRecognition требует HTTPS соединение или localhost')
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      mediaStreamRef.current = stream
+      const audioContext = new AudioContext()
+      await audioContext.resume()
+      audioContextRef.current = audioContext
+
+      const source = audioContext.createMediaStreamSource(stream)
+      sourceRef.current = source
+      const processor = audioContext.createScriptProcessor(4096, 1, 1)
+      scriptProcessorRef.current = processor
+      audioChunksRef.current = []
+
+      processor.onaudioprocess = (e) => {
+        const inputData = e.inputBuffer.getChannelData(0)
+        audioChunksRef.current.push(new Float32Array(inputData))
       }
-      
-      recognition.start()
-      recognitionRef.current = recognition
+
+      source.connect(processor)
+      processor.connect(audioContext.destination)
       setIsRecording(true)
-      recognitionRestartAttemptsRef.current = 0 // Сбрасываем счетчик при успешном запуске
-      console.log('🎤 Recording started - waiting for user speech...')
-      setError(null) // Очищаем ошибки при успешном запуске
-    } catch (error) {
-      console.error('❌ Error starting recognition:', error)
-      console.error('❌ Error details:', {
-        name: error?.name,
-        message: error?.message,
-        stack: error?.stack
-      })
-      setError(`Ошибка запуска распознавания: ${error.message || 'Неизвестная ошибка'}`)
+      setError(null)
+    } catch (err) {
+      console.error(err)
+      setError('Ошибка подключения к микрофону')
     }
-  }, [sessionId, position, isRecording, isAIThinking, isAISpeaking, stopRecording])
+  }, [isMicrophoneBlocked])
 
-  // Обновляем ref при изменении функции
-  useEffect(() => {
-    startRecordingRef.current = startRecording
-  }, [startRecording])
+  const stopRecording = useCallback(async () => {
+    if (!isRecording) return
+    setIsRecording(false)
+    setIsAIThinking(true) // Блокируем микрофон, переходим в режим ожидания
 
-  // Обновляем positionRef при изменении позиции
-  useEffect(() => {
-    positionRef.current = position
-  }, [position])
+    const buffers = audioChunksRef.current
+    const totalLength = buffers.reduce((acc, b) => acc + b.length, 0)
+    const result = new Float32Array(totalLength)
+    let offset = 0
+    for(const b of buffers) { result.set(b, offset); offset += b.length }
+
+    const resampled = downsampleBuffer(result, audioContextRef.current?.sampleRate || 44100, 16000)
+    const pcm = convertFloatTo16BitPCM(resampled)
+
+    stopAudioCapture()
+
+    const blob = new Blob([pcm], { type: 'application/octet-stream' })
+
+    try {
+      const text = await saluteFrontendService.recognizeAudio(blob)
+      if(text) {
+        setTranscript(text)
+        socketService.sendTranscript(sessionId, text, position)
+        // isAIThinking остается true -> микрофон заблокирован до ответа
+      } else {
+        setIsAIThinking(false) // Если не распознали, разблокируем
+      }
+    } catch(e) {
+      console.error(e)
+      setIsAIThinking(false) // При ошибке разблокируем
+      setError('Ошибка распознавания речи')
+    }
+  }, [isRecording, sessionId, position])
 
   const toggleRecording = useCallback(() => {
-    if (isRecording) {
-      stopRecording()
-    } else {
-      startRecording().then()
-    }
-  }, [isRecording, startRecording, stopRecording])
+    if (!isRecording && isMicrophoneBlocked) return
+
+    isRecording ? stopRecording() : startRecording()
+  }, [isRecording, startRecording, stopRecording, isMicrophoneBlocked])
 
   return {
     isRecording,
     isAIThinking,
     isAISpeaking,
-    startRecording,
-    stopRecording,
+    isMicrophoneBlocked,
     toggleRecording,
     transcript,
     aiResponse,
     error
   }
+}
+
+// Helpers
+function downsampleBuffer(buffer: Float32Array, sampleRate: number, outSampleRate: number): Float32Array {
+  if (outSampleRate === sampleRate) return buffer
+  if (outSampleRate > sampleRate) return buffer
+  const sampleRateRatio = sampleRate / outSampleRate
+  const newLength = Math.round(buffer.length / sampleRateRatio)
+  const result = new Float32Array(newLength)
+  let offsetResult = 0
+  let offsetBuffer = 0
+  while (offsetResult < result.length) {
+    const nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio)
+    let accum = 0, count = 0
+    for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+      accum += buffer[i]; count++
+    }
+    result[offsetResult] = count > 0 ? accum / count : 0
+    offsetResult++; offsetBuffer = nextOffsetBuffer
+  }
+  return result
+}
+
+function convertFloatTo16BitPCM(buffer: Float32Array): ArrayBuffer {
+  const l = buffer.length
+  const buffer16 = new ArrayBuffer(l * 2)
+  const view = new DataView(buffer16)
+  for (let i = 0; i < l; i++) {
+    let s = Math.max(-1, Math.min(1, buffer[i]))
+    s = s < 0 ? s * 0x8000 : s * 0x7FFF
+    view.setInt16(i * 2, s, true)
+  }
+  return buffer16
 }

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { chatService, ChatPreview, FullChat } from '../service/chat/chatService'
+import { chatService, ChatPreview, FullChat } from '../service/api/chatService'
 
 interface ChatState {
   chats: ChatPreview[];
