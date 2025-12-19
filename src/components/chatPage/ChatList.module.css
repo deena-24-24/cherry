@@ -99,10 +99,6 @@
     background: var(--color-accent);
 }
 
-/* ===============================
-   ADAPTIVE CHAT LIST
-   =============================== */
-
 /* Планшеты и ниже */
 @media (max-width: 1024px) {
     .chat-list-sidebar {
@@ -130,7 +126,6 @@
         position: sticky;
         top: 0;
         z-index: 2;
-        background-color: var(--color-secondary);
     }
 
     .chat-item {
