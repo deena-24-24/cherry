@@ -4,7 +4,7 @@
     background: var(--cloud);
     padding: 40px 60px;
     font-family: 'Inter', sans-serif;
-    margin-top: 80px;
+    margin-top: var(--header-height);
 }
 
 /* Контейнер */
@@ -66,7 +66,7 @@
 .ihp-hero-btn {
     padding: 12px 22px;
     background: var(--peach);
-    color: var(--navy);
+    color: var(--color-primary-blue);
     border: none;
     border-radius: 8px;
     font-size: 18px;
@@ -86,7 +86,7 @@
 .ihp-section-title {
     font-size: 22px;
     font-weight: 700;
-    color: var(--navy);
+    color: var(--color-primary-blue);
     margin-bottom: 20px;
 }
 
@@ -104,7 +104,7 @@
 .ihp-interview-title {
     font-size: 18px;
     font-weight: 700;
-    color: var(--navy);
+    color: var(--color-primary-blue);
 }
 
 .ihp-interview-date {
@@ -112,7 +112,7 @@
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    color: var(--navy);
+    color: var(--color-primary-blue);
 }
 
 .ihp-calendar {
@@ -132,14 +132,6 @@
 
 .ihp-interview-btn:hover {
     background: var(--maroon);
-}
-
-/* Bottom text */
-.ihp-bottom-info {
-    margin-bottom: 40px;
-    text-align: center;
-    font-size: 14px;
-    color: var(--navy);
 }
 
 /* =========================
@@ -175,7 +167,7 @@
 @media (max-width: 768px) {
     .ihp-wrapper {
         padding: 20px 16px;
-        margin-top: 80px;
+        margin-top: var(--header-height);
     }
 
     .ihp-container {

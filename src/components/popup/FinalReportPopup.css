@@ -41,7 +41,7 @@
 }
 
 .frp-container::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-light);
+    background: var(--cloud);
 }
 
 /* ========================= */
@@ -99,7 +99,7 @@
 
 /* Close button */
 .frp-close-btn {
-    background: transparent !important;
+    background: transparent;
     border: none;
     font-size: 22px;
     cursor: pointer;

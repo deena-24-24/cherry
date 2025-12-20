@@ -30,7 +30,7 @@ class SocketService {
         resolve(true)
       })
 
-      this.socket?.on('ai-audio-response', (data: any) => {
+      this.socket?.on('ai-audio-response', (data: AIResponse) => {
         if (this.onMessageCallback) this.onMessageCallback(data)
       })
 
@@ -51,7 +51,7 @@ class SocketService {
         if (this.onCompletionStartedCallback) this.onCompletionStartedCallback()
       })
 
-      this.socket?.on('interview-completed', (data: any) => {
+      this.socket?.on('interview-completed', (data: SocketInterviewCompleted) => {
         if (this.onInterviewCompletedCallback) this.onInterviewCompletedCallback(data)
       })
     })

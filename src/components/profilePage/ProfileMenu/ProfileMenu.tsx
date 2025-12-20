@@ -1,3 +1,4 @@
+
 import React from "react"
 import * as styles from "./ProfileMenu.module.css"
 
@@ -26,6 +27,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             key={item.id}
             className={`${styles["tab"]} ${isActive ? styles["active"] : ''}`}
             onClick={() => onItemChange(item.id)}
+            type="button"
           >
             {item.label}
           </button>

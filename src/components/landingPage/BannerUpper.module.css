@@ -41,7 +41,7 @@
 .description {
     font-size: 1.25rem;
     line-height: 1.6;
-    color: var(--color-text-secondary, var(--navy));
+    color: var(--color-primary-blue, var(--navy));
     margin: 0;
     max-width: 600px;
 }

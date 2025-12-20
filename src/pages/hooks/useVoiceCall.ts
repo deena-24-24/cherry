@@ -180,7 +180,11 @@ export const useVoiceCall = (sessionId: string, position: string): UseVoiceCallR
   const toggleRecording = useCallback(() => {
     if (!isRecording && isMicrophoneBlocked) return
 
-    isRecording ? stopRecording() : startRecording()
+    if (isRecording) {
+      stopRecording()
+    } else {
+      startRecording()
+    }
   }, [isRecording, startRecording, stopRecording, isMicrophoneBlocked])
 
   return {

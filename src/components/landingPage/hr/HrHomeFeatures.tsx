@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import * as styles from "./HrHomeFeatures.module.css"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { ROUTES } from '../../router/routes'
+import { ROUTES } from '../../../router/routes'
 
 gsap.registerPlugin(ScrollTrigger)
 

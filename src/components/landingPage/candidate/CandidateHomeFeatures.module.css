@@ -44,10 +44,12 @@
 
 .pink {
     border-color: var(--maroon);
+    color: var(--color-primary-blue);
 }
 
 .blue {
     border-color: var(--navy);
+    color: var(--color-primary-red);
 }
 
 .cardTitle {

@@ -3,7 +3,7 @@
     background: #F6F8FF;
     padding: 40px 60px;
     font-family: 'Inter', sans-serif;
-    margin-top: 80px;
+    margin-top: var(--header-height);
 }
 
 .irp-container {

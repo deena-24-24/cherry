@@ -12,12 +12,12 @@
 }
 
 .positionTitle {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 24px;
   font-family: 'Anek Telugu', sans-serif;
   font-weight: 600;
   text-transform: uppercase;
-  border-bottom: 2px solid #C8E6FF;
+  border-bottom: 2px solid var(--cloud);
   padding-bottom: 10px;
 }
 
@@ -29,14 +29,13 @@
   position: relative;
   background: #F5F5FF;
   border-radius: 15px;
-  border: 1px #78AAFF solid;
+  border: 1px var(--lavand) solid;
   margin-bottom: 20px;
 }
 
 /* Блок собеседований */
 .interviewsBlock {
   width: 100%;
-  max-width: 807px;
   height: 233px;
   position: relative;
   display: flex;
@@ -45,18 +44,18 @@
 
 .interviewCardLeft {
   flex: 1.5;
-  background: #F5F5FF;
+  background: var(--ui-bg-card);
   border-radius: 15px;
-  border: 1px #78AAFF solid;
+  border: 1px var(--lavand) solid;
   position: relative;
   padding: 20px;
 }
 
 .interviewCardRight {
   flex: 1;
-  background: #F5F5FF;
+  background: var(--ui-bg-card);
   border-radius: 15px;
-  border: 1px #78AAFF solid;
+  border: 1px var(--lavand) solid;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -66,7 +65,7 @@
 
 /* Текстовые стили */
 .cardTitle {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 24px;
   font-family: 'Geist', sans-serif;
   font-weight: 500;
@@ -82,21 +81,21 @@
 }
 
 .statLabel {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 24px;
   font-family: 'Geist', sans-serif;
   font-weight: 400;
 }
 
 .statValue {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 24px;
   font-family: 'Geist', sans-serif;
   font-weight: 400;
 }
 
 .scoreTitle {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 16px;
   font-family: 'Geist', sans-serif;
   font-weight: 500;
@@ -106,7 +105,7 @@
 }
 
 .scoreValue {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 64px;
   font-family: 'Geist', sans-serif;
   font-weight: 700;

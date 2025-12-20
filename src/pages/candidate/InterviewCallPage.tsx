@@ -50,7 +50,7 @@ export const InterviewCallPage: React.FC = () => {
   const reportTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const [voiceActivity, setVoiceActivity] = useState(0)
+  const [_voiceActivity, setVoiceActivity] = useState(0)
   const [isConnected, setIsConnected] = useState(false)
   const [interviewPosition, setInterviewPosition] = useState<string | null>(null)
 
@@ -194,7 +194,6 @@ export const InterviewCallPage: React.FC = () => {
     }
   }, [handleInterviewCompleted])
 
-  // ... (Остальная часть хука useVoiceCall без изменений)
   const shouldInitVoice = !!sessionId && !!interviewPosition
 
   const {
@@ -204,8 +203,7 @@ export const InterviewCallPage: React.FC = () => {
     isMicrophoneBlocked,
     toggleRecording,
     transcript,
-    aiResponse,
-    error: voiceError
+    aiResponse
   } = useVoiceCall(
     shouldInitVoice ? sessionId : '',
     shouldInitVoice ? interviewPosition! : ''
@@ -250,7 +248,7 @@ export const InterviewCallPage: React.FC = () => {
   }, [isRecording, transcript, isCallActive])
 
   // Ручное завершение кнопкой "Завершить"
-  const handleEndCall = useCallback(async (reason: 'user' | 'system' | 'error' = 'user') => {
+  const handleEndCall = useCallback(async (_reason: 'user' | 'system' | 'error' = 'user') => {
     if (!isCallActive || isInterviewEnded) return
 
     setIsInterviewEnded(true)

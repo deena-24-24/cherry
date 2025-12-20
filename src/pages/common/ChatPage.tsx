@@ -114,8 +114,8 @@ export const ChatPage: React.FC = () => {
         ) : (
           <div className={styles['no-chat-selected']}>
             <div>
-              <h2>Выберите чат</h2>
-              <p>Чтобы начать общение с представителем компании или кандидатом</p>
+              <h2 style={{ color: 'var(--lavand)' }}>Выберите чат</h2>
+              <p style={{ color: 'var(--lavand)' }}>Чтобы начать общение с представителем компании или кандидатом</p>
             </div>
           </div>
         )}

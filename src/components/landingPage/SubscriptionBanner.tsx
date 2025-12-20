@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '../ui/Button/Button'
-import * as styles from'./SubscriptionBanner.module.css'
+import * as styles from './SubscriptionBanner.module.css'
 
 export const SubscriptionBanner: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)

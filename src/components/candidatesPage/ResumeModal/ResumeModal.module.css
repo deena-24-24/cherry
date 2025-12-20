@@ -33,7 +33,7 @@
   background: #F5F5FF;
   border-radius: 50%;
   font-size: 24px;
-  color: #082060;
+  color: var(--color-primary-blue);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -42,17 +42,17 @@
 }
 
 .closeButton:hover {
-  background: #E9F0FF;
+  background: var(--color-background);
 }
 
 .resumeHeader {
   margin-bottom: 30px;
   padding-bottom: 16px;
-  border-bottom: 3px solid #78AAFF;
+  border-bottom: 3px solid var(--lavand);
 }
 
 .resumeTitle {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 36px;
   font-family: 'Anek Telugu', sans-serif;
   font-weight: 600;
@@ -61,7 +61,7 @@
 }
 
 .candidateName {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 24px;
   font-family: 'Geist', sans-serif;
   font-weight: 600;
@@ -77,18 +77,18 @@
   background: #F5F5FF;
   border-radius: 15px;
   padding: 20px;
-  border: 1px solid #082060;
+  border: 1px solid var(--color-primary-blue);
 }
 
 .sectionTitle {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 20px;
   font-family: 'Anek Telugu', sans-serif;
   font-weight: 600;
   text-transform: uppercase;
   margin-bottom: 15px;
   padding-bottom: 10px;
-  border-bottom: 2px solid #78AAFF;
+  border-bottom: 2px solid var(--lavand);
 }
 
 .infoRow {
@@ -99,7 +99,7 @@
 }
 
 .label {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 14px;
   font-family: 'Anek Telugu', sans-serif;
   font-weight: 600;
@@ -107,7 +107,7 @@
 }
 
 .value {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 16px;
   font-family: 'Geist', sans-serif;
 }
@@ -116,7 +116,7 @@
 .educationItem {
   margin-bottom: 20px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #D9D9D9;
+  border-bottom: 1px solid var(--cloud);
 }
 
 .experienceItem:last-child,
@@ -128,7 +128,7 @@
 
 .experiencePeriod,
 .educationYear {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 5px;
@@ -136,7 +136,7 @@
 
 .experienceCompany,
 .educationInstitution {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 5px;
@@ -144,7 +144,7 @@
 
 .experienceTitle,
 .educationDegree {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 16px;
   margin-bottom: 5px;
 }
@@ -162,18 +162,18 @@
 }
 
 .skillTag {
-  background: #F2C2C8;
+  background: var(--peach);
   border-radius: 7px;
-  border: 1px solid #78AAFF;
+  border: 1px solid var(--lavand);
   padding: 6px 12px;
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 14px;
   font-family: 'Anek Telugu', sans-serif;
   font-weight: 500;
 }
 
 .aboutText {
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 16px;
   font-family: 'Geist', sans-serif;
   line-height: 1.6;
@@ -187,7 +187,7 @@
   padding: 15px;
   background: white;
   border-radius: 8px;
-  border: 1px solid #082060;
+  border: 1px solid var(--color-primary-blue);
 }
 
 .fileIcon {
@@ -196,19 +196,19 @@
 
 .fileName {
   flex: 1;
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 16px;
   font-family: 'Geist', sans-serif;
 }
 
 .downloadLink {
-  color: #082060;
+  color: var(--color-primary-blue);
   text-decoration: underline;
   font-size: 14px;
   cursor: pointer;
 }
 
 .downloadLink:hover {
-  color: #78AAFF;
+  color: var(--lavand);
 }
 

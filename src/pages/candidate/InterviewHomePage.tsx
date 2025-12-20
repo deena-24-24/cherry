@@ -98,11 +98,6 @@ export const InterviewHomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* Дополнительная информация */}
-        <div className={styles["ihp-bottom-info"]}>
-          <p>После нажатия кнопки вы попадете в виртуальную комнату собеседования</p>
-        </div>
-
         {/* Карточки фич */}
         <h3 className={styles["ihp-section-title"]}>ВАШИ ИНТЕРВЬЮ</h3>
 

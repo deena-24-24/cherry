@@ -24,7 +24,7 @@
 
 /* Заголовок */
 .subscription__title {
-    color: var(--navy);
+    color: var(--color-primary-blue);
     font-size: clamp(24px, 4vw, 45px);
     font-family: 'Anek Tamil', sans-serif;
     font-weight: 700;

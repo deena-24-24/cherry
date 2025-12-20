@@ -138,8 +138,7 @@ class InterviewLogicService {
       this.backgroundAnalysis(state, transcript, aiReplyText, sessionId);
       await stateService.updateSession(sessionId, state);
 
-      // 5. ПРОВЕРКА НА ЗАВЕРШЕНИЕ ПО СОДЕРЖАНИЮ ОТВЕТА (НОВОЕ!)
-      // Если ИИ сам решил попрощаться (сгенерировал "Всего доброго" и т.п.)
+      // 5. ПРОВЕРКА НА ЗАВЕРШЕНИЕ ПО СОДЕРЖАНИЮ ОТВЕТА
       const lowerReply = aiReplyText.toLowerCase();
       const isNaturalGoodbye = ["всего доброго", "до свидания", "завершаем", "на этом всё", "спасибо за уделенное время", "подготовлю отчет"].some(phrase => lowerReply.includes(phrase));
 
