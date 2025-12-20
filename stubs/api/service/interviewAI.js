@@ -1,5 +1,6 @@
 // stubs/api/service/interviewAI.js
 const { getModel } = require('../llm');
+const { mockDB } = require('../mockData');
 
 const initialGreetings = {
   frontend: "Здравствуйте! Давайте начнем наше собеседование на позицию Frontend-разработчика. Расскажите, пожалуйста, немного о себе и вашем опыте.",
@@ -20,6 +21,7 @@ class SuperAiService {
   constructor() {
     this.conversationStates = new Map(); // Состояния сессий
     this.evaluationHistory = new Map(); // История оценок
+    this.responseCache = new Map(); // Кэш для ответов LLM
 
     // последовательности тем
     this.topicSequences = {
@@ -171,6 +173,10 @@ class SuperAiService {
           if (!state || state.evaluationHistory.length === 0) {
             finalReport = this.createEmptyInterviewReport(sessionId, duration, 'llm_error');
           } else {
+            // Проверяем, все ли оценки низкие (<= 3)
+            const allLowScores = state.evaluationHistory.every(
+              item => item.evaluation && item.evaluation.overall_score <= 3
+            );
             
             if (allLowScores) {
               finalReport = this.createEmptyInterviewReport(sessionId, duration, 'llm_error');
@@ -229,8 +235,16 @@ class SuperAiService {
 // Передаем анализ в промпт (переименовали параметр на qualityAnalysis)
       const prompt = this.buildSmartPrompt(state, transcript, nextAction, responseAnalysis);
 
-      // Получаем ответ
-      let aiResponse = await this.getLLMResponse(prompt);
+      // Генерируем ключ кэша для оптимизации
+      const cacheKey = this.generateCacheKey(
+        state.currentTopic,
+        nextAction.action,
+        responseAnalysis.quality,
+        transcript.length
+      );
+
+      // Получаем ответ (с кэшированием)
+      let aiResponse = await this.getLLMResponse(prompt, cacheKey);
       console.log(`✅ LLM Response: ${aiResponse}`);
 
       // Если действие = challenge_candidate, проверяем что ответ содержит фразу для практического задания
@@ -345,24 +359,59 @@ class SuperAiService {
     // - Проверка негативных ответов
 
     const responseLength = response.length;
-    const technicalTerms = this.countTechnicalTerms(response);
+    const technicalTerms = this.countTechnicalTerms(response, topic);
     const hasStructure = this.hasGoodStructure(response);
     const relevanceScore = this.calculateRelevance(response, topic);
 
-    // Более сложные метрики (смягченные для голосового интервью)
-    // Учитываем, что в голосовом интервью люди говорят более естественно
-    const completeness = Math.min(10, responseLength / 20 + (technicalTerms * 0.7)); // Смягчено: было /25, стало /20
-    const technicalDepth = Math.min(10, technicalTerms * 2 + (this.hasCodeExamples(response) ? 2 : 0) + (responseLength > 50 ? 1 : 0)); // Улучшено: больше вес терминов, бонус за длину
-    const structure = hasStructure ? 8 : (responseLength > 40 ? 6 : 4); // Смягчено: средние ответы тоже получают баллы
+    // Улучшенные метрики с более строгими критериями
+    // Completeness: более строгая формула (увеличен делитель с 20 до 30)
+    const completeness = Math.min(10, responseLength / 30 + (technicalTerms * 0.6));
+    
+    // Technical Depth: снижен вес терминов (с 2 до 1.5), больше вес примеров кода
+    const technicalDepth = Math.min(10, technicalTerms * 1.5 + (this.hasCodeExamples(response) ? 2.5 : 0) + (responseLength > 80 ? 1 : 0));
+    
+    // Structure: градация вместо бинарной проверки
+    let structure = 4; // Базовый балл
+    if (hasStructure) {
+      structure = 8; // Хорошая структура
+    } else if (responseLength > 80 && (response.includes(',') || response.includes(';'))) {
+      structure = 6.5; // Средняя структура
+    } else if (responseLength > 50) {
+      structure = 5.5; // Базовая структура
+    }
+    
     const relevance = Math.min(10, relevanceScore * 2.5); // Улучшено: больше вес релевантности
 
-    // Проверяем негативные ответы (только явные)
+    // Проверяем негативные ответы (только явные, с учетом контекста)
     const negativeWords = ['нет', 'не знаю', 'не было', 'никакие', 'не понимаю', 'не могу'];
-    const isNegative = negativeWords.some(word => {
-      const lowerResponse = response.toLowerCase();
-      // Проверяем, что это не часть более сложного ответа
-      return lowerResponse === word || lowerResponse.startsWith(word + ' ') || lowerResponse.endsWith(' ' + word);
-    });
+    const lowerResponse = response.toLowerCase().trim();
+    let isNegative = false;
+    
+    // Проверяем, что это действительно негативный ответ (без дальнейших пояснений)
+    for (const word of negativeWords) {
+      // Точное совпадение (только одно слово)
+      if (lowerResponse === word) {
+        isNegative = true;
+        break;
+      }
+      
+      // Начинается с негативного слова, но ответ очень короткий (меньше 30 символов)
+      if (lowerResponse.startsWith(word + ' ') && response.length < 30) {
+        isNegative = true;
+        break;
+      }
+      
+      // Содержит негативное слово в конце без пояснений
+      if (lowerResponse.endsWith(' ' + word) && response.length < 35) {
+        isNegative = true;
+        break;
+      }
+    }
+    
+    // Если ответ длинный (более 50 символов), вероятно это не просто "не знаю"
+    if (response.length > 50) {
+      isNegative = false;
+    }
 
     // Бонусы за хорошие ответы
     let bonus = 0;
@@ -739,28 +788,24 @@ class SuperAiService {
     const isShort = responseLength < 30;
     const hasTechTerms = technicalTerms > 0;
 
-    let conversationSummary = '';
-    if (conversationHistory.length > 12) {
-      // Берем ключевые моменты из всей истории
-      const userResponses = conversationHistory
-        .filter(msg => msg.role === 'user')
-        .slice(-8)
-        .map(msg => msg.content.substring(0, 100) + '...');
+    // conversationSummary удален - не используется, история уже включена в historyText
 
-      conversationSummary = `Краткая сводка предыдущих ответов кандидата:\n${userResponses.join('\n')}\n\n`;
-    }
-
-    // Формируем историю диалога - берем больше сообщений для контекста
-    const recentHistory = conversationHistory.slice(-10); // Последние 5 обменов (10 сообщений)
+    // Формируем историю диалога - оптимизировано: последние 6 сообщений (3 обмена)
+    // Адаптивный размер контекста в зависимости от длины ответа
+    const contextSize = responseLength < 50 ? 4 : // Короткий ответ - меньше контекста
+                        responseLength < 150 ? 6 : // Средний ответ
+                        8; // Длинный ответ
+    
+    const recentHistory = conversationHistory.slice(-contextSize);
     const historyText = recentHistory.map(msg =>
-      `${msg.role === 'user' ? 'Кандидат' : 'Интервьюер'}: ${msg.content}`
+      `${msg.role === 'user' ? 'К' : 'И'}: ${msg.content.substring(0, 200)}`
     ).join('\n');
     
-    // Извлекаем все вопросы интервьюера из истории, чтобы не повторять их
+    // Извлекаем последние вопросы интервьюера из истории, чтобы не повторять их
     const previousQuestions = conversationHistory
       .filter(msg => msg.role === 'assistant')
-      .slice(-5)
-      .map(msg => msg.content)
+      .slice(-3) // Уменьшено с 5 до 3 для экономии токенов
+      .map(msg => msg.content.substring(0, 150))
       .join('\n');
 
     // Динамические инструкции на основе анализа ответа
@@ -773,38 +818,19 @@ class SuperAiService {
       responseAnalysisText = `Кандидат дал ответ средней длины (${responseLength} символов).`;
     }
 
-    // Собираем промпт
-    let prompt = `Ты - опытный IT-интервьюер для позиции ${position}. Ты ведешь живой диалог, реагируешь на ответы кандидата, задаешь уточняющие вопросы, показываешь заинтересованность.
+    // Собираем компактный промпт для экономии токенов
+    let prompt = `Ты - IT-интервьюер (${position}). Веди диалог естественно, реагируй на ответы.
 
-АНАЛИЗ ПОСЛЕДНЕГО ОТВЕТА КАНДИДАТА:
-${responseAnalysisText}
-Длина ответа: ${responseLength} символов
-Технические термины: ${technicalTerms}
-Текущая тема: ${currentTopic}
-Следующее действие: ${nextAction.action} (${nextAction.reason})
-${topicsCovered.length > 1 ? `УЖЕ ПРОЙДЕННЫЕ ТЕМЫ (НЕ ВОЗВРАЩАЙСЯ К НИМ!): ${topicsCovered.filter(t => t !== currentTopic).join(', ')}` : ''}
+Контекст: тема "${currentTopic}", действие: ${nextAction.action} (${nextAction.reason})
+Ответ: ${responseLength} символов, ${technicalTerms} тех. терминов. ${responseAnalysisText}
+${topicsCovered.length > 1 ? `Пройдены темы (не возвращайся): ${topicsCovered.filter(t => t !== currentTopic).join(', ')}` : ''}`;
 
-СТИЛЬ ДИАЛОГА:
-- Веди диалог естественно, как живой человек
-- Реагируй на ответы кандидата: "Понятно", "Интересно", "Хорошо"
-- Задавай уточняющие вопросы: "А как именно?", "Можешь привести пример?"
-- Не задавай вопросы подряд без реакции на ответы
-- Показывай заинтересованность в ответах кандидата`;
-
-    // Добавляем анализ качества если он передан
+    // Добавляем краткий анализ качества если он передан
     if (qualityAnalysis) {
-      prompt += `\n\nДЕТАЛЬНЫЙ АНАЛИЗ КАЧЕСТВА ОТВЕТА:`;
-      prompt += `\n- Качество: ${qualityAnalysis.quality}`;
-      prompt += `\n- Длина: ${qualityAnalysis.length} символов`;
-      prompt += `\n- Технические термины: ${qualityAnalysis.technical_terms}`;
-      prompt += `\n- Есть структура: ${qualityAnalysis.has_structure ? 'да' : 'нет'}`;
-
-      if (qualityAnalysis.suggestions && qualityAnalysis.suggestions.length > 0) {
-        prompt += `\n- Рекомендации: ${qualityAnalysis.suggestions.join(', ')}`;
-      }
-
-      if (qualityAnalysis.quality === 'very_short') {
-        prompt += `\n\nВНИМАНИЕ: Ответ очень короткий! Нужно либо попросить больше деталей, либо сменить тему.`;
+      if (qualityAnalysis.quality === 'incoherent') {
+        prompt += `\n⚠️ ВАЖНО: Ответ кандидата кажется бессвязным или не по теме. Ты ДОЛЖЕН тактично об этом сказать, например: "Мне кажется, что-то не так с качеством связи, или я не совсем понял твой ответ. Можешь переформулировать?" или "Давай попробуем вернуться к вопросу. Что ты думаешь по этому поводу?". Затем задай тот же вопрос еще раз или переформулируй его.`;
+      } else if (qualityAnalysis.quality === 'very_short') {
+        prompt += `\n⚠️ Очень короткий ответ - попроси больше деталей или смени тему.`;
       }
     }
 
@@ -818,32 +844,23 @@ ${topicsCovered.length > 1 ? `УЖЕ ПРОЙДЕННЫЕ ТЕМЫ (НЕ ВОЗ�
       'change_topic_or_complete': `${isShort ? 'Предложи сменить тему естественно' : 'Вежливо заверши интервью'}.`
     };
 
-    prompt += `
+    // Проверяем, что действие существует в инструкциях
+    const actionInstruction = actionInstructions[nextAction.action] || 
+      `Задай следующий вопрос по теме "${currentTopic}".`;
+    
+    prompt += `\n\nЗадача: ${actionInstruction}
 
-ИНСТРУКЦИЯ: ${actionInstructions[nextAction.action]}
+Правила: 1 вопрос | Естественный диалог | ${isShort ? 'Попроси больше деталей' : 'Углубляйся'} | Не показывай критерии
+${nextAction.action === 'challenge_candidate' ? 'ВАЖНО: Скажи ТОЧНО: "А теперь хочу посмотреть на твои практические знания. Даю тебе 10 минут на выполнение задачи у консоли"' : ''}
+${topicsCovered.length > 1 ? `Не возвращайся к: ${topicsCovered.filter(t => t !== currentTopic).join(', ')}` : ''}
 
-ВАЖНЫЕ ПРАВИЛА:
-1. Задай ТОЛЬКО ОДИН вопрос
-2. Будь естественным и дружелюбным, веди диалог как живой человек
-3. Адаптируй сложность под уровень кандидата
-4. ${isShort ? 'Попроси рассказать подробнее, если ответ был коротким' : 'Продолжай углубляться в тему'}
-5. Не показывай критерии оценки
-6. Если кандидат уже ответил на вопрос, задай следующий вопрос по этой теме или перейди к новой теме.
-7. ЗАПРЕЩЕНО просить писать или показать код! Если нужно проверить практические навыки, скажи: "А теперь хочу посмотреть на твои практические знания. Даю тебе 10 минут на выполнение задачи у консоли" - это запустит практическое задание.
-8. НЕ ВОЗВРАЩАЙСЯ к уже пройденным темам: ${topicsCovered.length > 1 ? topicsCovered.join(', ') : 'введение'}. Если тема уже была пройдена, переходи к следующей.
-9. Веди диалог естественно - реагируй на ответы кандидата, задавай уточняющие вопросы, показывай заинтересованность.
-10. ЗАПРЕЩЕНО говорить "Хорошего дня", "До свидания", "Удачи" или другие прощальные фразы в середине интервью! Ты должен задавать вопросы и продолжать собеседование до завершения.
-11. Если действие = challenge_candidate, ОБЯЗАТЕЛЬНО предложи практическое задание ТОЧНО этими словами: "А теперь хочу посмотреть на твои практические знания. Даю тебе 10 минут на выполнение задачи у консоли"
+Предыдущие вопросы (не повторяй):
+${previousQuestions || 'Первый вопрос'}
 
-ПРЕДЫДУЩИЕ ВОПРОСЫ (НЕ ПОВТОРЯЙ ИХ!):
-${previousQuestions ? previousQuestions : 'Это первый вопрос'}
-
-ИСТОРИЯ ДИАЛОГА (последние сообщения):
+История:
 ${historyText}
 
-${conversationSummary ? `\n${conversationSummary}` : ''}
-
-Твой следующий вопрос (естественный, дружелюбный, только один вопрос, НЕ ПОВТОРЯЙ предыдущие вопросы):`;
+Вопрос:`;
 
     return prompt;
   }
@@ -856,26 +873,26 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
     return state.conversationHistory.slice(-limit);
   }
 
-// И метод для получения сводки
-  getConversationSummary(sessionId) {
-    const state = this.conversationStates.get(sessionId);
-    if (!state || state.conversationHistory.length < 4) return '';
-
-    const userMessages = state.conversationHistory
-      .filter(msg => msg.role === 'user')
-      .slice(-5)
-      .map(msg => `• ${msg.content.substring(0, 80)}${msg.content.length > 80 ? '...' : ''}`);
-
-    return `Кандидат обсуждал:\n${userMessages.join('\n')}`;
-  }
-
   /**
    * Краткое резюме беседы для контекста
+   * Принимает либо sessionId (для получения из состояния), либо conversationHistory
    */
-  getConversationSummary(conversationHistory) {
-    const recent = conversationHistory.slice(-6); // Последние 2 обмена
+  getConversationSummary(sessionIdOrHistory, limit = 6) {
+    let conversationHistory;
+    
+    // Если передан sessionId (строка или число), получаем историю из состояния
+    if (typeof sessionIdOrHistory === 'string' || typeof sessionIdOrHistory === 'number') {
+      const state = this.conversationStates.get(sessionIdOrHistory);
+      if (!state || state.conversationHistory.length < 4) return '';
+      conversationHistory = state.conversationHistory;
+    } else {
+      // Иначе предполагаем, что передан массив conversationHistory
+      conversationHistory = sessionIdOrHistory;
+    }
+    
+    const recent = conversationHistory.slice(-limit);
     return recent.map(msg =>
-      `${msg.role === 'user' ? 'Кандидат' : 'Интервьюер'}: ${msg.content}`
+      `${msg.role === 'user' ? 'Кандидат' : 'Интервьюер'}: ${msg.content.substring(0, 150)}`
     ).join(' | ');
   }
 
@@ -925,12 +942,25 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
       const actionAnalysis = this.analyzeActions(state.actionsHistory);
       const topicAnalysis = this.analyzeTopicPerformance(state.evaluationHistory);
 
-      // Определяем уровень и рекомендацию
-      const { level, recommendation, confidence } = this.determineHireDecision(progress, topicAnalysis);
+      // Получаем результат практического задания из mockDB
+      const session = mockDB.sessions.find(s => s.id === sessionId);
+      const codeTaskScore = session?.codeTaskResults?.length > 0 
+        ? session.codeTaskResults[session.codeTaskResults.length - 1].score 
+        : null;
+      const codeTaskPassed = session?.codeTaskResults?.length > 0 
+        ? session.codeTaskResults[session.codeTaskResults.length - 1].allTestsPassed 
+        : false;
+
+      console.log(`📊 Практическое задание: score=${codeTaskScore}, passed=${codeTaskPassed} для сессии ${sessionId}`);
+
+      // Определяем уровень и рекомендацию (теперь учитываем практическое задание)
+      const { level, recommendation, confidence } = this.determineHireDecision(progress, topicAnalysis, codeTaskScore);
 
       report = {
         overall_assessment: {
-          final_score: progress.averageScore,
+          final_score: progress.averageScore, // Примечание: adjustedScore используется в determineHireDecision, но здесь оставляем исходную для прозрачности
+          code_task_score: codeTaskScore, // Добавляем результат практического задания в отчет
+          code_task_passed: codeTaskPassed,
           level: level,
           recommendation: recommendation,
           confidence: confidence,
@@ -943,7 +973,7 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
           strong_areas: topicAnalysis.strongTopics,
           weak_areas: topicAnalysis.weakTopics,
           technical_depth: topicAnalysis.averageTechnicalDepth,
-          recommendations: this.generateTechnicalRecommendations(topicAnalysis)
+          recommendations: await this.generateTechnicalRecommendations(topicAnalysis, state.evaluationHistory)
         },
         behavioral_analysis: {
           communication_skills: this.assessCommunicationSkills(state.conversationHistory),
@@ -959,7 +989,7 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
           topic_progression: Array.from(state.topicProgress),
           action_pattern: actionAnalysis
         },
-        detailed_feedback: this.generateDetailedFeedback(progress, level, topicAnalysis),
+        detailed_feedback: await this.generateDetailedFeedback(progress, level, topicAnalysis, state.evaluationHistory),
         next_steps: this.generateSmartNextSteps(recommendation, level),
         raw_data: {
           evaluationHistory: state.evaluationHistory,
@@ -996,6 +1026,11 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
           console.warn('⚠️ No evaluation history - using empty report');
           return this.createEmptyInterviewReport(sessionId, duration, actualReason);
         }
+        
+        // Проверяем, все ли оценки низкие (<= 3)
+        const allLowScores = state.evaluationHistory.every(
+          item => item.evaluation && item.evaluation.overall_score <= 3
+        );
         
         if (allLowScores) {
           console.warn('⚠️ All scores are low (<= 3) - using empty report with score 0');
@@ -1224,21 +1259,71 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
 
   identifyEnhancedStrengths(response) {
     const strengths = [];
-    if (response.length > 150) strengths.push('Детализированный и полный ответ');
-    if (this.countTechnicalTerms(response) > 3) strengths.push('Отличное знание технологий');
-    if (this.hasGoodStructure(response)) strengths.push('Структурированное и логичное изложение');
-    if (this.hasCodeExamples(response)) strengths.push('Практический подход с примерами');
-    if (response.includes('best practice') || response.includes('лучш')) strengths.push('Знание best practices');
-    return strengths.length > 0 ? strengths : ['Ответ соответствует базовым требованиям'];
+    
+    // Более специфичные проверки
+    if (response.length > 150) {
+      strengths.push('Детализированный и развернутый ответ с хорошим объяснением');
+    }
+    
+    const techTerms = this.countTechnicalTerms(response);
+    if (techTerms > 3) {
+      strengths.push(`Отличное знание технологий (упомянуто ${techTerms} технических концепций)`);
+    } else if (techTerms > 0) {
+      strengths.push('Использование технической терминологии');
+    }
+    
+    if (this.hasGoodStructure(response)) {
+      strengths.push('Структурированное и логичное изложение мысли');
+    }
+    
+    if (this.hasCodeExamples(response)) {
+      strengths.push('Практический подход с примерами реализации');
+    }
+    
+    // Проверяем на упоминание конкретных паттернов/практик
+    const lowerResponse = response.toLowerCase();
+    if (lowerResponse.includes('best practice') || lowerResponse.includes('лучш') || 
+        lowerResponse.includes('паттерн') || lowerResponse.includes('pattern')) {
+      strengths.push('Знание best practices и паттернов проектирования');
+    }
+    
+    // Проверяем на упоминание опыта работы
+    if (lowerResponse.includes('опыт') || lowerResponse.includes('работал') || 
+        lowerResponse.includes('использовал') || lowerResponse.includes('реализовал')) {
+      strengths.push('Практический опыт работы с технологиями');
+    }
+    
+    return strengths.length > 0 ? strengths : []; // Убрали fallback - лучше пустой массив, чем общая фраза
   }
 
   suggestSmartImprovements(response, topic) {
     const improvements = [];
-    if (response.length < 80) improvements.push('Рекомендуется давать более развернутые ответы');
-    if (this.countTechnicalTerms(response) < 2) improvements.push(`Упоминайте конкретные технологии по теме ${topic}`);
-    if (!this.hasGoodStructure(response)) improvements.push('Используйте структуру: проблема-решение-результат');
-    if (!this.hasCodeExamples(response)) improvements.push('Подкрепляйте ответы практическими примерами');
-    return improvements.length > 0 ? improvements : ['Продолжайте углублять знания по текущим темам'];
+    const responseLength = response.length;
+    const techTerms = this.countTechnicalTerms(response);
+    
+    // Более конкретные и полезные рекомендации
+    if (responseLength < 80 && responseLength > 20) {
+      improvements.push(`Рекомендуется давать более развернутые ответы (текущий: ${responseLength} символов, рекомендуется: 100+ символов)`);
+    } else if (responseLength < 20) {
+      improvements.push('Ответ слишком краткий - рекомендуется добавить объяснения и детали');
+    }
+    
+    if (techTerms === 0 && responseLength > 30) {
+      improvements.push(`Для темы "${topic}" рекомендуется упомянуть конкретные технологии, фреймворки или инструменты`);
+    } else if (techTerms < 2 && responseLength > 50) {
+      improvements.push(`Можно добавить больше технических деталей по теме "${topic}"`);
+    }
+    
+    if (!this.hasGoodStructure(response) && responseLength > 50) {
+      improvements.push('Рекомендуется структурировать ответ: сначала проблема/контекст, затем решение, затем результат');
+    }
+    
+    if (!this.hasCodeExamples(response) && techTerms > 0) {
+      improvements.push('Подкрепляйте объяснения практическими примерами или фрагментами кода');
+    }
+    
+    // Убрали общий fallback - лучше возвращать пустой массив, если нет конкретных рекомендаций
+    return improvements;
   }
 
   determineResponseQuality(length, technicalTerms) {
@@ -1304,19 +1389,34 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
     };
   }
 
-  determineHireDecision(progress, topicAnalysis) {
+  determineHireDecision(progress, topicAnalysis, codeTaskScore = null) {
     const { averageScore } = progress;
     const { strongTopics, weakTopics } = topicAnalysis;
 
-    if (averageScore >= 8.5 && strongTopics.length >= 3 && weakTopics.length === 0) {
+    // Учитываем результат практического задания (корректируем оценку)
+    let adjustedScore = averageScore;
+    if (codeTaskScore !== null) {
+      if (codeTaskScore === 1) {
+        // Бонус за успешное выполнение практического задания
+        adjustedScore = Math.min(10, averageScore + 0.8);
+        console.log(`✅ Практическое задание выполнено: +0.8 балла (${averageScore} → ${adjustedScore})`);
+      } else if (codeTaskScore === 0) {
+        // Штраф за неудачное выполнение (но не слишком строгий)
+        adjustedScore = Math.max(0, averageScore - 0.4);
+        console.log(`❌ Практическое задание не выполнено: -0.4 балла (${averageScore} → ${adjustedScore})`);
+      }
+    }
+
+    // Используем adjustedScore для определения уровня
+    if (adjustedScore >= 8.5 && strongTopics.length >= 3 && weakTopics.length === 0) {
       return { level: "Senior", recommendation: "strong_hire", confidence: 0.9 };
-    } else if (averageScore >= 7.5 && strongTopics.length >= 2 && weakTopics.length <= 1) {
+    } else if (adjustedScore >= 7.5 && strongTopics.length >= 2 && weakTopics.length <= 1) {
       return { level: "Middle+", recommendation: "hire", confidence: 0.8 };
-    } else if (averageScore >= 7.0 && strongTopics.length >= 1) {
+    } else if (adjustedScore >= 7.0 && strongTopics.length >= 1) {
       return { level: "Middle", recommendation: "hire", confidence: 0.7 };
-    } else if (averageScore >= 6.0) {
+    } else if (adjustedScore >= 6.0) {
       return { level: "Junior+", recommendation: "maybe_hire", confidence: 0.6 };
-    } else if (averageScore >= 5.0) {
+    } else if (adjustedScore >= 5.0) {
       return { level: "Junior", recommendation: "maybe_hire", confidence: 0.5 };
     } else {
       return { level: "Trainee", recommendation: "no_hire", confidence: 0.4 };
@@ -1488,19 +1588,83 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
     return currentIndex < sequence.length - 1 ? sequence[currentIndex + 1] : 'завершение';
   }
 
-  // Базовые методы оценки
-  countTechnicalTerms(response) {
-    const techTerms = ['javascript', 'react', 'vue', 'angular', 'node', 'python', 'java', 'sql', 'nosql',
-      'api', 'rest', 'graphql', 'docker', 'kubernetes', 'aws', 'git', 'html', 'css',
-      'typescript', 'webpack', 'babel', 'redux', 'context', 'hooks', 'state', 'props',
-      'microservice', 'middleware', 'database', 'orm', 'authentication', 'authorization'];
-    return techTerms.filter(term => response.toLowerCase().includes(term)).length;
+  // Базовые методы оценки (улучшенные с контекстной проверкой)
+  countTechnicalTerms(response, topic = null) {
+    // Разделяем термины на категории для лучшей проверки контекста
+    const specificTerms = ['javascript', 'react', 'vue', 'angular', 'node', 'python', 'java', 'sql', 'nosql',
+      'api', 'rest', 'graphql', 'docker', 'kubernetes', 'aws', 'git', 'typescript', 'webpack', 'babel',
+      'redux', 'microservice', 'middleware', 'database', 'orm', 'authentication', 'authorization',
+      'mongodb', 'postgresql', 'mysql', 'express', 'nestjs', 'next.js', 'vue.js'];
+    
+    // Общие термины, которые требуют контекстной проверки
+    const contextualTerms = {
+      'state': ['react state', 'component state', 'global state', 'application state', 'state management'],
+      'props': ['react props', 'component props', 'props переда', 'переда props'],
+      'hooks': ['react hooks', 'custom hooks', 'useState', 'useEffect', 'useCallback'],
+      'context': ['react context', 'context api', 'createContext', 'useContext'],
+      'html': ['html', 'html5', 'html элемент', 'html тег'],
+      'css': ['css', 'css3', 'css стили', 'css класс']
+    };
+
+    const lowerResponse = response.toLowerCase();
+    let count = 0;
+
+    // Подсчитываем специфические термины (они всегда валидны)
+    count += specificTerms.filter(term => lowerResponse.includes(term)).length;
+
+    // Проверяем контекстные термины (нужен контекст использования)
+    for (const [term, contexts] of Object.entries(contextualTerms)) {
+      // Проверяем наличие термина
+      const termIndex = lowerResponse.indexOf(term);
+      if (termIndex !== -1) {
+        // Проверяем контекст (окружение термина)
+        const contextWindow = response.substring(
+          Math.max(0, termIndex - 30),
+          Math.min(response.length, termIndex + term.length + 30)
+        ).toLowerCase();
+        
+        // Если есть хотя бы один валидный контекст - считаем термином
+        const hasValidContext = contexts.some(ctx => contextWindow.includes(ctx));
+        if (hasValidContext || topic) {
+          count += 1;
+        }
+      }
+    }
+
+    return count;
   }
 
   hasGoodStructure(response) {
-    return response.length > 50 && (response.includes(',') || response.includes(';') ||
-      response.includes('во-первых') || response.includes('во-вторых') ||
-      response.includes('например') || response.includes('таким образом'));
+    if (response.length < 50) return false;
+    
+    // Проверяем наличие структурирующих слов/фраз
+    const structureIndicators = [
+      'во-первых', 'во-вторых', 'во-третьих', 'в первую очередь',
+      'например', 'например,', 'к примеру',
+      'таким образом', 'следовательно', 'в результате',
+      'также', 'кроме того', 'более того',
+      'однако', 'но', 'хотя'
+    ];
+    
+    const hasStructureWords = structureIndicators.some(indicator => 
+      response.toLowerCase().includes(indicator.toLowerCase())
+    );
+    
+    // Проверяем наличие знаков препинания (признак структуры)
+    const punctuationCount = (response.match(/[,.!?;]/g) || []).length;
+    const hasPunctuation = punctuationCount >= 2;
+    
+    // Проверяем длину предложений (слишком длинные - плохо)
+    const sentences = response.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    if (sentences.length > 0) {
+      const avgSentenceLength = sentences.reduce((sum, s) => sum + s.length, 0) / sentences.length;
+      const hasGoodSentenceLength = avgSentenceLength > 20 && avgSentenceLength < 150;
+      
+      // Хорошая структура = есть структурирующие слова И знаки препинания И нормальная длина предложений
+      return hasStructureWords && hasPunctuation && hasGoodSentenceLength;
+    }
+    
+    return hasStructureWords && hasPunctuation;
   }
 
   determineMasteryLevel(score) {
@@ -1511,7 +1675,30 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
     return 'novice';
   }
 
-  async getLLMResponse(prompt) {
+  /**
+   * Генерирует ключ кэша на основе ситуации (топик + действие + тип ответа)
+   */
+  generateCacheKey(topic, action, responseType, responseLength) {
+    // Нормализуем тип ответа на основе length (responseType игнорируется, т.к. он уже учитывает length)
+    const normalizedType = responseLength < 30 ? 'short' : 
+                           responseLength < 100 ? 'medium' : 'long';
+    return `${topic}_${action}_${normalizedType}`;
+  }
+
+  async getLLMResponse(prompt, cacheKey = null) {
+    // Проверяем кэш, если передан ключ
+    if (cacheKey && this.responseCache.has(cacheKey)) {
+      const cached = this.responseCache.get(cacheKey);
+      // Проверяем, не устарел ли кэш (старше 1 часа)
+      if (Date.now() - cached.timestamp < 3600000) {
+        console.log(`✅ Использован кэшированный ответ для ключа: ${cacheKey}`);
+        return cached.response;
+      } else {
+        // Удаляем устаревший кэш
+        this.responseCache.delete(cacheKey);
+      }
+    }
+
     try {
       const llm = getModel({
         provider: 'gigachat',
@@ -1521,7 +1708,22 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
       });
 
       const response = await llm.invoke(prompt);
-      return response.content.trim();
+      const responseText = response.content.trim();
+      
+      // Сохраняем в кэш, если передан ключ
+      if (cacheKey) {
+        this.responseCache.set(cacheKey, {
+          response: responseText,
+          timestamp: Date.now()
+        });
+        // Ограничиваем размер кэша (храним последние 100 записей)
+        if (this.responseCache.size > 100) {
+          const firstKey = this.responseCache.keys().next().value;
+          this.responseCache.delete(firstKey);
+        }
+      }
+      
+      return responseText;
     } catch (error) {
       console.error('LLM Error:', error);
       throw new Error('Failed to get AI response');
@@ -1642,8 +1844,9 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
 
   /**
    * Генерирует технические рекомендации на основе анализа тем
+   * Теперь с поддержкой LLM-анализа для более персонализированных рекомендаций
    */
-  generateTechnicalRecommendations(topicAnalysis) {
+  async generateTechnicalRecommendations(topicAnalysis, evaluationHistory = null) {
     const recommendations = [];
     const { weakTopics, averageTechnicalDepth } = topicAnalysis;
 
@@ -1660,14 +1863,88 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
       recommendations.push("Углубить практические знания технологий через реальные проекты");
     }
 
-    // Общие рекомендации
-    recommendations.push(
-      "Практиковаться в решении алгоритмических задач",
-      "Изучить best practices и паттерны проектирования",
-      "Участвовать в code review и открытых проектах"
-    );
+    // Если есть история оценок и слабые темы, используем LLM для персонализированных рекомендаций
+    if (evaluationHistory && evaluationHistory.length > 0 && weakTopics.length > 0) {
+      try {
+        const llmRecommendations = await this.generateLLMTechnicalRecommendations(
+          weakTopics, 
+          topicAnalysis, 
+          evaluationHistory
+        );
+        // Добавляем LLM-рекомендации, если они есть
+        if (llmRecommendations && llmRecommendations.length > 0) {
+          recommendations.push(...llmRecommendations);
+        }
+      } catch (error) {
+        console.warn('⚠️ Ошибка при генерации LLM-рекомендаций, используем базовые:', error.message);
+      }
+    }
 
-    return recommendations.slice(0, 4);
+    // Общие рекомендации добавляем ТОЛЬКО если их меньше 2 и они релевантны
+    if (recommendations.length < 2) {
+      // Добавляем только самые базовые, если нет других рекомендаций
+      if (averageTechnicalDepth < 6) {
+        recommendations.push("Практиковаться в решении практических задач по технологиям");
+      }
+    }
+
+    return recommendations.slice(0, 5); // Увеличили лимит до 5 для LLM-рекомендаций
+  }
+
+  /**
+   * Генерирует персонализированные технические рекомендации через LLM
+   */
+  async generateLLMTechnicalRecommendations(weakTopics, topicAnalysis, evaluationHistory) {
+    // Собираем примеры ответов по слабым темам
+    const weakTopicExamples = weakTopics.slice(0, 2).map(topic => {
+      const topicEvaluations = evaluationHistory.filter(e => e.topic === topic);
+      const lastEvaluation = topicEvaluations[topicEvaluations.length - 1];
+      const topicData = topicAnalysis.topicAnalysis[topic];
+      
+      return {
+        topic: topic,
+        score: topicData?.averageScore || 0,
+        exampleResponse: lastEvaluation?.response?.substring(0, 200) || '', // Первые 200 символов
+        issues: topicData?.averageScore < 5 ? 'низкий балл' : 'средний балл'
+      };
+    }).filter(example => example.exampleResponse);
+
+    if (weakTopicExamples.length === 0) {
+      return [];
+    }
+
+    const examplesText = weakTopicExamples.map(ex => 
+      `Тема: "${ex.topic}" (балл: ${ex.score.toFixed(1)}/10)\nПример ответа: "${ex.exampleResponse}"`
+    ).join('\n\n');
+
+    const prompt = `Ты - опытный технический интервьюер. Проанализируй ответы кандидата по слабым темам и дай 2-3 конкретные, персонализированные рекомендации для улучшения.
+
+Слабые темы и примеры ответов:
+${examplesText}
+
+Сгенерируй 2-3 конкретные рекомендации для изучения этих тем. Рекомендации должны быть:
+- Конкретными и практичными
+- Связанными с конкретными ошибками или пробелами в ответах
+- Включать конкретные ресурсы или подходы к изучению
+- Без общих фраз типа "изучите тему X"
+
+Формат: каждая рекомендация на новой строке, без нумерации, максимум 2 предложения.`;
+
+    try {
+      const llmResponse = await this.getLLMResponse(prompt, null); // Не кэшируем персонализированные рекомендации
+      
+      // Парсим ответ - разделяем по строкам, убираем пустые
+      const parsedRecommendations = llmResponse
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 10 && !line.match(/^\d+[\.\)]/)) // Убираем нумерацию
+        .slice(0, 3); // Максимум 3 рекомендации
+
+      return parsedRecommendations.length > 0 ? parsedRecommendations : [];
+    } catch (error) {
+      console.error('❌ Ошибка при генерации LLM-рекомендаций:', error);
+      return [];
+    }
   }
 
   /**
@@ -1840,33 +2117,175 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
 
   /**
    * Генерирует детализированный фидбек
+   * Теперь с поддержкой LLM-анализа для более персонализированного фидбека
    */
-  generateDetailedFeedback(progress, level, topicAnalysis) {
-    const { averageScore, totalExchanges, topicsCovered } = progress;
-    const { strongTopics, weakTopics } = topicAnalysis;
+  async generateDetailedFeedback(progress, level, topicAnalysis, evaluationHistory = null) {
+    const { averageScore, totalExchanges, topicsCovered, weakAreas } = progress;
+    const { strongTopics, weakTopics, averageTechnicalDepth } = topicAnalysis;
 
-    let feedback = `За ${totalExchanges} вопросов по ${topicsCovered.length} темам кандидат показал уровень ${level} `;
+    let feedback = `По итогам ${totalExchanges} вопросов по ${topicsCovered.length} темам кандидат показал уровень ${level} `;
     feedback += `с общей оценкой ${averageScore.toFixed(1)}/10. `;
 
+    // Более детальный анализ сильных сторон
     if (strongTopics.length > 0) {
-      feedback += `Особенно сильные знания продемонстрированы в темах: ${strongTopics.join(', ')}. `;
+      feedback += `Наиболее сильные знания продемонстрированы в следующих областях: ${strongTopics.join(', ')}. `;
+      
+      // Добавляем детали по технической глубине, если есть
+      if (averageTechnicalDepth >= 7) {
+        feedback += `Техническая глубина ответов на высоком уровне (${averageTechnicalDepth.toFixed(1)}/10). `;
+      }
     }
 
+    // Более конкретный анализ слабых мест
     if (weakTopics.length > 0) {
-      feedback += `Требуют внимания темы: ${weakTopics.join(', ')}. `;
+      feedback += `Требуют дополнительного внимания и изучения следующие темы: ${weakTopics.join(', ')}. `;
+      
+      // Добавляем конкретику, если есть данные по слабым темам
+      const weakTopicsData = weakTopics.slice(0, 2).map(topic => {
+        const topicData = topicAnalysis.topicAnalysis[topic];
+        return topicData ? `"${topic}" (балл: ${topicData.averageScore.toFixed(1)}/10)` : topic;
+      });
+      if (weakTopicsData.length > 0) {
+        feedback += `Особенно низкие результаты в ${weakTopicsData.join(' и ')}. `;
+      }
+    } else if (weakAreas && weakAreas.length > 0) {
+      feedback += `Слабые области: ${weakAreas.join(', ')}. `;
     }
 
-    if (averageScore >= 8) {
-      feedback += "Кандидат демонстрирует глубокие технические знания и отличные коммуникативные навыки. Рекомендован к найму на соответствующий уровень.";
-    } else if (averageScore >= 6.5) {
-      feedback += "Кандидат обладает хорошей технической базой и потенциалом для роста. Рекомендован к найму с учетом плана развития.";
-    } else if (averageScore >= 5) {
-      feedback += "Кандидат показывает базовое понимание технологий. Рекомендуется рассмотреть на junior позицию с наставничеством.";
+    // Используем LLM для генерации более умного фидбека, если есть история оценок
+    let llmFeedback = '';
+    if (evaluationHistory && evaluationHistory.length > 0) {
+      try {
+        llmFeedback = await this.generateLLMFeedback(
+          averageScore, 
+          level, 
+          strongTopics, 
+          weakTopics, 
+          evaluationHistory,
+          topicAnalysis
+        );
+      } catch (error) {
+        console.warn('⚠️ Ошибка при генерации LLM-фидбека, используем базовый:', error.message);
+      }
+    }
+
+    // Если LLM сгенерировал фидбек, используем его, иначе используем шаблонный
+    if (llmFeedback && llmFeedback.length > 50) {
+      feedback += llmFeedback;
     } else {
-      feedback += "Кандидату требуется дополнительная подготовка. Рекомендуется пройти обучение и рассмотреть повторно через 3-6 месяцев.";
+      // Более персонализированные рекомендации в зависимости от уровня
+      if (averageScore >= 8) {
+        feedback += "Кандидат демонстрирует глубокие технические знания и отличные коммуникативные навыки. ";
+        feedback += "Показывает способность к самостоятельной работе на сложных задачах. ";
+        feedback += "Рекомендован к найму на соответствующий уровень с возможностью роста.";
+      } else if (averageScore >= 6.5) {
+        feedback += "Кандидат обладает хорошей технической базой и показывает потенциал для роста. ";
+        feedback += "Рекомендован к найму с учетом плана развития и наставничества в первые месяцы.";
+      } else if (averageScore >= 5) {
+        feedback += "Кандидат демонстрирует базовое понимание технологий и готовность к обучению. ";
+        feedback += "Рекомендуется рассмотреть на junior позицию с активным наставничеством и планом обучения.";
+      } else {
+        feedback += "Кандидату требуется дополнительная подготовка и изучение основ технологий. ";
+        feedback += "Рекомендуется пройти специализированные курсы, практиковаться на проектах и рассмотреть повторное собеседование через 3-6 месяцев после подготовки.";
+      }
     }
 
     return feedback;
+  }
+
+  /**
+   * Анализирует конкретные ошибки в ответах кандидата через LLM
+   */
+  async analyzeResponseErrors(evaluationHistory, topic) {
+    // Фильтруем оценки по теме с низкими баллами
+    const lowScoreEvaluations = evaluationHistory
+      .filter(e => e.topic === topic && e.evaluation.overall_score < 6)
+      .slice(0, 3); // Берем максимум 3 примера
+
+    if (lowScoreEvaluations.length === 0) {
+      return [];
+    }
+
+    const examplesText = lowScoreEvaluations.map((e, idx) => 
+      `Пример ${idx + 1} (оценка: ${e.evaluation.overall_score}/10):\n"${e.response.substring(0, 250)}"`
+    ).join('\n\n');
+
+    const prompt = `Ты - опытный технический интервьюер. Проанализируй ответы кандидата по теме "${topic}" и определи конкретные ошибки или пробелы в понимании.
+
+Примеры ответов с низкими оценками:
+${examplesText}
+
+Определи 2-3 конкретные ошибки или пробелы в понимании. Формат:
+- Короткое описание ошибки/пробела (1 предложение)
+- Что кандидат понял неправильно или не упомянул
+
+Ответ должен быть конкретным, без общих фраз. Каждая ошибка на новой строке, максимум 2 предложения на ошибку.`;
+
+    try {
+      const llmResponse = await this.getLLMResponse(prompt, null);
+      
+      // Парсим ответ - разделяем по строкам
+      const errors = llmResponse
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 10)
+        .slice(0, 3); // Максимум 3 ошибки
+
+      return errors;
+    } catch (error) {
+      console.error('❌ Ошибка при анализе ошибок через LLM:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Генерирует персонализированный фидбек через LLM на основе конкретных ответов
+   */
+  async generateLLMFeedback(averageScore, level, strongTopics, weakTopics, evaluationHistory, topicAnalysis) {
+    // Собираем примеры ответов (хорошие и плохие)
+    const goodExamples = evaluationHistory
+      .filter(e => e.evaluation.overall_score >= 7)
+      .slice(0, 2)
+      .map(e => `Вопрос по "${e.topic}": "${e.response.substring(0, 150)}" (оценка: ${e.evaluation.overall_score}/10)`);
+    
+    const weakExamples = evaluationHistory
+      .filter(e => e.evaluation.overall_score < 6)
+      .slice(0, 2)
+      .map(e => `Вопрос по "${e.topic}": "${e.response.substring(0, 150)}" (оценка: ${e.evaluation.overall_score}/10)`);
+
+    const examplesText = goodExamples.length > 0 
+      ? `Сильные ответы:\n${goodExamples.join('\n\n')}\n\n`
+      : '';
+    const weakExamplesText = weakExamples.length > 0
+      ? `Слабые ответы:\n${weakExamples.join('\n\n')}`
+      : '';
+
+    const prompt = `Ты - опытный технический интервьюер. Напиши краткий (3-4 предложения) персонализированный фидбек для кандидата на основе его ответов.
+
+Уровень кандидата: ${level}
+Общая оценка: ${averageScore.toFixed(1)}/10
+${strongTopics.length > 0 ? `Сильные темы: ${strongTopics.join(', ')}` : ''}
+${weakTopics.length > 0 ? `Слабые темы: ${weakTopics.join(', ')}` : ''}
+
+Примеры ответов:
+${examplesText}${weakExamplesText}
+
+Напиши фидбек, который:
+- Конкретный и персонализированный на основе ответов
+- Отмечает конкретные сильные и слабые стороны
+- Дает конструктивные рекомендации
+- Без общих фраз, только конкретика
+- Максимум 4 предложения
+
+Фидбек:`;
+
+    try {
+      const llmResponse = await this.getLLMResponse(prompt, null);
+      return llmResponse.trim();
+    } catch (error) {
+      console.error('❌ Ошибка при генерации LLM-фидбека:', error);
+      return '';
+    }
   }
 
   /**
@@ -1877,10 +2296,17 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
     const techTerms = this.countTechnicalTerms(response);
     const hasStructure = this.hasGoodStructure(response);
 
+    // Проверяем на неадекватные/бессвязные ответы
+    const isIncoherent = this.checkResponseIncoherence(response);
+
     let quality = 'poor';
     let suggestions = [];
 
-    if (length < 20) {
+    if (isIncoherent) {
+      quality = 'incoherent';
+      suggestions.push('Тактично указать, что ответ не совсем понятен или не по теме');
+      suggestions.push('Попросить переформулировать или уточнить');
+    } else if (length < 20) {
       quality = 'very_short';
       suggestions.push('Попросить рассказать подробнее');
       suggestions.push('Задать более конкретный вопрос');
@@ -1902,8 +2328,68 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
       length,
       technical_terms: techTerms,
       has_structure: hasStructure,
-      suggestions: suggestions.slice(0, 2)
+      suggestions: suggestions.slice(0, 2),
+      isIncoherent: isIncoherent || false
     };
+  }
+
+  /**
+   * Проверяет ответ на бессвязность/неадекватность
+   */
+  checkResponseIncoherence(response) {
+    const lowerResponse = response.toLowerCase();
+    
+    // Проверка 1: Повторение одного и того же слова/фразы несколько раз подряд
+    const words = lowerResponse.split(/\s+/);
+    let maxRepeat = 0;
+    let currentRepeat = 1;
+    for (let i = 1; i < words.length; i++) {
+      if (words[i] === words[i-1]) {
+        currentRepeat++;
+        maxRepeat = Math.max(maxRepeat, currentRepeat);
+      } else {
+        currentRepeat = 1;
+      }
+    }
+    // Если одно слово повторяется 4+ раза подряд - вероятно бессвязно
+    if (maxRepeat >= 4) {
+      return true;
+    }
+
+    // Проверка 2: Слишком много "воды" - общих слов без конкретики
+    const fillerWords = ['вот', 'это', 'так', 'ну', 'типа', 'как бы', 'в общем', 'короче'];
+    const fillerCount = fillerWords.reduce((count, word) => {
+      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      return count + (response.match(regex) || []).length;
+    }, 0);
+    // Если больше 30% слов - "вода" (для ответов > 30 символов)
+    if (response.length > 30 && fillerCount > words.length * 0.3) {
+      return true;
+    }
+
+    // Проверка 3: Бессмысленные комбинации слов (паттерны бессвязной речи)
+    const incoherentPatterns = [
+      /(?:^|\s)(?:да|нет|может|вот)\s+(?:да|нет|может|вот)\s+(?:да|нет|может|вот)/i, // "да да нет да"
+      /(?:сказать|говорить|сказал|говорит)\s+(?:что|как|про)\s+(?:сказать|говорить|сказал|говорит)/i, // "говорить про говорить"
+      /(?:это|вот)\s+(?:это|вот)\s+(?:это|вот)/i, // "это это это"
+    ];
+    
+    for (const pattern of incoherentPatterns) {
+      if (pattern.test(response)) {
+        return true;
+      }
+    }
+
+    // Проверка 4: Слишком много коротких слов без смысловой связи (для длинных ответов)
+    if (response.length > 50) {
+      const shortWords = words.filter(w => w.length <= 2).length;
+      // Если больше 50% очень коротких слов - вероятно бессвязно
+      if (shortWords > words.length * 0.5) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

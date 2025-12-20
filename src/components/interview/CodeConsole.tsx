@@ -179,9 +179,9 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
   const totalTests = testResults.length
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 bg-gray-950 min-h-screen">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-center text-2xl font-bold text-gray-800">
+        <h1 className="text-center text-2xl font-bold text-gray-200">
           {isTaskMode ? 'Практическая задача' : 'Консоль программирования'}
         </h1>
         {isTaskMode && timeRemaining !== null && (
@@ -198,8 +198,8 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
       {isTaskMode && taskCompleted && (
         <div className={`mb-4 p-4 rounded-lg border ${
           testResults.length > 0 && testResults.every(tr => tr.passed)
-            ? 'bg-green-50 border-green-200 text-green-800'
-            : 'bg-red-50 border-red-200 text-red-800'
+            ? 'bg-green-900/30 border-green-700 text-green-200'
+            : 'bg-red-900/30 border-red-700 text-red-200'
         }`}>
           <h3 className="font-bold text-lg mb-2">
             {testResults.length > 0 && testResults.every(tr => tr.passed)
@@ -217,14 +217,14 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
           <div className="flex flex-col">
-            <label htmlFor="language" className="text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="language" className="text-sm font-medium text-gray-300 mb-1">
               Язык программирования:
             </label>
             <select
               id="language"
               value={language}
               onChange={(e) => handleLanguageChange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 border border-gray-600 rounded-md bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="javascript">JavaScript</option>
               <option value="python">Python</option>
@@ -232,7 +232,7 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
           </div>
 
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">
+            <label className="text-sm font-medium text-gray-300 mb-1">
               Задача:
             </label>
             <div className="flex gap-2">
@@ -245,7 +245,7 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
                     className={`px-3 py-1.5 text-sm rounded transition-colors ${
                       language === task.language
                         ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                     }`}
                   >
                     {task.title}
@@ -281,27 +281,27 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
         </div>
       </div>
 
-      <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-        <h3 className="font-medium text-gray-800">Сумма двух чисел</h3>
-        <p className="text-sm text-gray-600 mt-1">Напишите функцию sum(a, b), которая возвращает сумму двух чисел.</p>
+      <div className="mb-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
+        <h3 className="font-medium text-gray-200">Сумма двух чисел</h3>
+        <p className="text-sm text-gray-400 mt-1">Напишите функцию sum(a, b), которая возвращает сумму двух чисел.</p>
 
         {totalTests > 0 && (
-          <div className="mt-2 text-sm text-gray-600">
-            Тесты: <span className="font-medium">{passedTests}/{totalTests}</span> пройдено
+          <div className="mt-2 text-sm text-gray-400">
+            Тесты: <span className="font-medium text-gray-200">{passedTests}/{totalTests}</span> пройдено
           </div>
         )}
       </div>
 
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-300">
             Код:
           </label>
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+          <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
             {code.length} символов
           </span>
         </div>
-        <div className="border border-gray-300 rounded-lg overflow-hidden">
+        <div className="border border-gray-600 rounded-lg overflow-hidden bg-gray-900">
           <Editor
             value={code}
             onValueChange={setCode}
@@ -310,7 +310,8 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
             style={{
               fontFamily: '"Fira Code", "Cascadia Code", monospace',
               fontSize: 14,
-              backgroundColor: '#ffffff',
+              backgroundColor: '#1e1e1e',
+              color: '#d4d4d4',
               minHeight: '300px',
             }}
             className="w-full focus:outline-none"
@@ -320,43 +321,43 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
 
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-gray-700">Результат:</h3>
+          <h3 className="text-sm font-medium text-gray-300">Результат:</h3>
           {output && (
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+            <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
               {output.split('\n').length} строк
             </span>
           )}
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[150px]">
-          <div className="font-mono text-sm whitespace-pre-wrap">
-            {output || 'Результат выполнения появится здесь...'}
+        <div className="bg-gray-900 p-4 rounded-lg border border-gray-600 min-h-[150px]">
+          <div className="font-mono text-sm whitespace-pre-wrap text-gray-100">
+            {output || <span className="text-gray-500">Результат выполнения появится здесь...</span>}
           </div>
         </div>
       </div>
 
       {testResults.length > 0 && (
         <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Результаты тестов:</h3>
+          <h3 className="text-sm font-medium text-gray-300 mb-2">Результаты тестов:</h3>
           <div className="space-y-2">
             {testResults.map((result, index) => (
               <div
                 key={index}
                 className={`p-3 rounded border ${
-                  result.passed ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                  result.passed ? 'bg-green-900/30 border-green-700' : 'bg-red-900/30 border-red-700'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">
+                  <span className="font-medium text-gray-200">
                     Тест {result.testId}: {result.passed ? '✅' : '❌'}
                   </span>
-                  <span className="text-xs text-gray-500">{result.executionTime}ms</span>
+                  <span className="text-xs text-gray-400">{result.executionTime}ms</span>
                 </div>
                 {!result.passed && (
-                  <div className="mt-1 text-sm text-gray-600">
-                    <div>Ожидалось: {result.expected}</div>
-                    <div>Получено: {result.actual}</div>
+                  <div className="mt-1 text-sm text-gray-300">
+                    <div>Ожидалось: <span className="text-gray-200">{result.expected}</span></div>
+                    <div>Получено: <span className="text-gray-200">{result.actual}</span></div>
                     {result.error && (
-                      <div className="text-red-500">Ошибка: {result.error}</div>
+                      <div className="text-red-400">Ошибка: {result.error}</div>
                     )}
                   </div>
                 )}
