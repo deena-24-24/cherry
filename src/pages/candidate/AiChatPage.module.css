@@ -1,11 +1,18 @@
+.page {
+    min-height: calc(100vh - var(--header-height) - var(--footer-height));
+    background: var(--cloud);
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
 .chat-container {
     display: flex;
     flex-direction: column;
     height: 80vh;
     max-width: 800px;
-    margin: 80px auto;
+    margin: calc(var(--header-height) + 2rem) auto;
     border-radius: 12px;
-    background-color: var(--color-secondary);
+    background-color: var(--cloud);
     box-shadow: 0 4px 12px rgba(8, 32, 96, 0.15);
     overflow: hidden;
 }
@@ -14,7 +21,7 @@
     padding: 1rem;
     border-bottom: 1px solid var(--lavand);
     background-color: var(--navy);
-    color: var(--color-text-light);
+    color: var(--cloud);
 }
 
 .chat-header h1 {
@@ -23,7 +30,7 @@
 }
 
 .chat-header .status {
-    color: var(--color-accent);
+    color: var(--lavand);
     font-weight: bold;
 }
 
@@ -34,12 +41,12 @@
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    background-color: var(--lavand);
+    background-color: var(--color-background);
 }
 
 .chat-footer {
     width: 100%;
-    background-color: var(--color-secondary);
+    background-color: var(--cloud);
 }
 
 .messages-list::-webkit-scrollbar {
@@ -47,7 +54,7 @@
 }
 
 .messages-list::-webkit-scrollbar-track {
-    background: var(--color-accent-light);
+    background: var(--cloud);
 }
 
 .messages-list::-webkit-scrollbar-thumb {
@@ -67,4 +74,11 @@
     0% { opacity: 0.4; }
     50% { opacity: 1; }
     100% { opacity: 0.4; }
+}
+
+@media (max-width: 768px) {
+    .chat-container{
+        margin: calc(var(--header-height) + 1rem) auto 1rem auto;
+    }
+
 }

@@ -6,7 +6,7 @@
 
 .call-page {
     min-height: 100vh;
-    background: linear-gradient(180deg, #212c51 0%, #36447c 100%);
+    background: linear-gradient(180deg, #212c51 0%, var(--navy) 100%);
     color: #fff;
     font-family: "Inter", sans-serif;
 }
@@ -47,6 +47,31 @@
     font-size: 13px;
 }
 
+.status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--cloud);
+}
+
+.online {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #4cff4c;
+    border-radius: 50%;
+    box-shadow: 0 0 5px #4cff4c;
+}
+
+.offline {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #ff3b3b;
+    border-radius: 50%;
+}
+
 .dot {
     width: 8px;
     height: 8px;
@@ -81,7 +106,7 @@
 .block {
     width: 100%;
     max-width: 420px;
-    background: linear-gradient(180deg, #36447c 0%, #242f55 100%);
+    background: linear-gradient(180deg, var(--navy) 0%, #242f55 100%);
     border-radius: 14px;
     padding: 20px 12px;
     text-align: center;
@@ -110,27 +135,6 @@
     font-size: clamp(40px, 10vw, 60px);
 }
 
-.talking-row {
-    margin-top: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-}
-
-.talking-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #4cff4c;
-    animation: pulse 1.5s infinite;
-}
-
-.talking-text {
-    font-size: 13px;
-    color: #4cff4c;
-}
-
 .panel {
     width: 100%;
     max-width: 640px;
@@ -150,6 +154,16 @@
     justify-content: space-between;
     font-size: 13px;
     opacity: 0.85;
+}
+
+.ai {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .subtitle {
@@ -380,3 +394,51 @@
     font-size: 12px;
 }
 
+.task-indicator {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.task-badge {
+    font-size: 13px;
+    color: #ffc107;
+    font-weight: 500;
+}
+
+.task-timer {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffc107;
+    font-family: monospace;
+}
+
+.task-result {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.task-success {
+    color: #4caf50;
+    background: rgba(76, 175, 80, 0.15);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.task-fail {
+    color: #f44336;
+    background: rgba(244, 67, 54, 0.15);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-block;
+}

@@ -7,7 +7,7 @@ import { FavoritesContent } from "../../components/profilePage/FavoritesContent/
 import { Button } from "../../components/ui/Button/Button"
 import { validateEmail } from "../../utils"
 import { useAuthStore } from "../../store"
-import { fetchHr, updateHr } from "../../service/hr/hrService"
+import { fetchHr, updateHr } from "../../service/api/hrService"
 import "../../styles/variables.css"
 import * as styles from "../candidate/ProfilePage.module.css"
 import * as formStyles from "../../components/profilePage/ProfileForm/ProfileForm.module.css"
@@ -95,7 +95,7 @@ export const HrProfilePage: React.FC = () => {
         <ProfileMenu
           items={HR_MENU_ITEMS}
           activeItemId={activeMenuItem}
-          onItemChange={setActiveMenuItem}
+          onItemChange={(id) => setActiveMenuItem(id as HrMenuItem)}
         />
 
         <div className={styles["tabContent"]}>

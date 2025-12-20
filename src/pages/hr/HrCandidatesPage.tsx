@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchCandidates, fetchFavorites, addToFavorites, removeFromFavorites } from '../../service/hr/candidatesService'
-import { chatService } from '../../service/chat/chatService'
+import { fetchCandidates, fetchFavorites, addToFavorites, removeFromFavorites } from '../../service/api/candidatesService'
+import { chatService } from '../../service/api/chatService'
 import { useChatStore } from '../../store/useChatStore'
 import { CandidateCard } from '../../components/candidatesPage/CandidateCard/CandidateCard'
 import { CandidatesFilter, FilterState } from '../../components/candidatesPage/CandidatesFilter/CandidatesFilter'
@@ -9,7 +9,7 @@ import { ResumeModal } from '../../components/candidatesPage/ResumeModal/ResumeM
 import * as styles from './HrCandidatesPage.module.css'
 import { Resume } from '../../types/resume'
 import { ROUTES } from '../../router/routes'
-import { CandidateData } from '../../service/candidate/candidateService'
+import { CandidateData } from '../../service/api/candidateService'
 
 export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTitle = false }) => {
   const navigate = useNavigate()

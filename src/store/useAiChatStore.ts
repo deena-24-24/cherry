@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { aiChatService } from '../service/ai_chat/aiChatService'
+import { aiChatService } from '../service/api/aiChatService'
 
 interface Message {
   id: string;

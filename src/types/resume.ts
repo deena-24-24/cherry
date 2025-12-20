@@ -12,12 +12,11 @@ export interface Education {
 }
 
 export interface Resume {
-  id: string; // Важно: ID резюме
+  id: string;
   userId?: string;
-  title: string; // Название резюме (например, "Мое основное", "Frontend")
-  position: string; // Искомая должность
+  title: string;
+  position: string;
 
-  // Данные из профиля пользователя (для отображения, приходят с бэка)
   firstName?: string;
   lastName?: string;
   email?: string;

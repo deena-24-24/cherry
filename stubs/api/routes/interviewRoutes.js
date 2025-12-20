@@ -10,7 +10,7 @@ const { validateSessionExists } = require('../middleware/interviewMiddleware');
 router.get('/debug/sessions/:sessionId/check', (req, res) => {
   const { sessionId } = req.params;
   const { mockDB } = require('../mockData');
-  const interviewAI = require('../service/interviewAI');
+  const interviewAI = require('../service/interviewLogicService');
 
   const sessionInDB = mockDB.sessions.find(s => s.id === sessionId);
   const sessionInAI = interviewAI.conversationStates.get(sessionId);
@@ -58,6 +58,9 @@ router.get('/users/:userId/sessions', interviewController.getUserSessions);
 
 // Получение финального отчета
 router.get('/sessions/:sessionId/report', validateSessionExists, interviewController.getFinalReport);
+
+// Результат практического задания
+router.post('/sessions/:sessionId/code-task-result', validateSessionExists, interviewController.saveCodeTaskResult);
 
 // Дебаг эндпоинт (только для разработки)
 router.get('/debug/sessions', interviewController.debugSessions);

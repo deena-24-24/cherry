@@ -9,6 +9,7 @@
 }
 
 .sidebar-header {
+    height: 90px;
     padding: 1.5rem 1rem;
     border-bottom: 1px solid var(--lavand);
     background-color: var(--navy);
@@ -32,15 +33,15 @@
     gap: 1rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    border-bottom: 1px solid var(--color-secondary-hover);
+    border-bottom: 1px solid var(--cloud);
 }
 
 .chat-item:hover {
-    background-color: var(--color-secondary-hover);
+    background-color: var(--cloud);
 }
 
 .chat-item.active {
-    background-color: #e8ebff;
+    background-color: var(--color-background);
 }
 
 .avatar {
@@ -64,12 +65,12 @@
 
 .partner-name {
     font-weight: bold;
-    color: var(--color-primary);
+    color: var(--color-primary-blue);
 }
 
 .timestamp {
     font-size: var(--font-size-xs);
-    color: var(--color-accent);
+    color: var(--lavand);
 }
 
 .last-message {
@@ -77,7 +78,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: var(--font-size-sm);
-    color: var(--color-primary);
+    color: var(--color-primary-blue);
     opacity: 0.8;
     margin: 0;
 }
@@ -87,21 +88,17 @@
 }
 
 .chat-items-container::-webkit-scrollbar-track {
-    background: var(--color-secondary);
+    background: var(--cloud);
 }
 
 .chat-items-container::-webkit-scrollbar-thumb {
-    background: var(--color-border-light);
+    background: var(--cloud);
     border-radius: 3px;
 }
 
 .chat-items-container::-webkit-scrollbar-thumb:hover {
-    background: var(--color-accent);
+    background: var(--lavand);
 }
-
-/* ===============================
-   ADAPTIVE CHAT LIST
-   =============================== */
 
 /* Планшеты и ниже */
 @media (max-width: 1024px) {
@@ -130,7 +127,6 @@
         position: sticky;
         top: 0;
         z-index: 2;
-        background-color: var(--color-secondary);
     }
 
     .chat-item {

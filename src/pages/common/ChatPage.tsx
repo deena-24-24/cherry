@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { ChatList } from '../../components/chatPage/ChatList'
 import { ChatMessage } from '../../components/chatPage/ChatMessage'
 import { MessageInput } from '../../components/chatPage/MessageInput'
@@ -7,6 +7,8 @@ import { useAuthStore } from '../../store'
 import * as styles from './ChatPage.module.css'
 
 export const ChatPage: React.FC = () => {
+  const [isChatListOpen, setIsChatListOpen] = useState(false)
+
   const { user } = useAuthStore()
   const {
     chats,
@@ -54,8 +56,15 @@ export const ChatPage: React.FC = () => {
     <div className={styles['hr-chat-layout']}>
       <ChatList
         conversations={conversationPreviews}
-        activeChatId={activeChat?.id || null}
-        onSelectChat={handleSelectChat}
+        activeChatId={
+          isChatListOpen
+            ? null
+            : activeChat?.id || null
+        }
+        onSelectChat={(id) => {
+          handleSelectChat(id)
+          setIsChatListOpen(false)
+        }}
       />
       <main className={styles['chat-view-container']}>
         {isLoadingChat && !activeChat ? (
@@ -63,6 +72,12 @@ export const ChatPage: React.FC = () => {
         ) : activeChat ? (
           <>
             <header className={styles['chat-header']}>
+              <button
+                className={styles['chat-list-toggle']}
+                onClick={() => setIsChatListOpen(true)}
+              >
+                ☰
+              </button>
               <h1>{activeChat.partner.name}</h1>
               <p className={styles['status']}>
                 {activeChat.partner.company || 'Личная переписка'}
@@ -99,8 +114,8 @@ export const ChatPage: React.FC = () => {
         ) : (
           <div className={styles['no-chat-selected']}>
             <div>
-              <h2>Выберите чат</h2>
-              <p>Чтобы начать общение с представителем компании или кандидатом</p>
+              <h2 style={{ color: 'var(--lavand)' }}>Выберите чат</h2>
+              <p style={{ color: 'var(--lavand)' }}>Чтобы начать общение с представителем компании или кандидатом</p>
             </div>
           </div>
         )}

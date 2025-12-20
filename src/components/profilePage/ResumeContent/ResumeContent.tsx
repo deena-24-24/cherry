@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react"
 import { Button } from "../../ui/Button/Button"
 import * as styles from "./ResumeContent.module.css"
 import { Resume } from "../../../types/resume"
-import { fetchMyResumes, createResume, updateResume, deleteResume } from "../../../service/resume/resumeService"
+import { fetchMyResumes, createResume, updateResume, deleteResume } from "../../../service/api/resumeService"
 import { AVAILABLE_POSITIONS } from '../../../constants/positions'
 
 export const ResumeContent: React.FC = () => {
@@ -193,14 +193,6 @@ export const ResumeContent: React.FC = () => {
             )}
           </div>
 
-          <div className={styles["infoCard"]}>
-            {/* Позиция / Должность */}
-            <div className={styles["infoRow"]}>
-              <label className={styles["label"]}>ЖЕЛАЕМАЯ ДОЛЖНОСТЬ</label>
-              <div className={styles["value"]}>{localResume.position}</div>
-            </div>
-          </div>
-
           {/* --- Опыт работы --- */}
           <div className={styles["sectionCard"]}>
             <div className={styles["section"]}>
@@ -282,11 +274,13 @@ export const ResumeContent: React.FC = () => {
           <div className={styles["actions"]}>
             {isEditing ? (
               <>
-                <Button variant="primary" onClick={handleSave} className={styles["saveButton"]}>Сохранить</Button>
+                <Button variant="primary" onClick={handleSave}>Сохранить</Button>
                 <Button variant="secondary" onClick={() => { setIsEditing(false); setLocalResume(activeResume || null) }} className={styles["cancelButton"]}>Отмена</Button>
               </>
             ) : (
-              <Button variant="primary" onClick={() => setIsEditing(true)} className={styles["editButton"]}>Редактировать</Button>
+              <Button variant="primary" onClick={() => setIsEditing(true)} styleProps={{ textColor: '#fffcf5' }}>
+                РЕДАКТИРОВАТЬ
+              </Button>
             )}
           </div>
         </>

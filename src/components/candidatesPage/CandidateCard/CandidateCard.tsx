@@ -1,5 +1,5 @@
 import React from 'react'
-import { CandidateData } from '../../../service/candidate/candidateService'
+import { CandidateData } from '../../../service/api/candidateService'
 import { Button } from '../../ui/Button/Button'
 import * as styles from './CandidateCard.module.css'
 import { Resume } from '../../../types/resume'

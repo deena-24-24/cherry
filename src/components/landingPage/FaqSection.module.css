@@ -1,0 +1,50 @@
+.faqContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: 20px;
+}
+
+.faqSection {
+    width: 100%;
+    max-width: 860px;
+    margin: 10px auto 60px;
+    padding: 20px;
+
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid var(--peach);
+
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+
+    box-sizing: border-box;
+}
+
+.faqTitle {
+    text-align: center;
+    color: var(--color-primary-blue);
+    font-size: 30px;
+    font-family: 'Anek Tamil', sans-serif;
+    font-weight: 700;
+    /*text-transform: uppercase;*/
+    word-wrap: break-word;
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+    .faqSection {
+        padding: 28px 24px;
+        border-radius: 14px;
+        gap: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+    .faqSection {
+        padding: 22px 18px;
+    }
+}

@@ -1,5 +1,5 @@
 // stubs/utils/sessionCleanup.js
-const aiService = require('../service/interviewAI');
+const aiService = require('../service/interviewLogicService');
 
 /**
  * Очищает сессии старше указанного времени

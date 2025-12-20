@@ -3,7 +3,7 @@
   min-height: auto;
   background: white;
   border-radius: 15px;
-  border: 1px solid #78AAFF;
+  border: 1px solid var(--lavand);
   padding: 24px;
   margin-bottom: 20px;
   position: relative;
@@ -14,7 +14,7 @@
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(8, 32, 96, 0.1);
-  border-color: #082060;
+  border-color: var(--color-primary-blue);
 }
 
 .cardContent {
@@ -29,8 +29,8 @@
   height: 80px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid #78AAFF;
-  background-color: #F5F5FF;
+  border: 1px solid var(--lavand);
+  background-color: var(--color-background);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,7 +45,7 @@
 .avatarPlaceholder {
   font-size: 32px;
   font-weight: 600;
-  color: #78AAFF;
+  color: var(--lavand);
 }
 
 .info {
@@ -59,7 +59,7 @@
   font-family: 'Anek Telugu', sans-serif;
   font-size: 20px;
   font-weight: 600;
-  color: #082060;
+  color: var(--color-primary-blue);
   text-transform: uppercase;
 }
 
@@ -86,11 +86,11 @@
 }
 
 .skillTag {
-  background: #F2C2C8;
+  background: var(--peach);
   border-radius: 7px;
-  border: 1px solid #78AAFF;
+  border: 1px solid var(--lavand);
   padding: 4px 12px;
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 14px;
   font-family: 'Anek Telugu', sans-serif;
   font-weight: 500;
@@ -113,7 +113,7 @@
 
 .viewButton {
   width: 100%;
-  background-color: #082060;
+  background-color: var(--color-primary-blue);
   color: white;
 }
 .viewButton:hover {
@@ -123,21 +123,21 @@
 .messageButton {
   width: 100%;
   background-color: white;
-  color: #082060;
-  border: 1px solid #080260;
+  color: var(--color-primary-blue);
+  border: 1px solid var(--color-primary-blue);
 }
 
 .messageButton:hover {
-  background-color: #E9F0FF;
+  background-color: var(--color-background);
 }
 
 .favoriteButton {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid #082060;
+  border: 1px solid var(--color-primary-blue);
   background: #F5F5FF;
-  color: #082060;
+  color: var(--color-primary-blue);
   font-size: 24px;
   cursor: pointer;
   display: flex;
@@ -148,6 +148,6 @@
 }
 
 .favoriteButtonActive {
-  background: #082060;
+  background: var(--color-primary-blue);
   color: #F5F5FF;
 }

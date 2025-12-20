@@ -27,11 +27,11 @@ export const AiChatPage: React.FC = () => {
   }
 
   return (
-    <div className="container pd-lg">
+    <div className={styles["page"]}>
       <div className={styles["chat-container"]}>
         <header className={styles["chat-header"]}>
-          <h1 className="text-center">Помощник CareerUp AI</h1>
-          <p className="text-center" style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+          <h1 className="text-center" style={{ color: 'white' }}>Помощник CareerUp AI</h1>
+          <p className="text-center" style={{ fontSize: '0.9rem', opacity: 0.8, color: 'white' }}>
             Ваш персональный консультант по подготовке к собеседованиям
           </p>
         </header>

@@ -1,0 +1,136 @@
+ .irp-wrapper {
+    min-height: calc(100vh - var(--header-height) - var(--footer-height));
+    background: #F6F8FF;
+    padding: 40px 60px;
+    font-family: 'Inter', sans-serif;
+    margin-top: var(--header-height);
+}
+
+.irp-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.irp-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0A1A44;
+    margin-bottom: 8px;
+}
+
+.irp-subtitle {
+    font-size: 14px;
+    color: #556699;
+    margin-bottom: 24px;
+}
+
+.irp-latest-block {
+    margin-bottom: 32px;
+}
+
+.irp-section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #0A1A44;
+    margin-bottom: 16px;
+}
+
+.irp-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #EAF1FF 0%, #CFE0FF 100%);
+}
+
+.irp-card-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.irp-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0A1A44;
+}
+
+.irp-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: 13px;
+    color: #1B2B5B;
+}
+
+.irp-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(0, 59, 135, 0.08);
+}
+
+.irp-score {
+    font-size: 22px;
+    font-weight: 700;
+    color: #003B87;
+}
+
+.irp-score-label {
+    font-size: 12px;
+    color: #334066;
+}
+
+.irp-score-block {
+    text-align: right;
+}
+
+.irp-empty {
+    padding: 20px 24px;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px dashed #C5D4FF;
+    font-size: 14px;
+    color: #556699;
+}
+
+.irp-error {
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #FEE2E2;
+    color: #991B1B;
+    font-size: 13px;
+}
+
+.irp-history-list {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.irp-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #ffffff;
+    border: 1px solid #DFE7FF;
+    font-size: 13px;
+    color: #1B2B5B;
+}
+
+.irp-history-title {
+    font-weight: 500;
+}
+
+.irp-history-meta {
+    display: flex;
+    gap: 8px;
+    color: #6B7280;
+}
+
+
+

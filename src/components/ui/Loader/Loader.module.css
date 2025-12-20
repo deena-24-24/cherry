@@ -1,0 +1,54 @@
+.loader-page {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 9999;
+}
+
+
+.loader {
+    position: absolute;
+    top: calc(50% - (100px*0.4));
+    left: calc(50% - (100px*0.4));
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+}
+
+.loader span {
+    border: 0;
+    margin: 0;
+    width: 40%;
+    height: 40%;
+    position: absolute;
+    /*border-radius: 50%;*/ /*просто круги - закомментить clip-path*/
+    clip-path: polygon(56% 3%, 49% 16%, 47% 25%, 37% 24%, 24% 21%, 13% 23%, 3% 31%, 0 41%, 0 53%, 3% 64%, 8% 73%, 14% 81%, 20% 88%, 27% 93%, 35% 97%, 43% 99%, 50% 100%, 57% 99%, 64% 98%, 71% 94%, 77% 90%, 83% 85%, 88% 79%, 92% 73%, 96% 66%, 99% 57%, 100% 47%, 99% 37%, 94% 26%, 82% 20%, 70% 21%, 57% 24%, 49% 25%, 50% 15%, 61% 3%);
+    animation: spin 2s infinite;
+    transition: all 1s cubic-bezier(0.65, -0.55, 0.25, 1.55);
+    rotate: -45deg
+}
+
+.loader :first-child{
+    background: var(--peach);
+    animation-delay: -1.5s;
+}
+
+.loader :nth-child(2) {
+    background: var(--navy);
+    animation-delay: -1s;
+}
+.loader :nth-child(3) {
+    background: var(--lavand);
+    animation-delay: -0.5s;
+}
+.loader :last-child {
+    background: var(--maroon);
+}
+
+@keyframes spin {
+    0% { transform: translate(0) scale(0); }
+    25% { transform: translate(200%) scale(1.5) rotate(45deg)}
+    50% { transform: translate(200%, 200%) scale(0) }
+    75% { transform: translate(0, 200%) scale(1.5) rotate(-135deg) }
+    100% { transform: translate(0) scale(0) }
+}

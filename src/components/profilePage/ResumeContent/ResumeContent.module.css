@@ -1,742 +1,332 @@
 .resumeContent {
   width: 100%;
-  padding: 0;
-  position: relative;
+  max-width: 1000px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-}
-
-.resumeHeader {
-  width: 100%;
-  margin-bottom: 8px;
+  gap: var(--spacing-2xl);
 }
 
 .resumeTitle {
-  color: #082060;
-  font-size: 28px;
-  font-family: 'Anek Telugu', sans-serif;
-  font-weight: 600;
+  color: var(--navy);
+  font-size: var(--font-size-2xl);
+  font-family: var(--font-family-title), sans-serif;
+  font-weight: 700;
   text-transform: uppercase;
-  line-height: 30.8px;
   margin: 0;
-  padding-bottom: 16px;
-  border-bottom: 3px solid #78AAFF;
-}
-
-.infoCard {
-  background: white;
-  border-radius: 15px;
-  border: 1px solid #78AAFF;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(8, 32, 96, 0.08);
-}
-
-.topSection {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.infoRow {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.label {
-  color: #082060;
-  font-size: 20px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  text-transform: uppercase;
-  line-height: 22px;
-}
-
-.input {
-  width: 100%;
-  padding: 12px 16px;
-  color: #082060;
-  font-size: 18px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 22px;
-  border: 1px solid #78AAFF;
-  border-radius: 8px;
-  background: #F5F5FF;
-  transition: all 0.2s ease;
-}
-
-.input:focus {
-  outline: none;
-  border-color: #082060;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(120, 170, 255, 0.1);
-}
-
-.value {
-  width: 100%;
-  color: #082060;
-  font-size: 18px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 24px;
-  word-wrap: break-word;
-  padding: 8px 0;
-}
-
-.fileSection {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.fileUpload {
-  width: 100%;
-  max-width: 300px;
-  height: 52px;
-  background: #F5F5FF;
-  border-radius: 12px;
-  border: 1px solid #78AAFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.fileUpload:hover {
-  background: #E8F0FF;
-  border-color: #082060;
-  box-shadow: 0 2px 4px rgba(8, 32, 96, 0.1);
-}
-
-.fileHint {
-  color: #082060;
-  font-size: 14px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 20px;
-  opacity: 0.7;
-  font-style: italic;
-}
-
-.fileInput {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.fileLabel {
-  color: #78AAFF;
-  font-size: 18px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  text-transform: capitalize;
-  line-height: 19.8px;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.fileInfo {
-  color: #082060;
-  font-size: 14px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 20px;
-  margin-top: 8px;
-}
-
-.fileDisplay {
-  width: 100%;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #78AAFF;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.fileDisplayEditable {
-  width: 100%;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #78AAFF;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
-}
-
-.fileIcon {
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.fileName {
-  color: #082060;
-  font-size: 16px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 22px;
-  flex: 1;
-  word-break: break-word;
-}
-
-.fileRemoveButton {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid #78AAFF;
-  background: white;
-  color: #78AAFF;
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-  padding: 0;
-}
-
-.fileRemoveButton:hover {
-  background: #F2C2C8;
-  border-color: #F2C2C8;
-  color: #082060;
-}
-
-.filePlaceholder {
-  color: rgba(8, 32, 96, 0.5);
-  font-size: 16px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 22px;
-  font-style: italic;
-  padding: 16px;
-  background: #F5F5FF;
-  border-radius: 12px;
-  border: 1px dashed #78AAFF;
-  width: 100%;
-  text-align: center;
+  padding-left: 4px;
 }
 
 .sectionCard {
-  background: white;
-  border-radius: 15px;
-  border: 1px solid #78AAFF;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(8, 32, 96, 0.08);
+  background: var(--ui-bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--lavand);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .section {
-  width: 100%;
-}
-
-.sectionTitle {
-  color: #082060;
-  font-size: 20px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  text-transform: uppercase;
-  line-height: 22px;
-  margin: 0 0 20px 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #C8E6FF;
-}
-
-.educationItem,
-.experienceItem {
-  margin-bottom: 24px;
-}
-
-.educationItem:last-child,
-.experienceItem:last-child {
-  margin-bottom: 0;
-}
-
-/* Стили для режима редактирования */
-.editableItem {
-  background: white;
-  border: 1px solid #78AAFF;
-  border-radius: 12px;
-  padding: 20px;
-  position: relative;
-}
-
-.editableItemHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #C8E6FF;
-}
-
-.itemNumber {
-  color: #082060;
-  font-size: 16px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 600;
-  background: #C8E6FF;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.deleteButton {
-  background: transparent;
-  border: none;
-  color: #082060;
-  font-size: 28px;
-  font-weight: 300;
-  line-height: 1;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  padding: 0;
-}
-
-.deleteButton:hover {
-  background: #F2C2C8;
-  color: #d32f2f;
-  transform: scale(1.1);
-}
-
-.editableItemContent {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.editableField {
+.sectionCard:hover {
+  border-color: var(--navy);
+}
+
+.sectionTitle {
+  color: var(--navy);
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-title), sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 0 0 24px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--cloud);
+  letter-spacing: 0.05em;
+}
+
+.value {
+  color: var(--color-primary-blue);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.experienceItem {
+  margin-bottom: 24px;
+}
+.experienceItem:last-child {
+  margin-bottom: 0;
+}
+
+.experienceGrid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 24px;
+  padding: 20px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--navy);
+  border-left: 4px solid var(--navy);
+  transition: all 0.2s;
+}
+
+.experienceGrid:hover {
+  background: #fbf6ea;
+  transform: translateX(4px);
+}
+
+.period {
+  color: var(--maroon);
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--font-family-mono), serif;
+}
+
+.experienceDetails {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.editableLabel {
-  color: #082060;
-  font-size: 14px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.experienceDetails strong {
+  font-size: 18px;
+  color: var(--color-primary-blue);
 }
 
-.editableInput {
-  width: 100%;
-  padding: 12px 16px;
-  color: #082060;
+.experienceDetails div:nth-child(2) {
   font-size: 16px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 22px;
-  border: 1px solid #78AAFF;
-  border-radius: 8px;
-  background: #F5F5FF;
-  transition: all 0.2s ease;
+  color: var(--navy);
+  font-style: italic;
+  margin-bottom: 8px;
 }
 
-.editableInput:focus {
-  outline: none;
-  border-color: #082060;
+.editableItem {
   background: white;
-  box-shadow: 0 0 0 3px rgba(120, 170, 255, 0.1);
+  border: 1px dashed var(--lavand);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.editableInput::placeholder {
-  color: rgba(8, 32, 96, 0.4);
-}
-
+.editableInput,
 .editableTextarea {
   width: 100%;
-  min-height: 100px;
-  padding: 12px 16px;
-  color: #082060;
-  font-size: 16px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 24px;
-  border: 1px solid #78AAFF;
-  border-radius: 8px;
-  background: #F5F5FF;
-  resize: vertical;
-  transition: all 0.2s ease;
+  padding: 12px;
+  border: 1px solid var(--lavand);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-sans), serif;
+  background: var(--ui-bg-input);
 }
-
+.editableInput:focus,
 .editableTextarea:focus {
   outline: none;
-  border-color: #082060;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(120, 170, 255, 0.1);
+  border-color: var(--navy);
+  box-shadow: var(--shadow-focus);
 }
 
-.editableTextarea::placeholder {
-  color: rgba(8, 32, 96, 0.4);
+.deleteButton {
+  align-self: flex-end;
+  color: var(--color-error);
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
 }
 
-/* Стили для режима просмотра - применяются к experienceGrid и educationGrid */
-.educationGrid,
-.experienceGrid {
-  display: flex;
-  gap: 20px;
-  padding: 16px;
-  background: #F5F5FF;
-  border-radius: 8px;
-  border-left: 4px solid #78AAFF;
-}
-
-.year,
-.period {
-  width: 178px;
-  color: #082060;
-  font-size: 20px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  text-transform: capitalize;
-  line-height: 22px;
-  flex-shrink: 0;
-}
-
-.educationDetails,
-.experienceDetails {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.description {
-  color: #082060;
-  font-size: 16px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 24px;
-  margin-top: 12px;
-  padding: 12px;
-  background: white;
-  border-radius: 6px;
-  border-left: 3px solid #C8E6FF;
-}
-
-.textarea {
+.addButton {
   width: 100%;
-  min-height: 120px;
-  padding: 16px;
-  color: #082060;
-  font-size: 16px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  line-height: 24px;
-  border: 1px solid #78AAFF;
-  border-radius: 8px;
-  background: #F5F5FF;
-  resize: vertical;
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: #082060;
-  background: white;
+  border: 1px dashed var(--navy);
+  color: var(--navy);
 }
 
 .skillsContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 12px;
 }
 
 .skillTag {
-  width: auto;
-  min-width: 119px;
-  height: 37px;
+  background: var(--cloud);
+  border: 1px solid var(--lavand);
+  border-radius: 12px;
   padding: 8px 16px;
-  background: #C8E6FF;
-  border-radius: 7px;
-  border: 1px solid #78AAFF;
-  color: #082060;
-  font-size: 24px;
-  font-family: 'Anek Telugu', sans-serif;
-  font-weight: 500;
-  text-transform: capitalize;
-  line-height: 26.4px;
+  color: var(--navy);
+  font-family: var(--font-family-title), serif;
+  font-weight: 600;
+  font-size: 16px;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  position: relative;
+  transition: all 0.2s;
 }
 
-.skillRemove {
-  color: #082060;
-  font-size: 24px;
-  font-weight: 400;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  line-height: 1;
-  user-select: none;
+.skillTag:hover {
+  border-color: var(--peach);
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-.skillRemove:hover {
-  opacity: 0.7;
+.input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--lavand);
+  border-radius: 8px;
+  font-family: var(--font-family-sans), serif;
 }
 
 .addSkillButton {
-  width: 119px;
-  height: 37px;
-  background: #C8E6FF;
-  border-radius: 7px;
-  border: 1px solid #78AAFF;
-  color: #082060;
-  font-size: 40px;
-  font-family: 'Anek Telugu', sans-serif;
-  font-weight: 600;
-  text-transform: uppercase;
-  line-height: 44px;
-  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.addSkillButton:hover {
+  background: var(--color-primary-blue);
 }
 
 .actions {
   display: flex;
-  gap: 15px;
-  margin-top: 30px;
-  margin-bottom: 40px;
-  justify-content: center;
-}
-
-.saveButton {
-  width: 201px;
-  height: 50px;
+  gap: 16px;
+  justify-content: flex-start;
+  margin-top: 20px;
 }
 
 .cancelButton {
-  width: 201px;
-  height: 50px;
+  background: transparent;
+  border: 1px solid var(--maroon);
+  color: var(--maroon);
+}
+.cancelButton:hover {
+  background: #fff5f5;
 }
 
-.addButton {
-  margin-top: 15px;
+.textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 16px;
+  border: 1px solid var(--lavand);
+  border-radius: var(--radius-md);
+  background: var(--cloud);
+  font-family: var(--font-family-sans), serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.textarea:focus {
+  outline: none;
+  border-color: var(--navy);
+  background: white;
+  box-shadow: var(--shadow-focus);
 }
 
-.removeButton {
-  margin-top: 10px;
-  width: auto;
-  padding: 8px 16px;
+/* Адаптив */
+@media (max-width: 768px) {
+  .experienceGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    border-left: none;
+    border-top: 4px solid var(--navy);
+  }
 }
 
-.editButtonContainer {
-  display: flex;
-  justify-content: center;
-  margin-top: 30px;
-  margin-bottom: 40px;
-  padding-top: 20px;
-}
-
-.editButton {
-  width: 201px;
-  height: 50px;
-  padding: 12px 17px;
-  background: #082060;
-  border-radius: 15px;
-  outline: 1px solid #F2C2C8;
-  outline-offset: -1px;
-  color: #F5F5FF;
-  font-size: 20px;
-  font-family: 'Geist Mono', monospace;
-  font-weight: 500;
-  text-transform: uppercase;
-  line-height: 22px;
-  border: none;
-  cursor: pointer;
-}
-
-/* Модальные окна */
 .modalOverlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(8, 32, 96, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 2000;
   padding: 20px;
 }
 
 .modalContent {
   background: white;
-  border-radius: 15px;
-  border: 1px solid #78AAFF;
+  border-radius: var(--radius-lg);
   padding: 32px;
   width: 100%;
-  max-width: 500px;
-  box-shadow: 0 4px 20px rgba(8, 32, 96, 0.15);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  border: 1px solid var(--lavand);
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .modalTitle {
-  color: #082060;
+  font-family: var(--font-family-title), serif;
   font-size: 24px;
-  font-family: 'Anek Telugu', sans-serif;
-  font-weight: 600;
-  text-transform: uppercase;
+  color: var(--navy);
+  margin-bottom: 24px;
   text-align: center;
-  margin: 0;
 }
 
 .modalLabel {
-  color: #082060;
-  font-size: 16px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 500;
-  text-transform: uppercase;
-  margin-bottom: 8px;
   display: block;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.formLabel {
-  color: #082060;
-  font-size: 18px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 400;
-  text-transform: uppercase;
-  line-height: 20px;
-}
-
-.periodInputs {
-  display: flex;
-  gap: 12px;
-}
-
-.periodInputs .modalInput {
-  flex: 1;
-}
-
-.modalSelect {
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23082060' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1em;
-}
-
-.modalInput:focus,
-.modalSelect:focus {
-  outline: none;
-  border-color: #082060;
-  box-shadow: 0 0 0 3px rgba(120, 170, 255, 0.1);
+  font-size: 14px;
+  color: var(--color-primary-blue);
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .modalSelect {
   width: 100%;
-  padding: 14px 40px 14px 20px;
-  color: #082060;
-  font-size: 18px;
-  font-family: 'Geist', sans-serif;
-  font-weight: 500;
-  border: 2px solid #78AAFF;
-  border-radius: 12px;
-  background-color: #F5F5FF;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--lavand);
+  font-size: 16px;
+  background: var(--cloud);
+  margin-bottom: 24px;
   cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23082060' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 15px center;
-  background-size: 18px;
-  transition: all 0.2s ease;
-}
-
-.modalSelect:hover {
-  background-color: #E8F0FF;
-  border-color: #082060;
-}
-
-.modalSelect:focus {
-  outline: none;
-  background-color: white;
-  border-color: #082060;
-  box-shadow: 0 0 0 4px rgba(120, 170, 255, 0.2);
 }
 
 .modalActions {
   display: flex;
-  gap: 15px;
-  margin-top: 10px;
+  gap: 12px;
 }
 
 .modalButtonPrimary {
   flex: 1;
-  height: 55px;
-  background: #082060;
-  border-radius: 12px;
-  color: #F5F5FF;
-  font-size: 18px;
-  font-family: 'Geist Mono', monospace;
-  font-weight: 500;
-  text-transform: uppercase;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--navy);
+  color: white;
   border: none;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 10px rgba(8, 32, 96, 0.2);
-}
-
-.modalButtonPrimary:hover {
-  background: #0A2A7A;
-  transform: translateY(-1px);
+  transition: opacity 0.2s;
 }
 
 .modalButtonSecondary {
   flex: 1;
-  height: 55px;
-  background: white;
-  border: 2px solid #78AAFF;
-  border-radius: 12px;
-  color: #082060;
-  font-size: 18px;
-  font-family: 'Geist Mono', monospace;
-  font-weight: 500;
-  text-transform: uppercase;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--navy);
+  border: 1px solid var(--navy);
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
-
 .modalButtonSecondary:hover {
-  background: #F5F5FF;
-  border-color: #082060;
+  background: var(--cloud);
 }

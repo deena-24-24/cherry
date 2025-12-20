@@ -1,20 +1,20 @@
 .page {
   padding: 0 20px 60px;
   background: var(--color-background);
-  min-height: 100vh;
-  margin-top: 80px;
+  min-height: calc(100vh - var(--header-height) - var(--footer-height));
+  margin-top: var(--header-height);
 }
 
 .title {
   max-width: 1200px;
   margin: 0 auto var(--spacing-4xl);
-  color: var(--color-text);
+  color: var(--color-primary-blue);
   font-size: var(--font-size-3xl);
   font-family: var(--font-family-title), sans-serif;
   font-weight: 600;
   text-transform: uppercase;
   padding-bottom: 16px;
-  border-bottom: 3px solid #78AAFF;
+  border-bottom: 3px solid var(--lavand);
 }
 
 .container {
@@ -44,7 +44,7 @@
   text-align: center;
   padding: 60px 0;
   font-size: 20px;
-  color: #082060;
+  color: var(--color-primary-blue);
   width: 100%;
 }
 
@@ -54,5 +54,5 @@
   color: #999;
   background: #F5F5FF;
   border-radius: 15px;
-  border: 1px solid #082060;
+  border: 1px solid var(--color-primary-blue);
 }
