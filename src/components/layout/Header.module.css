@@ -136,6 +136,12 @@
 }
 
 @media (max-width: 850px) {
+  .headerContent {
+    width: 100%;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
   .navDesktop {
     display: none; /* прячем десктопное меню */
   }
