@@ -21,18 +21,6 @@
   padding-bottom: 10px;
 }
 
-/* Блок задач */
-.tasksBlock {
-  width: 100%;
-  max-width: 807px;
-  height: 233px;
-  position: relative;
-  background: #F5F5FF;
-  border-radius: 15px;
-  border: 1px var(--lavand) solid;
-  margin-bottom: 20px;
-}
-
 /* Блок собеседований */
 .interviewsBlock {
   width: 100%;

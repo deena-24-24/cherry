@@ -1,5 +1,27 @@
-// service/interview/compilerService.ts
 import { API_URL } from '../../config'
+
+export interface CodeExecutionRequest {
+  code: string;
+  language: string;
+  sessionId: string;
+  testCases?: Array<{ input: string, expected: string }>;
+}
+
+export interface CodeExecutionResponse {
+  output: string;
+  error?: string;
+  executionTime: number;
+  success: boolean;
+  testResults?: Array<{
+    testId: number;
+    input: string;
+    expected: string;
+    actual: string;
+    passed: boolean;
+    executionTime: number;
+    error?: string;
+  }>;
+}
 
 export class CompilerService {
   private apiBaseUrl: string
@@ -13,9 +35,9 @@ export class CompilerService {
     language: string,
     sessionId: string,
     testCases?: Array<{ input: string, expected: string }>
-  ): Promise<any> {
+  ): Promise<CodeExecutionResponse> {
     try {
-      const body: any = {
+      const body: CodeExecutionRequest = {
         code,
         language,
         sessionId

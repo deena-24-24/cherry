@@ -95,7 +95,7 @@ export const HrProfilePage: React.FC = () => {
         <ProfileMenu
           items={HR_MENU_ITEMS}
           activeItemId={activeMenuItem}
-          onItemChange={setActiveMenuItem}
+          onItemChange={(id) => setActiveMenuItem(id as HrMenuItem)}
         />
 
         <div className={styles["tabContent"]}>

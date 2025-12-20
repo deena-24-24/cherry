@@ -12,7 +12,7 @@ import { useVoiceCall } from '../hooks/useVoiceCall'
 import { saluteFrontendService } from '../../service/api/saluteFrontendService'
 import { socketService } from '../../service/realtime/socketService'
 import * as styles from './InterviewCallPage.module.css'
-import { API_URL } from '../../config' // Убедитесь, что импорт правильный
+import { API_URL } from '../../config'
 
 export const InterviewCallPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -27,7 +27,7 @@ export const InterviewCallPage: React.FC = () => {
     endCall: endStoreCall
   } = useInterviewStore()
 
-  // === СОСТОЯНИЯ ===
+  // === СОСТОЯНИЯ ДЛЯ ВСЕЙ СТРАНИЦЫ ===
   const [showNotes, setShowNotes] = useState(false)
   const [showConsole, setShowConsole] = useState(false)
 
@@ -46,13 +46,21 @@ export const InterviewCallPage: React.FC = () => {
   const [showInterrupted, setShowInterrupted] = useState(false)
   const [interruptionReason, setInterruptionReason] = useState<string>('')
 
+  // === ПРАКТИЧЕСКАЯ ЗАДАЧА ===
+  const [isCodeTaskActive, setIsCodeTaskActive] = useState(false)
+  const [codeTaskTimeRemaining, setCodeTaskTimeRemaining] = useState<number | null>(null)
+  const [codeTaskScore, setCodeTaskScore] = useState<number | null>(null)
+
+  const codeTaskTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const taskCompletedRef = useRef(false) // Чтобы не запустить дважды
+
+  const [isConnected, setIsConnected] = useState(false)
+  const [interviewPosition, setInterviewPosition] = useState<string | null>(null)
+  const [_voiceActivity, setVoiceActivity] = useState(0)
+
   // Refs для таймеров
   const reportTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  const [_voiceActivity, setVoiceActivity] = useState(0)
-  const [isConnected, setIsConnected] = useState(false)
-  const [interviewPosition, setInterviewPosition] = useState<string | null>(null)
 
   // Блокировка скролла
   useEffect(() => {
@@ -86,6 +94,116 @@ export const InterviewCallPage: React.FC = () => {
       setInterviewPosition(currentSession.position)
     }
   }, [currentSession?.position])
+
+  // === VOICE HOOK ===
+  const shouldInitVoice = !!sessionId && !!interviewPosition
+  const {
+    isRecording,
+    isAIThinking,
+    isAISpeaking,
+    isMicrophoneBlocked,
+    toggleRecording,
+    transcript,
+    aiResponse
+  } = useVoiceCall(
+    shouldInitVoice ? sessionId! : '',
+    shouldInitVoice ? interviewPosition! : '',
+    isCodeTaskActive
+  )
+
+  // === ЛОГИКА ПРАКТИЧЕСКОЙ ЗАДАЧИ ===
+
+  // 1. Обнаружение задачи в ответе ИИ
+  useEffect(() => {
+    if (!aiResponse || isCodeTaskActive || taskCompletedRef.current) return
+
+    const lowerResponse = aiResponse.toLowerCase()
+
+    // Фразы-триггеры из бэкенда
+    const triggers = [
+      'даю тебе 10 минут на выполнение задачи',
+      'задачу у консоли',
+      'задача у консоли',
+      'код в консоли'
+    ]
+
+    const hasTrigger = triggers.some(t => lowerResponse.includes(t))
+
+    if (hasTrigger) {
+      console.log('🚀 Обнаружена практическая задача! Запуск таймера...')
+      startCodeTask()
+    }
+  }, [aiResponse, isCodeTaskActive])
+
+  // 2. Старт задачи
+  const startCodeTask = useCallback(() => {
+    setIsCodeTaskActive(true)
+    setCodeTaskTimeRemaining(10 * 60) // 10 минут
+    setShowConsole(true)
+    setShowNotes(false)
+    taskCompletedRef.current = false
+
+    // Запускаем таймер
+    codeTaskTimerRef.current = setInterval(() => {
+      setCodeTaskTimeRemaining(prev => {
+        if (prev === null || prev <= 1) {
+          handleTaskComplete(false) // Время вышло
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }, [])
+
+  // 3. Завершение задачи (вызывается из CodeConsole или по таймеру)
+  const handleTaskComplete = useCallback(async (allTestsPassed: boolean) => {
+    if (taskCompletedRef.current) return // Защита от двойного вызова
+    taskCompletedRef.current = true
+
+    console.log(`🏁 Задача завершена. Успех: ${allTestsPassed}`)
+
+    // Остановка таймера
+    if (codeTaskTimerRef.current) {
+      clearInterval(codeTaskTimerRef.current)
+      codeTaskTimerRef.current = null
+    }
+
+    setIsCodeTaskActive(false)
+    setCodeTaskScore(allTestsPassed ? 1 : 0)
+
+    // Закрываем консоль через паузу для UX
+    setTimeout(() => {
+      setShowConsole(false)
+    }, 3000)
+
+    // Отправка результата на сервер
+    if (sessionId) {
+      try {
+        await fetch(`${API_URL}/api/interview/sessions/${sessionId}/code-task-result`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            score: allTestsPassed ? 1 : 0,
+            allTestsPassed,
+            completedAt: new Date().toISOString()
+          })
+        })
+
+        // Сообщаем ИИ, что задача выполнена, чтобы он продолжил диалог
+        const message = allTestsPassed
+          ? "Я успешно выполнил практическое задание, все тесты прошли. Готов продолжать."
+          : "Я завершил практическое задание, но не все тесты прошли. Готов продолжать."
+
+        socketService.sendTranscript(sessionId, message, interviewPosition || 'frontend')
+
+      } catch (e) {
+        console.error("Ошибка отправки результата задачи:", e)
+      }
+    }
+  }, [sessionId, interviewPosition])
 
   // === ФУНКЦИЯ ДЛЯ ПОЛЛИНГА ОТЧЕТА (HTTP FALLBACK) ===
   const startPollingForReport = useCallback(() => {
@@ -194,21 +312,6 @@ export const InterviewCallPage: React.FC = () => {
     }
   }, [handleInterviewCompleted])
 
-  const shouldInitVoice = !!sessionId && !!interviewPosition
-
-  const {
-    isRecording,
-    isAIThinking,
-    isAISpeaking,
-    isMicrophoneBlocked,
-    toggleRecording,
-    transcript,
-    aiResponse
-  } = useVoiceCall(
-    shouldInitVoice ? sessionId : '',
-    shouldInitVoice ? interviewPosition! : ''
-  )
-
   // Старт звонка в сторе
   useEffect(() => {
     if (!isCallActive && !isInterviewEnded) startStoreCall()
@@ -245,7 +348,7 @@ export const InterviewCallPage: React.FC = () => {
       setVoiceActivity(Math.min(baseLevel + Math.random() * 40, 100))
     }, 100)
     return () => clearInterval(interval)
-  }, [isRecording, transcript, isCallActive])
+  }, [isRecording, transcript, isCallActive, isCodeTaskActive])
 
   // Ручное завершение кнопкой "Завершить"
   const handleEndCall = useCallback(async (_reason: 'user' | 'system' | 'error' = 'user') => {
@@ -357,8 +460,30 @@ export const InterviewCallPage: React.FC = () => {
             </header>
 
             <div className={styles['ai']}>
-              {isAIThinking && !aiResponse && !isInterviewEnded && <div className="text-gray-400 text-sm animate-pulse">Печатает...</div>}
-              {aiResponse && <div className={styles['subtitle']}>“{aiResponse}”</div>}
+              {aiResponse && (
+                <div className={styles['subtitle']}>
+                  &#34;{aiResponse}&#34;
+                </div>
+              )}
+              {isCodeTaskActive && (
+                <div className={styles['task-indicator']}>
+                  <span className={styles['task-badge']}>⏱️ Практическая задача активна</span>
+                  {codeTaskTimeRemaining !== null && (
+                    <span className={styles['task-timer']}>
+                      {Math.floor(codeTaskTimeRemaining / 60)}:{(codeTaskTimeRemaining % 60).toString().padStart(2, '0')}
+                    </span>
+                  )}
+                </div>
+              )}
+              {codeTaskScore !== null && !isCodeTaskActive && (
+                <div className={styles['task-result']}>
+                  {codeTaskScore === 1 ? (
+                    <span className={styles['task-success']}>✅ Задача выполнена (+1 балл)</span>
+                  ) : (
+                    <span className={styles['task-fail']}>❌ Задача не выполнена (0 баллов)</span>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className={styles['user']}>
@@ -418,7 +543,14 @@ export const InterviewCallPage: React.FC = () => {
             </div>
             <div className={styles['panel-content']}>
               {showNotes && <NotesPanel />}
-              {showConsole && sessionId && <CodeConsole sessionId={sessionId} />}
+              {showConsole && sessionId && (
+                <CodeConsole
+                  sessionId={sessionId}
+                  isTaskMode={isCodeTaskActive}
+                  timeRemaining={codeTaskTimeRemaining}
+                  onTaskComplete={handleTaskComplete}
+                />
+              )}
             </div>
           </aside>
         </div>

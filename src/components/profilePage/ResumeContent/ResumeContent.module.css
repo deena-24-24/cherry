@@ -17,8 +17,7 @@
   padding-left: 4px;
 }
 
-.sectionCard,
-.infoCard {
+.sectionCard {
   background: var(--ui-bg-card);
   border-radius: var(--radius-xl);
   border: 1px solid var(--lavand);
@@ -27,6 +26,12 @@
   transition: transform 0.2s ease;
   position: relative;
   overflow: hidden;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .sectionCard:hover {
@@ -42,20 +47,6 @@
   margin: 0 0 24px 0;
   padding-bottom: 12px;
   border-bottom: 2px solid var(--cloud);
-  letter-spacing: 0.05em;
-}
-
-.infoRow {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.label {
-  color: var(--maroon);
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
@@ -149,6 +140,12 @@
   text-decoration: underline;
 }
 
+.addButton {
+  width: 100%;
+  border: 1px dashed var(--navy);
+  color: var(--navy);
+}
+
 .skillsContainer {
   display: flex;
   flex-wrap: wrap;
@@ -177,6 +174,14 @@
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
+.input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--lavand);
+  border-radius: 8px;
+  font-family: var(--font-family-sans), serif;
+}
+
 .addSkillButton {
   width: 40px;
   height: 40px;
@@ -200,6 +205,15 @@
   gap: 16px;
   justify-content: flex-start;
   margin-top: 20px;
+}
+
+.cancelButton {
+  background: transparent;
+  border: 1px solid var(--maroon);
+  color: var(--maroon);
+}
+.cancelButton:hover {
+  background: #fff5f5;
 }
 
 .textarea {

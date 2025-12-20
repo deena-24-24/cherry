@@ -14,7 +14,11 @@ interface UseVoiceCallReturn {
   error: string | null
 }
 
-export const useVoiceCall = (sessionId: string, position: string): UseVoiceCallReturn => {
+export const useVoiceCall = (
+  sessionId: string,
+  position: string,
+  isCodeTaskActive: boolean
+): UseVoiceCallReturn => {
   const [isRecording, setIsRecording] = useState(false)
   const [isAIThinking, setIsAIThinking] = useState(false)
   const [isAISpeaking, setIsAISpeaking] = useState(false)
@@ -30,6 +34,15 @@ export const useVoiceCall = (sessionId: string, position: string): UseVoiceCallR
   const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null)
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
   const audioChunksRef = useRef<Float32Array[]>([])
+  const isCodeTaskActiveRef = useRef(isCodeTaskActive)
+
+  useEffect(() => {
+    isCodeTaskActiveRef.current = isCodeTaskActive
+    // Если задача началась, принудительно останавливаем запись
+    if (isCodeTaskActive && isRecording) {
+      stopRecording()
+    }
+  }, [isCodeTaskActive])
 
   // Эффект для подписки на события Аудио-сервиса
   useEffect(() => {

@@ -37,7 +37,8 @@ class InterviewLogicService {
         topicProgress: new Set(['введение']),
         sessionStart: new Date(),
         llmErrorCount: 0,
-        actionsHistory: []
+        actionsHistory: [],
+        hasCodeTask: false
       };
       await stateService.createSession(sessionId, newState);
 
@@ -114,6 +115,37 @@ class InterviewLogicService {
         };
       }
 
+      // === ПРОВЕРКА НА ПРАКТИЧЕСКУЮ ЗАДАЧУ ===
+      const codeTaskCheck = this.shouldTriggerCodeTask(state, transcript);
+
+      if (codeTaskCheck.trigger) {
+        console.log(`🚀 Triggering Code Task for session ${sessionId}`);
+
+        // Фраза-триггер, которую ждет фронтенд
+        const triggerPhrase = "А теперь хочу посмотреть на твои практические знания. Даю тебе 10 минут на выполнение задачи у консоли.";
+
+        // Отправляем чанк сразу, чтобы пользователь услышал начало
+        if (onChunk) onChunk(triggerPhrase);
+
+        // Обновляем состояние
+        state.hasCodeTask = true;
+        state.conversationHistory.push({
+          role: 'assistant',
+          content: triggerPhrase,
+          timestamp: new Date()
+        });
+
+        await stateService.updateSession(sessionId, state);
+
+        return {
+          text: triggerPhrase,
+          metadata: {
+            isCodeTask: true,
+            currentTopic: state.currentTopic
+          }
+        };
+      }
+
       // 4. ГЕНЕРАЦИЯ ОБЫЧНОГО ОТВЕТА (ЕСЛИ ЛИМИТЫ НЕ ПРЕВЫШЕНЫ)
       const prompt = this.buildTextOnlyPrompt(state, transcript);
       const llm = getModel({ provider: 'gigachat', model: 'GigaChat-2-Max', streaming: true, temperature: 0.7 });
@@ -148,7 +180,7 @@ class InterviewLogicService {
           text: aiReplyText,
           isStreamed: true,
           metadata: {
-            isInterviewComplete: true, // Включаем завершение
+            isInterviewComplete: true,
             completionReason: "ИИ завершил диалог",
             wasAutomatic: true,
             finalReport: await this.generateComprehensiveReport(sessionId)
@@ -173,11 +205,42 @@ class InterviewLogicService {
     }
   }
 
+  // --- Метод определения необходимости задачи ---
+  shouldTriggerCodeTask(state, userTranscript) {
+    // Если задача уже была выдана, не выдаем снова
+    if (state.hasCodeTask) {
+      return { trigger: false };
+    }
+
+    const lowerTranscript = userTranscript.toLowerCase();
+
+    // 1. Явный запрос от пользователя
+    const practiceKeywords = [
+      'практик', 'задач', 'код', 'консол',
+      'написать', 'программиров', 'practice', 'code'
+    ];
+
+    // Проверяем явный запрос (например: "давай перейдем к практике", "хочу написать код")
+    if (practiceKeywords.some(w => lowerTranscript.includes(w)) && lowerTranscript.length < 100) {
+      return { trigger: true, reason: 'user_request' };
+    }
+
+    // 2. Автоматическое предложение (например, после 2-го сообщения от пользователя)
+    // Считаем сообщения пользователя
+    const userMsgCount = state.conversationHistory.filter(m => m.role === 'user').length;
+
+    // Предлагаем задачу на 3-м ходе диалога (введение -> вопрос 1 -> вопрос 2 -> ЗАДАЧА)
+    if (userMsgCount === 3) {
+      return { trigger: true, reason: 'auto_schedule' };
+    }
+
+    return { trigger: false };
+  }
+
   // --- Фоновый анализ ---
   async backgroundAnalysis(state, userResponse, aiResponse, sessionId) {
     try {
       const responseLower = aiResponse.toLowerCase();
-      // Эвристика для переключения тем
       if (responseLower.includes("давайте перейдем") || responseLower.includes("следующая тема")) {
         const nextTopic = this.getNextTopic(state.position, state.currentTopic);
         if (nextTopic) {
@@ -207,18 +270,28 @@ class InterviewLogicService {
       return { complete: true, reason: "Запрос пользователя", userRequested: true };
     }
 
+    const progress = await this.getInterviewProgress(sessionId);
+    const duration = await this.calculateDurationMinutes(sessionId);
+
     // 2. Проверка лимитов
-    const currentExchanges = Math.floor(state.conversationHistory.length / 2);
-
-    console.log(`Session ${sessionId}: Exchanges ${currentExchanges}/${COMPLETION_CRITERIA.maxExchanges}`);
-
-    if (currentExchanges >= COMPLETION_CRITERIA.maxExchanges) {
-      return { complete: true, reason: "Достигнут лимит вопросов" };
+    if (progress.totalExchanges >= COMPLETION_CRITERIA.maxExchanges) {
+      return { complete: true, reason: `Достигнут максимальный лимит вопросов (${COMPLETION_CRITERIA.maxExchanges})` };
     }
 
     // 3. Если тема стала "завершение"
     if (state.currentTopic === 'завершение') {
       return { complete: true, reason: "Темы исчерпаны" };
+    }
+
+    // 4. Минимальная продолжительность
+    if (duration >= COMPLETION_CRITERIA.minDuration &&
+      progress.totalExchanges >= COMPLETION_CRITERIA.minExchanges &&
+      progress.topicsCovered.length >= 3) {
+      return {
+        complete: true,
+        reason: `Достигнута минимальная продолжительность и охват тем`,
+        userRequested: false
+      };
     }
 
     return { complete: false };
@@ -251,11 +324,16 @@ class InterviewLogicService {
   async getInterviewProgress(sessionId) {
     const state = await stateService.getSession(sessionId);
     if (!state) return null;
+
+    const totalExchanges = state.conversationHistory.filter(m => m.role === 'user').length;
+    const averageScore = 7.5;
+    const topicsCovered = Array.from(state.topicProgress || []);
+
     return {
-      totalExchanges: Math.floor(state.conversationHistory.length / 2),
-      averageScore: 7.5,
-      topicsCovered: Array.from(state.topicProgress || []),
-      completionPercentage: Math.min(100, (state.conversationHistory.length / COMPLETION_CRITERIA.maxExchanges) * 100)
+      totalExchanges: totalExchanges,
+      averageScore: averageScore,
+      topicsCovered: topicsCovered,
+      completionPercentage: Math.min(100, (totalExchanges / COMPLETION_CRITERIA.maxExchanges) * 100)
     };
   }
 
@@ -269,6 +347,8 @@ class InterviewLogicService {
       return this.createMockFinalReport();
     }
 
+    const duration = await this.calculateDurationMinutes(sessionId);
+
     // 2. Формируем контекст диалога для LLM
     const conversationText = state.conversationHistory
       .map(m => `${m.role === 'user' ? 'Кандидат' : 'Интервьюер (AI)'}: ${m.content}`)
@@ -279,6 +359,7 @@ class InterviewLogicService {
       Твоя задача - проанализировать проведенное собеседование и составить финальный отчет в формате JSON.
       
       ПОЗИЦИЯ: ${state.position}
+      ПРОДОЛЖИТЕЛЬНОСТЬ: ${duration} мин
       
       ИСТОРИЯ ДИАЛОГА:
       ${conversationText}
@@ -315,7 +396,7 @@ class InterviewLogicService {
           "adaptability": { "score": (1-10), "feedback": "текст" }
         },
         "interview_analytics": {
-          "total_duration": "XX мин",
+          "total_duration": "${duration} мин",
           "total_questions": (число),
           "topics_covered_count": (число),
           "average_response_quality": (число 1-10),
@@ -390,19 +471,15 @@ class InterviewLogicService {
     };
   }
 
-  createEmptyInterviewReport(sessionId, duration, reason) {
-    return this.createMockFinalReport();
-  }
-
   async calculateDurationMinutes(sessionId) {
     const state = await stateService.getSession(sessionId);
     if (!state || !state.sessionStart) return 0;
     const start = new Date(state.sessionStart);
     const end = new Date();
-    return Math.round((end - start) / 60000);
+    return Math.max(1, Math.round((end - start) / 60000));
   }
 
-  getSmartCompletionMessage(report) {
+  getSmartCompletionMessage(_report) {
     return "Отчет готов. Вы можете ознакомиться с ним.";
   }
 }

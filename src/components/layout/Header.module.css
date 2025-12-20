@@ -1,13 +1,3 @@
-/* ============================================
-   Header - Стили для нового хедера
-   ============================================ */
-
-.header {
-  width: 100%;
-  height: 99px;
-  position: relative;
-}
-
 .headerContainer {
   width: 100vw;
   height: var(--header-height);

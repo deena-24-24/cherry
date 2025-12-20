@@ -13,7 +13,6 @@ import { LandingPage } from '../pages/common/LandingPage'
 import { ProfilePage } from '../pages/candidate/ProfilePage'
 import { InterviewHomePage } from '../pages/candidate/InterviewHomePage'
 import { InterviewCallPage } from '../pages/candidate/InterviewCallPage'
-// todo: Почему нет страницы?
 import { InterviewResultsPage } from '../pages/candidate/InterviewResultsPage'
 import { AiChatPage } from '../pages/candidate/AiChatPage'
 import { ChatPage } from '../pages/common/ChatPage'

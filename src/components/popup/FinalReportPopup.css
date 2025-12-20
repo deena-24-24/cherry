@@ -97,20 +97,6 @@
     opacity: 0.7;
 }
 
-/* Close button */
-.frp-close-btn {
-    background: transparent;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    color: #9ca3af;
-    padding: 4px 10px;
-    transition: color 0.2s ease;
-}
-.frp-close-btn:hover {
-    color: #ffffff;
-}
-
 /* ========================= */
 /*         SECTIONS          */
 /* ========================= */

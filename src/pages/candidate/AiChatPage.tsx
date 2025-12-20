@@ -27,7 +27,7 @@ export const AiChatPage: React.FC = () => {
   }
 
   return (
-    <div className="container mobile-no-padding">
+    <div className={styles["page"]}>
       <div className={styles["chat-container"]}>
         <header className={styles["chat-header"]}>
           <h1 className="text-center" style={{ color: 'white' }}>Помощник CareerUp AI</h1>

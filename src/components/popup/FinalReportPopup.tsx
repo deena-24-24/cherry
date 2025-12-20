@@ -8,7 +8,7 @@ interface FinalReportPopupProps {
   completionReason: string
   wasAutomatic: boolean
   onClose: () => void
-  isLoading?: boolean // Добавлен флаг загрузки
+  isLoading?: boolean
 }
 
 export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
