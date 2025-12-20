@@ -13,6 +13,7 @@ import { InterviewInterruptedPopup } from '../../components/interview/InterviewI
 import { useVoiceCall } from '../hooks/useVoiceCall'
 import { voiceService } from '../../service/interview/voiceService'
 import { socketService } from '../../service/socketService'
+import { API_URL } from '../../config'
 import * as styles from './InterviewCallPage.module.css'
 
 export const InterviewCallPage: React.FC = () => {
@@ -39,6 +40,14 @@ export const InterviewCallPage: React.FC = () => {
   const [interruptionReason, setInterruptionReason] = useState<string>('')
   const [isFinishing, setIsFinishing] = useState(false)
   const reportTimeoutRef = useRef<NodeJS.Timeout | null>(null) // Ref для таймаута ожидания отчета
+  
+  // === СОСТОЯНИЯ ДЛЯ ПРАКТИЧЕСКОЙ ЗАДАЧИ ===
+  const [isCodeTaskActive, setIsCodeTaskActive] = useState(false)
+  const [codeTaskTimeRemaining, setCodeTaskTimeRemaining] = useState<number | null>(null) // в секундах
+  const [codeTaskScore, setCodeTaskScore] = useState<number | null>(null) // 0 или 1
+  const codeTaskTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const isCodeTaskActiveRef = useRef(false) // Ref для useVoiceCall, чтобы избежать перемонтирования
+  const codeTaskCompletedRef = useRef(false) // Флаг, что практическое задание было завершено
 
   // === СОСТОЯНИЯ ДЛЯ ГОЛОСОВОЙ ЧАСТИ ===
   const [connectionQuality, setConnectionQuality] = useState<'good' | 'average' | 'poor'>('good')
@@ -155,7 +164,195 @@ export const InterviewCallPage: React.FC = () => {
     transcript,
     aiResponse,
     error: voiceError
-  } = useVoiceCall(sessionId || '', interviewPosition || '')
+  } = useVoiceCall(sessionId || '', interviewPosition || '', isCodeTaskActiveRef)
+  // === ФУНКЦИЯ ЗАВЕРШЕНИЯ ПРАКТИЧЕСКОЙ ЗАДАЧИ ===
+  const endCodeTask = useCallback(async (allTestsPassed: boolean) => {
+    console.log(`🏁 Завершение практической задачи. Все тесты прошли: ${allTestsPassed}`)
+
+    // Останавливаем таймер
+    if (codeTaskTimerRef.current) {
+      clearInterval(codeTaskTimerRef.current)
+      codeTaskTimerRef.current = null
+      console.log('⏹️ Таймер практической задачи остановлен')
+    }
+
+    // Устанавливаем результат
+    const score = allTestsPassed ? 1 : 0
+    setCodeTaskScore(score)
+    setIsCodeTaskActive(false)
+    isCodeTaskActiveRef.current = false // Обновляем ref СИНХРОННО
+    codeTaskCompletedRef.current = true // Помечаем, что задание завершено
+    setCodeTaskTimeRemaining(null)
+    
+    console.log('✅ Состояние практического задания обновлено:', {
+      isCodeTaskActive: false,
+      isCodeTaskActiveRef: isCodeTaskActiveRef.current,
+      codeTaskCompleted: codeTaskCompletedRef.current
+    })
+
+    // Если все тесты прошли, закрываем консоль автоматически через небольшую задержку
+    if (allTestsPassed) {
+      console.log('✅ Все тесты прошли! Закрываем консоль через 2 секунды...')
+      setTimeout(() => {
+        setShowConsole(false)
+        console.log('🔒 Консоль закрыта автоматически')
+      }, 2000) // 2 секунды чтобы пользователь увидел результат
+    }
+
+    // Отправляем результат на сервер
+    if (sessionId) {
+      try {
+        const response = await fetch(`${API_URL}/api/interview/sessions/${sessionId}/code-task-result`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            score,
+            allTestsPassed,
+            completedAt: new Date().toISOString()
+          })
+        })
+
+        if (response.ok) {
+          console.log(`📊 Результат практической задачи отправлен: ${score} балл(ов)`)
+        } else {
+          console.warn('⚠️ Не удалось отправить результат практической задачи')
+        }
+      } catch (error) {
+        console.error('❌ Ошибка при отправке результата практической задачи:', error)
+      }
+    }
+
+    // После завершения задачи можно продолжить собеседование
+    console.log('✅ Практическая задача завершена. Можно продолжить собеседование.')
+    
+    // Отправляем сообщение на сервер, чтобы ИИ знал, что практическое задание завершено
+    // и мог продолжить собеседование
+    if (sessionId) {
+      try {
+        const continueMessage = allTestsPassed 
+          ? 'Практическое задание выполнено успешно, все тесты прошли. Продолжаем собеседование.'
+          : 'Практическое задание завершено, но не все тесты прошли. Продолжаем собеседование.'
+        
+        // Отправляем через socketService
+        socketService.sendTranscript(sessionId, continueMessage, interviewPosition || 'frontend')
+        console.log('📤 Отправлено сообщение о завершении практического задания:', continueMessage)
+      } catch (error) {
+        console.error('❌ Ошибка при отправке сообщения о завершении практического задания:', error)
+      }
+    }
+    
+    // Возобновляем запись голоса после завершения практического задания
+    if (!isRecording && !isAISpeaking && !isAIThinking) {
+      setTimeout(() => {
+        console.log('🎤 Возобновляем запись голоса после практического задания')
+        toggleRecording()
+      }, 2000) // Увеличена задержка, чтобы дать время ИИ ответить
+    }
+  }, [sessionId, isRecording, isAISpeaking, isAIThinking, toggleRecording, interviewPosition])
+
+  // === ОЧИСТКА ПРИ РАЗМОНТИРОВАНИИ ===
+  useEffect(() => {
+    return () => {
+      if (codeTaskTimerRef.current) {
+        clearInterval(codeTaskTimerRef.current)
+      }
+    }
+  }, [])
+
+  // === ФУНКЦИЯ ЗАПУСКА ПРАКТИЧЕСКОЙ ЗАДАЧИ ===
+  const startCodeTask = useCallback(() => {
+    if (isCodeTaskActive) return
+
+    console.log('🚀 Запуск практической задачи на 10 минут')
+    setIsCodeTaskActive(true)
+    isCodeTaskActiveRef.current = true // Обновляем ref СИНХРОННО
+    codeTaskCompletedRef.current = false // Сбрасываем флаг завершения
+    setCodeTaskTimeRemaining(10 * 60) // 10 минут в секундах
+    setCodeTaskScore(null)
+    setShowConsole(true) // Автоматически открываем консоль
+
+    // Останавливаем запись голоса во время практического задания
+    if (isRecording) {
+      console.log('⏸️ Останавливаем запись голоса для практического задания')
+      toggleRecording()
+    }
+
+    // Запускаем таймер обратного отсчета
+    codeTaskTimerRef.current = setInterval(() => {
+      // Проверяем, что задание все еще активно ПЕРЕД обновлением состояния
+      if (!isCodeTaskActiveRef.current) {
+        // Задание завершено - останавливаем таймер
+        if (codeTaskTimerRef.current) {
+          clearInterval(codeTaskTimerRef.current)
+          codeTaskTimerRef.current = null
+          console.log('⏹️ Таймер остановлен - практическое задание завершено')
+        }
+        return
+      }
+
+      setCodeTaskTimeRemaining(prev => {
+        if (prev === null || prev <= 1) {
+          // Время истекло - останавливаем таймер перед вызовом endCodeTask
+          if (codeTaskTimerRef.current) {
+            clearInterval(codeTaskTimerRef.current)
+            codeTaskTimerRef.current = null
+            console.log('⏹️ Таймер остановлен - время истекло')
+          }
+          if (prev !== null && prev > 0) {
+            // Время истекло, но задание еще активно
+            endCodeTask(false) // false = не все тесты прошли (время истекло)
+          }
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }, [isCodeTaskActive, endCodeTask, isRecording, toggleRecording])
+  
+  // === ОБРАБОТКА СООБЩЕНИЙ ИИ ДЛЯ ОБНАРУЖЕНИЯ ПРАКТИЧЕСКОЙ ЗАДАЧИ ===
+  useEffect(() => {
+    if (!aiResponse || isCodeTaskActive || codeTaskCompletedRef.current) return
+
+    // Проверяем, содержит ли ответ ИИ фразу о практической задаче
+    const taskPhrases = [
+      'практические знания',
+      'практические навыки',
+      'практические умения',
+      'даю тебе',
+      'даю вам',
+      '10 минут',
+      'минут на выполнение',
+      'выполнение задачи',
+      'задача у консоли',
+      'консоль',
+      'напиши код',
+      'реши задачу'
+    ]
+
+    const lowerResponse = aiResponse.toLowerCase()
+    const hasTaskPhrase = taskPhrases.some(phrase => lowerResponse.includes(phrase.toLowerCase()))
+    const hasTimeLimit = /\d+\s*(минут|минуты|минуту|минута)/i.test(lowerResponse)
+    const hasConsoleMention = /консол/i.test(lowerResponse)
+    
+    // Проверяем точную фразу из инструкции
+    const hasExactPhrase = lowerResponse.includes('даю тебе 10 минут на выполнение задачи у консоли') ||
+                          (lowerResponse.includes('практические знания') && lowerResponse.includes('10 минут'))
+
+    // Более гибкое обнаружение: либо точная фраза, либо фраза + время, либо упоминание консоли + время
+    if (hasExactPhrase || (hasTaskPhrase && hasTimeLimit) || (hasConsoleMention && hasTimeLimit)) {
+      console.log('🎯 Обнаружена практическая задача от ИИ:', {
+        aiResponse,
+        hasExactPhrase,
+        hasTaskPhrase,
+        hasTimeLimit,
+        hasConsoleMention
+      })
+      startCodeTask()
+    }
+  }, [aiResponse, isCodeTaskActive, startCodeTask])
 
   // 3. Только ПОСЛЕ установки колбэка используем хук useVoiceCall
   // const voiceCall = useVoiceCall(sessionId || '', currentSession?.position || '')
@@ -226,7 +423,7 @@ export const InterviewCallPage: React.FC = () => {
     }, 100)
 
     return () => clearInterval(interval)
-  }, [isRecording, transcript, isCallActive])
+  }, [isRecording, transcript, isCallActive, isCodeTaskActive])
 
   // Обработчик клавиши Escape
   useEffect(() => {
@@ -445,7 +642,26 @@ export const InterviewCallPage: React.FC = () => {
             <div className={styles['ai']}>
               {aiResponse && (
                 <div className={styles['subtitle']}>
-                  “{aiResponse}”
+                  &#34;{aiResponse}&#34;
+                </div>
+              )}
+              {isCodeTaskActive && (
+                <div className={styles['task-indicator']}>
+                  <span className={styles['task-badge']}>⏱️ Практическая задача активна</span>
+                  {codeTaskTimeRemaining !== null && (
+                    <span className={styles['task-timer']}>
+                      {Math.floor(codeTaskTimeRemaining / 60)}:{(codeTaskTimeRemaining % 60).toString().padStart(2, '0')}
+                    </span>
+                  )}
+                </div>
+              )}
+              {codeTaskScore !== null && !isCodeTaskActive && (
+                <div className={styles['task-result']}>
+                  {codeTaskScore === 1 ? (
+                    <span className={styles['task-success']}>✅ Задача выполнена (+1 балл)</span>
+                  ) : (
+                    <span className={styles['task-fail']}>❌ Задача не выполнена (0 баллов)</span>
+                  )}
                 </div>
               )}
             </div>
@@ -504,7 +720,14 @@ export const InterviewCallPage: React.FC = () => {
 
             <div className={styles['panel-content']}>
               {showNotes && <NotesPanel />}
-              {showConsole && sessionId && <CodeConsole sessionId={sessionId} />}
+              {showConsole && sessionId && (
+                <CodeConsole 
+                  sessionId={sessionId}
+                  isTaskMode={isCodeTaskActive}
+                  timeRemaining={codeTaskTimeRemaining}
+                  onTaskComplete={endCodeTask}
+                />
+              )}
             </div>
           </aside>
         </div>

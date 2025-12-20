@@ -1,10 +1,10 @@
 // src/pages/hooks/useVoiceCall.ts
-import { useState, useCallback, useRef, useEffect } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { socketService } from '../../service/socketService'
 import { voiceService } from '../../service/interview/voiceService'
 import { AIResponse } from '../../types'
 
-export const useVoiceCall = (sessionId: string, position: string) => {
+export const useVoiceCall = (sessionId: string, position: string, isCodeTaskActiveRef?: React.MutableRefObject<boolean>) => {
   const [isRecording, setIsRecording] = useState<boolean>(false)
   const [transcript, setTranscript] = useState('')
   const [aiResponse, setAiResponse] = useState('')
@@ -61,7 +61,12 @@ export const useVoiceCall = (sessionId: string, position: string) => {
           console.log('✅ AI finished speaking')
 
           // УВЕЛИЧИВАЕМ ЗАДЕРЖКУ ПЕРЕД ЗАПУСКОМ ЗАПИСИ
+          // НЕ запускаем запись во время практического задания
           setTimeout(() => {
+            if (isCodeTaskActiveRef?.current) {
+              console.log('⏸️ Пропускаем запуск записи - практическое задание активно')
+              return
+            }
             if (!isRecording && startRecordingRef.current) {
               console.log('🎤 Starting recording after AI response')
               startRecordingRef.current()
@@ -70,6 +75,10 @@ export const useVoiceCall = (sessionId: string, position: string) => {
         } catch (error) {
           console.error('❌ Error playing AI audio:', error)
           setTimeout(() => {
+            if (isCodeTaskActiveRef?.current) {
+              console.log('⏸️ Пропускаем запуск записи после ошибки - практическое задание активно')
+              return
+            }
             if (!isRecording && startRecordingRef.current) {
               startRecordingRef.current()
             }
@@ -87,6 +96,10 @@ export const useVoiceCall = (sessionId: string, position: string) => {
       setIsAISpeaking(false)
 
       setTimeout(() => {
+        if (isCodeTaskActiveRef?.current) {
+          console.log('⏸️ Пропускаем запуск записи после ошибки ИИ - практическое задание активно')
+          return
+        }
         if (!isRecording && startRecordingRef.current) {
           startRecordingRef.current().then()
         }
@@ -104,6 +117,10 @@ export const useVoiceCall = (sessionId: string, position: string) => {
 
     // УВЕЛИЧИВАЕМ НАЧАЛЬНУЮ ЗАДЕРЖКУ
     const timer = setTimeout(() => {
+      if (isCodeTaskActiveRef?.current) {
+        console.log('⏸️ Пропускаем начальную запись - практическое задание активно')
+        return
+      }
       console.log('🎤 Starting initial recording...')
       if (startRecordingRef.current) {
         startRecordingRef.current().then()
@@ -117,7 +134,7 @@ export const useVoiceCall = (sessionId: string, position: string) => {
       socketService.offError()
       fullCleanup()
     }
-  }, [sessionId, position, fullCleanup]) // Добавили position обратно в зависимости
+  }, [sessionId, position, fullCleanup]) // Убрали isCodeTaskActive из зависимостей - используем ref
 
   const stopRecording = useCallback(() => {
     if (recognitionRef.current) {
@@ -178,6 +195,14 @@ export const useVoiceCall = (sessionId: string, position: string) => {
         console.log('🎯 Final transcript:', text)
         setIsAIThinking(true)
         recognitionRestartAttemptsRef.current = 0 // Сбрасываем счетчик при успешном распознавании
+
+        // НЕ отправляем транскрипты во время практического задания
+        if (isCodeTaskActiveRef?.current) {
+          console.log('⏸️ Пропускаем отправку транскрипта - практическое задание активно')
+          stopRecording()
+          setIsAIThinking(false)
+          return
+        }
 
         // Используем актуальную позицию из ref
         const success = socketService.sendTranscript(sessionId, text, positionRef.current)

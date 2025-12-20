@@ -1,11 +1,7 @@
 import { socketService } from '../socketService'
 import { API_URL } from '../../config'
 import { voiceService } from './voiceService'
-import {
-  AIResponse,
-  SocketInterviewCompleted,
-  InterviewSession
-} from '../../types'
+import { AIResponse, SocketInterviewCompleted, isSocketInterviewCompleted, extractAIResponse, isSocketAIError } from '../../types'
 
 export interface ConversationMessage {
   role: 'assistant' | 'user'
@@ -18,34 +14,6 @@ export class InterviewService {
   private isConnected: boolean = false
   private aiMessageCallbacks: ((data: AIResponse) => void)[] = []
   private interviewCompletedCallbacks: ((data: SocketInterviewCompleted) => void)[] = []
-
-  // Получение списка сессий пользователя ---
-  async fetchUserSessions(userId: string): Promise<InterviewSession[]> {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        throw new Error('No authorization token found')
-      }
-
-      const response = await fetch(`${API_URL}/api/interview/users/${userId}/sessions`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch user sessions')
-      }
-
-      const data = await response.json()
-      return data.sessions || []
-    } catch (error) {
-      console.error('Error fetching user sessions:', error)
-      return []
-    }
-  }
 
   async startInterview(sessionId: string, position: string): Promise<{
     success: boolean;
@@ -216,7 +184,7 @@ export class InterviewService {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/interview/sessions/${this.currentSessionId}/conversation`, {
+      const response = await fetch(`http://localhost:5000/api/interview/sessions/${this.currentSessionId}/conversation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -242,7 +210,7 @@ export class InterviewService {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/interview/sessions/${this.currentSessionId}/conversation`)
+      const response = await fetch(`http://localhost:5000/api/interview/sessions/${this.currentSessionId}/conversation`)
 
       if (!response.ok) {
         throw new Error('Failed to fetch conversation history')
@@ -268,7 +236,7 @@ export class InterviewService {
 
       // Отмечаем сессию как завершенную
       if (this.currentSessionId) {
-        const response = await fetch(`${API_URL}/api/interview/sessions/${this.currentSessionId}/complete`, {
+        const response = await fetch(`http://localhost:5000/api/interview/sessions/${this.currentSessionId}/complete`, {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`

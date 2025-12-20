@@ -17,12 +17,24 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
   wasAutomatic,
   onClose
 }) => {
-  console.log('🎪 FinalReportPopup rendering with:', {
-    report,
-    hasReport: !!report,
-    reportKeys: report ? Object.keys(report) : 'none',
-    hasOverallAssessment: report?.overall_assessment
-  })
+  // Убрали избыточное логирование - логи только при первой отрисовке
+  React.useEffect(() => {
+    console.log('🎪 FinalReportPopup mounted with report:', {
+      hasReport: !!report,
+      completionReason
+    })
+  }, []) // Только при монтировании
+
+  // Проверяем, завершилось ли интервью из-за ошибок LLM API
+  const isLLMError = completionReason?.toLowerCase().includes('llm') || 
+                     completionReason?.toLowerCase().includes('ошибк') ||
+                     completionReason?.toLowerCase().includes('превышено') ||
+                     (report?.overall_assessment?.final_score === 0 && 
+                      report?.overall_assessment?.level === 'Не оценено' &&
+                      (report?.detailed_feedback?.toLowerCase().includes('llm') ||
+                       report?.detailed_feedback?.toLowerCase().includes('gigachat') ||
+                       report?.detailed_feedback?.toLowerCase().includes('402')))
+
   if (!report || !report.overall_assessment) {
     console.error('❌ Invalid report data in FinalReportPopup:', {
       report,
@@ -102,6 +114,23 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
           {/*<p className="frp-reason-text">{completionReason}</p>*/}
         </div>
 
+        {/* Специальное предупреждение для ошибок LLM API */}
+        {isLLMError && (
+          <div className="frp-llm-error-banner">
+            <div className="frp-llm-error-icon">⚠️</div>
+            <div className="frp-llm-error-content">
+              <h3 className="frp-llm-error-title">Собеседование прервано из-за ошибки LLM API</h3>
+              <p className="frp-llm-error-text">
+                Произошла ошибка при подключении к сервису GigaChat (ошибка 402: Payment Required). 
+                Интервью было автоматически завершено после 3 неудачных попыток.
+              </p>
+              <p className="frp-llm-error-note">
+                <strong>Оценка: 0/10</strong> - не может быть выставлена из-за технических проблем с API.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Контент */}
         <div className="frp-content">
           {/* Общая оценка */}
@@ -141,47 +170,49 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
           </div>
 
           {/* Технические навыки */}
-          <div className="frp-section-box">
-            <h3 className="frp-section-title">💻 Технические навыки</h3>
-            <div className="space-y-4">
-              <div className="">
-                <h4 className="frp-section-title green">Освоенные темы:</h4>
-                <div className="frp-badges-row">
-                  {technical_skills.topics_covered?.map((topic: string, index: number) => (
-                    <span key={index} className="frp-badge green">
-                      {topic}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {technical_skills.strong_areas && technical_skills.strong_areas.length > 0 && (
-                <div>
-                  <h4 className="frp-section-title">Сильные области:</h4>
+          {technical_skills && (
+            <div className="frp-section-box">
+              <h3 className="frp-section-title">💻 Технические навыки</h3>
+              <div className="space-y-4">
+                <div className="">
+                  <h4 className="frp-section-title green">Освоенные темы:</h4>
                   <div className="frp-badges-row">
-                    {technical_skills.strong_areas.map((area: string, index: number) => (
-                      <span key={index} className="frp-badge blue">
-                        {area}
+                    {technical_skills.topics_covered?.map((topic: string, index: number) => (
+                      <span key={index} className="frp-badge green">
+                        {topic}
                       </span>
                     ))}
                   </div>
                 </div>
-              )}
 
-              {technical_skills.weak_areas && technical_skills.weak_areas.length > 0 && (
-                <div>
-                  <h4 className="frp-section-title">Зоны роста:</h4>
-                  <div className="frp-section-title">
-                    {technical_skills.weak_areas.map((area: string, index: number) => (
-                      <span key={index} className="frp-badge yellow">
-                        {area}
-                      </span>
-                    ))}
+                {technical_skills.strong_areas && technical_skills.strong_areas.length > 0 && (
+                  <div>
+                    <h4 className="frp-section-title">Сильные области:</h4>
+                    <div className="frp-badges-row">
+                      {technical_skills.strong_areas.map((area: string, index: number) => (
+                        <span key={index} className="frp-badge blue">
+                          {area}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {technical_skills.weak_areas && technical_skills.weak_areas.length > 0 && (
+                  <div>
+                    <h4 className="frp-section-title">Зоны роста:</h4>
+                    <div className="frp-section-title">
+                      {technical_skills.weak_areas.map((area: string, index: number) => (
+                        <span key={index} className="frp-badge yellow">
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Поведенческий анализ */}
           {behavioral_analysis && (
@@ -243,22 +274,26 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
           )}
 
           {/* Детальный фидбек */}
-          <div className="frp-section-box">
-            <h3 className="frp-section-title">📝 Детальный фидбек</h3>
-            <p className="frp-detailed-text">
-              {detailed_feedback}
-            </p>
-          </div>
+          {detailed_feedback && (
+            <div className="frp-section-box">
+              <h3 className="frp-section-title">📝 Детальный фидбек</h3>
+              <p className="frp-detailed-text">
+                {detailed_feedback}
+              </p>
+            </div>
+          )}
 
           {/* Следующие шаги */}
-          <div className="frp-section-box">
-            <h3 className="frp-section-title">🎯 Следующие шаги</h3>
-            <ul className="space-y-2">
-              {next_steps?.map((step: string, index: number) => (
-                <li key={index}>{step}</li>
-              ))}
-            </ul>
-          </div>
+          {next_steps && next_steps.length > 0 && (
+            <div className="frp-section-box">
+              <h3 className="frp-section-title">🎯 Следующие шаги</h3>
+              <ul className="space-y-2">
+                {next_steps.map((step: string, index: number) => (
+                  <li key={index}>{step}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Футер */}

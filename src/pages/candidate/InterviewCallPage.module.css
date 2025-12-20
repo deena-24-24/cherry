@@ -380,3 +380,52 @@
     font-size: 12px;
 }
 
+.task-indicator {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.task-badge {
+    font-size: 13px;
+    color: #ffc107;
+    font-weight: 500;
+}
+
+.task-timer {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffc107;
+    font-family: monospace;
+}
+
+.task-result {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.task-success {
+    color: #4caf50;
+    background: rgba(76, 175, 80, 0.15);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.task-fail {
+    color: #f44336;
+    background: rgba(244, 67, 54, 0.15);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-block;
+}
+

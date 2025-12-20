@@ -433,6 +433,56 @@ class InterviewController {
       });
     }
   }
+
+  // Сохранение результата практического задания
+  async saveCodeTaskResult(req, res) {
+    try {
+      const { sessionId } = req.params;
+      const { score, allTestsPassed, completedAt } = req.body;
+
+      console.log(`📊 Сохранение результата практического задания для сессии ${sessionId}:`, {
+        score,
+        allTestsPassed,
+        completedAt
+      });
+
+      // Проверяем существование сессии
+      const session = mockDB.sessions.find(s => s.id === sessionId);
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          error: 'Session not found'
+        });
+      }
+
+      // Сохраняем результат в сессию
+      if (!session.codeTaskResults) {
+        session.codeTaskResults = [];
+      }
+
+      session.codeTaskResults.push({
+        score,
+        allTestsPassed,
+        completedAt: completedAt || new Date().toISOString(),
+        submittedAt: new Date().toISOString()
+      });
+
+      console.log(`✅ Результат практического задания сохранен для сессии ${sessionId}`);
+
+      res.json({
+        success: true,
+        message: 'Результат практического задания сохранен',
+        score,
+        allTestsPassed
+      });
+    } catch (error) {
+      console.error('❌ Ошибка при сохранении результата практического задания:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
 }
 
 module.exports = new InterviewController();

@@ -112,6 +112,64 @@
 }
 
 /* ========================= */
+/*      LLM ERROR BANNER     */
+/* ========================= */
+
+.frp-llm-error-banner {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+    border: 2px solid rgba(239, 68, 68, 0.4);
+    border-radius: 12px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.frp-llm-error-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.frp-llm-error-content {
+    flex: 1;
+}
+
+.frp-llm-error-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f87171;
+    margin: 0 0 8px 0;
+}
+
+.frp-llm-error-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #e5e7eb;
+    margin: 0 0 12px 0;
+}
+
+.frp-llm-error-note {
+    font-size: 14px;
+    color: #fbbf24;
+    margin: 0;
+    padding: 8px 12px;
+    background: rgba(251, 191, 36, 0.1);
+    border-radius: 6px;
+    border-left: 3px solid #fbbf24;
+}
+
+.frp-llm-error-note strong {
+    color: #facc15;
+}
+
+/* ========================= */
 /*         SECTIONS          */
 /* ========================= */
 

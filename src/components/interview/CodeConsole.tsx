@@ -10,6 +10,9 @@ import 'highlight.js/lib/languages/javascript'
 
 interface CodeConsoleProps {
   sessionId: string;
+  isTaskMode?: boolean; // Режим практической задачи
+  timeRemaining?: number | null; // Оставшееся время в секундах
+  onTaskComplete?: (allTestsPassed: boolean) => void; // Колбэк при завершении задачи
 }
 
 interface TestResult {
@@ -22,12 +25,18 @@ interface TestResult {
   error?: string;
 }
 
-export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
+export const CodeConsole: React.FC<CodeConsoleProps> = ({ 
+  sessionId, 
+  isTaskMode = false,
+  timeRemaining = null,
+  onTaskComplete
+}) => {
   const [code, setCode] = useState('')
   const [output, setOutput] = useState('')
   const [isRunning, setIsRunning] = useState(false)
   const [language, setLanguage] = useState('javascript')
   const [testResults, setTestResults] = useState<TestResult[]>([])
+  const [taskCompleted, setTaskCompleted] = useState(false)
 
   const codeTasks = [
     {
@@ -79,7 +88,7 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
   }
 
   const handleRunCode = async () => {
-    if (!code.trim() || isRunning) return
+    if (!code.trim() || isRunning || (isTaskMode && taskCompleted)) return
 
     setIsRunning(true)
     setOutput('🔄 Выполнение кода...')
@@ -105,6 +114,19 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
 
       if (result.testResults) {
         setTestResults(result.testResults)
+        
+        // В режиме задачи проверяем, все ли тесты прошли
+        if (isTaskMode && !taskCompleted) {
+          const allPassed = result.testResults.every(tr => tr.passed)
+          console.log(`📊 Проверка результатов задачи: все тесты прошли=${allPassed}, количество тестов=${result.testResults.length}`)
+          if (allPassed && result.testResults.length > 0) {
+            console.log('✅ Все тесты прошли! Задача выполнена успешно.')
+            setTaskCompleted(true)
+            if (onTaskComplete) {
+              onTaskComplete(true)
+            }
+          }
+        }
       }
 
     } catch (error) {
@@ -113,6 +135,29 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
     } finally {
       setIsRunning(false)
     }
+  }
+
+  // Отслеживаем истечение времени в режиме задачи
+  useEffect(() => {
+    if (isTaskMode && timeRemaining !== null && timeRemaining <= 0 && !taskCompleted) {
+      console.log('⏰ Время на задачу истекло в CodeConsole')
+      setTaskCompleted(true)
+      if (onTaskComplete) {
+        // Проверяем результаты перед завершением
+        const allPassed = testResults.length > 0 && testResults.every(tr => tr.passed)
+        console.log(`📊 Задача завершена по времени. Все тесты прошли: ${allPassed}`, { testResults })
+        onTaskComplete(allPassed)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTaskMode, timeRemaining, taskCompleted, onTaskComplete])
+
+  // Форматирование времени для отображения
+  const formatTime = (seconds: number | null): string => {
+    if (seconds === null) return ''
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
   const handleLanguageChange = (newLanguage: string) => {
@@ -135,7 +180,39 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-center text-2xl font-bold text-gray-800 mb-6">Консоль программирования</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-center text-2xl font-bold text-gray-800">
+          {isTaskMode ? 'Практическая задача' : 'Консоль программирования'}
+        </h1>
+        {isTaskMode && timeRemaining !== null && (
+          <div className={`text-xl font-bold ${
+            timeRemaining < 60 ? 'text-red-600' : 
+            timeRemaining < 300 ? 'text-orange-600' : 
+            'text-green-600'
+          }`}>
+            ⏱️ {formatTime(timeRemaining)}
+          </div>
+        )}
+      </div>
+      
+      {isTaskMode && taskCompleted && (
+        <div className={`mb-4 p-4 rounded-lg border ${
+          testResults.length > 0 && testResults.every(tr => tr.passed)
+            ? 'bg-green-50 border-green-200 text-green-800'
+            : 'bg-red-50 border-red-200 text-red-800'
+        }`}>
+          <h3 className="font-bold text-lg mb-2">
+            {testResults.length > 0 && testResults.every(tr => tr.passed)
+              ? '✅ Задача выполнена! Все тесты прошли.'
+              : '❌ Время истекло или не все тесты прошли.'}
+          </h3>
+          <p className="text-sm">
+            {testResults.length > 0 && testResults.every(tr => tr.passed)
+              ? 'Вы получили балл за практическую задачу.'
+              : 'Балл не начислен.'}
+          </p>
+        </div>
+      )}
 
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-4">
@@ -187,7 +264,7 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
           </Button>
           <Button
             onClick={handleRunCode}
-            disabled={isRunning || !code.trim()}
+            disabled={isRunning || !code.trim() || (isTaskMode && taskCompleted)}
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isRunning ? (
@@ -195,6 +272,8 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 Выполняется...
               </span>
+            ) : isTaskMode && taskCompleted ? (
+              'Задача завершена'
             ) : (
               'Запустить код'
             )}

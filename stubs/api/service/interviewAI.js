@@ -80,7 +80,8 @@ class SuperAiService {
         sessionStart: new Date(),
         llmErrorCount: 0, // Счетчик ошибок LLM
         topicStartTime: new Date(),
-        actionsHistory: []
+        actionsHistory: [],
+        hasCodeTask: false // Флаг, что практическое задание было предложено
       };
 
       this.conversationStates.set(sessionId, newState);
@@ -147,6 +148,13 @@ class SuperAiService {
     try {
       // ПЕРВОЕ: Проверяем запрос на завершение ДО оценки
       const completionCheck = this.shouldCompleteInterview(sessionId);
+      console.log(`🔍 Проверка завершения интервью:`, {
+        complete: completionCheck.complete,
+        reason: completionCheck.reason,
+        userRequested: completionCheck.userRequested,
+        evaluationHistoryLength: state.evaluationHistory.length
+      });
+      
       if (completionCheck.complete) {
         console.log(`🏁 Smart interview completion: ${completionCheck.reason}`);
 
@@ -224,6 +232,19 @@ class SuperAiService {
       // Получаем ответ
       let aiResponse = await this.getLLMResponse(prompt);
       console.log(`✅ LLM Response: ${aiResponse}`);
+
+      // Если действие = challenge_candidate, проверяем что ответ содержит фразу для практического задания
+      if (nextAction.action === 'challenge_candidate' && !state.hasCodeTask) {
+        const taskPhrase = 'даю тебе 10 минут на выполнение задачи у консоли';
+        const hasTaskPhrase = aiResponse.toLowerCase().includes(taskPhrase.toLowerCase());
+        
+        if (!hasTaskPhrase) {
+          console.warn(`⚠️ ИИ не использовал правильную фразу для практического задания. Заменяем ответ.`);
+          // Принудительно добавляем правильную фразу
+          aiResponse = `А теперь хочу посмотреть на твои практические знания. Даю тебе 10 минут на выполнение задачи у консоли.`;
+          state.hasCodeTask = true; // Помечаем, что задание было предложено
+        }
+      }
 
       // ОЧИСТКА: Удаляем критерии и оставляем только один вопрос
       aiResponse = this.cleanAIResponse(aiResponse);
@@ -328,17 +349,28 @@ class SuperAiService {
     const hasStructure = this.hasGoodStructure(response);
     const relevanceScore = this.calculateRelevance(response, topic);
 
-    // Более сложные метрики
-    const completeness = Math.min(10, responseLength / 25 + (technicalTerms * 0.5));
-    const technicalDepth = Math.min(10, technicalTerms * 1.5 + (this.hasCodeExamples(response) ? 2 : 0));
-    const structure = hasStructure ? 8 : 5;
-    const relevance = Math.min(10, relevanceScore * 2);
+    // Более сложные метрики (смягченные для голосового интервью)
+    // Учитываем, что в голосовом интервью люди говорят более естественно
+    const completeness = Math.min(10, responseLength / 20 + (technicalTerms * 0.7)); // Смягчено: было /25, стало /20
+    const technicalDepth = Math.min(10, technicalTerms * 2 + (this.hasCodeExamples(response) ? 2 : 0) + (responseLength > 50 ? 1 : 0)); // Улучшено: больше вес терминов, бонус за длину
+    const structure = hasStructure ? 8 : (responseLength > 40 ? 6 : 4); // Смягчено: средние ответы тоже получают баллы
+    const relevance = Math.min(10, relevanceScore * 2.5); // Улучшено: больше вес релевантности
 
-    // Проверяем негативные ответы
-    const negativeWords = ['нет', 'не знаю', 'не было', 'никакие', 'не понимаю'];
-    const isNegative = negativeWords.some(word => response.toLowerCase().includes(word));
+    // Проверяем негативные ответы (только явные)
+    const negativeWords = ['нет', 'не знаю', 'не было', 'никакие', 'не понимаю', 'не могу'];
+    const isNegative = negativeWords.some(word => {
+      const lowerResponse = response.toLowerCase();
+      // Проверяем, что это не часть более сложного ответа
+      return lowerResponse === word || lowerResponse.startsWith(word + ' ') || lowerResponse.endsWith(' ' + word);
+    });
 
-    const overallScore = isNegative ? 3 : (completeness + technicalDepth + structure + relevance) / 4;
+    // Бонусы за хорошие ответы
+    let bonus = 0;
+    if (responseLength > 100 && technicalTerms >= 2) bonus += 1; // Хороший развернутый ответ
+    if (responseLength > 150) bonus += 0.5; // Очень развернутый ответ
+    if (technicalTerms >= 3) bonus += 0.5; // Много технических терминов
+
+    const overallScore = isNegative ? 3 : Math.min(10, (completeness + technicalDepth + structure + relevance) / 4 + bonus);
 
     return {
       completeness: Math.round(completeness * 10) / 10,
@@ -350,8 +382,8 @@ class SuperAiService {
       strengths: this.identifyEnhancedStrengths(response),
       improvements: this.suggestSmartImprovements(response, topic),
       topic_mastery: this.determineMasteryLevel(overallScore),
-      needs_review: overallScore < 6,
-      has_potential: overallScore >= 7 && technicalDepth >= 8,
+      needs_review: overallScore < 5.5, // Смягчено: было < 6
+      has_potential: (overallScore >= 6 && technicalDepth >= 5) || (overallScore >= 6.5 && technicalTerms >= 2), // Смягчено: было >= 7 && >= 8
       response_quality: this.determineResponseQuality(responseLength, technicalTerms)
     };
   }
@@ -371,6 +403,13 @@ class SuperAiService {
     const { overall_score, needs_review, has_potential, topic_mastery } = evaluation;
     const { evaluationHistory, currentTopic, conversationHistory  } = state;
     const progress = this.getInterviewProgress(sessionId);
+    
+    console.log(`🔍 determineSmartNextAction вызван:`, {
+      evaluationHistoryLength: evaluationHistory.length,
+      hasCodeTask: state.hasCodeTask,
+      overall_score,
+      has_potential
+    });
 
     // Получаем последний ответ пользователя
     const lastUserMessage = state.conversationHistory
@@ -378,6 +417,22 @@ class SuperAiService {
       .pop()?.content.toLowerCase() || '';
 
     console.log(`🔍 Анализ ответа: "${lastUserMessage}" (${lastUserMessage.length} символов)`);
+
+    // 0. ПРИОРИТЕТ: Проверка явного запроса пользователя на практическое задание
+    const practiceRequestKeywords = ['практику', 'практическое задание', 'практическое', 'давай практику', 'хочу практику', 'дай практику', 'задание у консоли', 'код у консоли'];
+    const hasPracticeRequest = practiceRequestKeywords.some(keyword => lastUserMessage.includes(keyword));
+    
+    if (hasPracticeRequest && !state.hasCodeTask) {
+      console.log(`🎯 Обнаружен явный запрос пользователя на практическое задание: "${lastUserMessage}"`);
+      state.hasCodeTask = true;
+      return {
+        action: 'challenge_candidate',
+        reason: 'Пользователь явно запросил практическое задание',
+        confidence: 0.99,
+        suggested_topic: currentTopic,
+        priority: 'critical'
+      };
+    }
 
     // 1. Проверка ОЧЕНЬ коротких/бессмысленных ответов
     if (lastUserMessage.length < 15) {
@@ -397,13 +452,13 @@ class SuperAiService {
         );
 
         if (bothShort) {
-          return {
-            action: 'change_topic',
-            reason: 'Два коротких ответа подряд, требуется смена темы',
-            confidence: 0.9,
-            suggested_topic: this.getNextTopic(state.position, currentTopic),
-            priority: 'high'
-          };
+        return {
+          action: 'change_topic',
+          reason: 'Два коротких ответа подряд, требуется смена темы',
+          confidence: 0.9,
+          suggested_topic: this.getNextTopic(state.position, currentTopic, sessionId),
+          priority: 'high'
+        };
         }
 
         return {
@@ -416,14 +471,52 @@ class SuperAiService {
       }
     }
 
-    // ПЕРВОЕ - проверяем явные негативные ответы
-    const negativeResponses = ['нет', 'не знаю', 'не было', 'никакие', 'не понимаю'];
-    if (negativeResponses.some(word => lastUserMessage.includes(word))) {
+    // ПЕРВОЕ - проверяем явные негативные ответы (но не если запрошена практика)
+    const negativeResponses = ['не знаю', 'не было', 'никакие', 'не понимаю'];
+    if (negativeResponses.some(word => lastUserMessage.includes(word)) && !hasPracticeRequest) {
       return {
         action: 'change_topic_or_complete',
         reason: 'Пользователь демонстрирует отсутствие знаний по теме',
-        suggested_topic: this.getNextTopic(state.position, currentTopic)
+        suggested_topic: this.getNextTopic(state.position, currentTopic, sessionId)
       };
+    }
+
+    // Критерии для проверки потенциала - предлагаем практическое задание
+    // ВАЖНО: Проверяем ПЕРЕД другими действиями, чтобы не пропустить возможность предложить практику
+    if (!state.hasCodeTask && evaluationHistory.length >= 1) {
+      const averageScore = progress.averageScore || 0;
+      const hasGoodAverage = averageScore >= 5.5 && evaluationHistory.length >= 3;
+      const hasMultipleGoodAnswers = evaluationHistory.filter(e => e.evaluation.overall_score >= 5.5).length >= 2;
+      const hasRecentGoodAnswer = evaluationHistory.length > 0 && 
+                                   evaluationHistory[evaluationHistory.length - 1].evaluation.overall_score >= 6;
+      
+      // ВАЖНО: Для тестирования предлагаем практическое задание ОБЯЗАТЕЛЬНО после 1 вопроса
+      const shouldForceCodeTask = evaluationHistory.length >= 1 && evaluationHistory.length < 2;
+      
+      console.log(`🔍 Проверка практического задания (ПРИОРИТЕТ): hasCodeTask=${state.hasCodeTask}, evaluationHistory.length=${evaluationHistory.length}, shouldForceCodeTask=${shouldForceCodeTask}`);
+      
+      const shouldOffer = has_potential || hasGoodAverage || hasMultipleGoodAnswers || hasRecentGoodAnswer || shouldForceCodeTask;
+      
+      console.log(`🔍 Условия для практического задания:`, {
+        has_potential,
+        hasGoodAverage,
+        hasMultipleGoodAnswers,
+        hasRecentGoodAnswer,
+        shouldForceCodeTask,
+        shouldOffer
+      });
+      
+      if (shouldOffer) {
+        state.hasCodeTask = true;
+        console.log(`🎯 Предлагаем практическое задание (ПРИОРИТЕТ): shouldForceCodeTask=${shouldForceCodeTask}`);
+        return {
+          action: 'challenge_candidate',
+          reason: shouldForceCodeTask ? 'Обязательное предложение практического задания после первого вопроса (тестовый режим)' : 'Кандидат показывает потенциал для более сложных задач - предложить практическое задание',
+          confidence: shouldForceCodeTask ? 0.95 : 0.8,
+          suggested_topic: currentTopic,
+          priority: 'high'
+        };
+      }
     }
 
     // Критерии для завершения
@@ -440,7 +533,7 @@ class SuperAiService {
     // Критерии для смены темы
     if ((overall_score >= 7.5 && !needs_review) ||
       (topic_mastery === 'advanced' && evaluationHistory.filter(e => e.topic === currentTopic).length >= 2)) {
-      const nextTopic = this.getNextTopic(state.position, currentTopic);
+      const nextTopic = this.getNextTopic(state.position, currentTopic, sessionId);
       return {
         action: 'next_topic',
         reason: 'Успешное освоение текущей темы',
@@ -450,7 +543,26 @@ class SuperAiService {
       };
     }
 
-    // Критерии для углубления в тему
+    // Проверяем, сколько раз уже задавались вопросы по текущей теме
+    const questionsOnCurrentTopic = evaluationHistory.filter(e => e.topic === currentTopic).length;
+    
+    // Если по теме задано больше 3 вопросов, переходим к следующей
+    if (questionsOnCurrentTopic >= 3) {
+      const nextTopic = this.getNextTopic(state.position, currentTopic, sessionId);
+      if (nextTopic !== 'завершение') {
+        return {
+          action: 'next_topic',
+          reason: `По теме "${currentTopic}" задано ${questionsOnCurrentTopic} вопросов, переходим к следующей`,
+          confidence: 0.8,
+          suggested_topic: nextTopic,
+          priority: 'high'
+        };
+      }
+    }
+    
+    // Дублирующая проверка удалена - уже проверено выше с приоритетом
+
+    // Критерии для углубления в тему (только если практическое задание не было предложено)
     if (needs_review || (overall_score < 7 && topic_mastery === 'beginner')) {
       return {
         action: 'deep_dive_topic',
@@ -458,17 +570,6 @@ class SuperAiService {
         confidence: 0.8,
         suggested_topic: currentTopic,
         priority: 'high'
-      };
-    }
-
-    // Критерии для проверки потенциала
-    if (has_potential && evaluationHistory.length >= 4) {
-      return {
-        action: 'challenge_candidate',
-        reason: 'Кандидат показывает потенциал для более сложных задач',
-        confidence: 0.6,
-        suggested_topic: currentTopic,
-        priority: 'medium'
       };
     }
 
@@ -595,6 +696,24 @@ class SuperAiService {
       .replace(/\n{2,}/g, '\n')        // Убираем лишние переносы
       .trim();
 
+    // Проверяем на прощальные фразы в середине интервью (это ошибка)
+    const farewellPhrases = ['хорошего дня', 'до свидания', 'удачи', 'всего доброго', 'до встречи'];
+    const hasFarewell = farewellPhrases.some(phrase => cleaned.toLowerCase().includes(phrase));
+    if (hasFarewell) {
+      console.warn(`⚠️ Обнаружена прощальная фраза в ответе ИИ: "${cleaned}". Заменяем на вопрос.`);
+      // Заменяем на вопрос по текущей теме
+      return "Можешь рассказать подробнее о своем опыте?";
+    }
+
+    // ВАЖНО: Если это практическое задание, не обрезаем ответ
+    const isCodeTaskPhrase = cleaned.toLowerCase().includes('даю тебе 10 минут на выполнение задачи у консоли') ||
+                             cleaned.toLowerCase().includes('практические знания');
+    
+    if (isCodeTaskPhrase) {
+      // Для практического задания возвращаем полный ответ
+      return cleaned;
+    }
+
     // Убеждаемся, что это вопрос
     if (!cleaned.endsWith('?') && !cleaned.endsWith('.')) {
       cleaned += '?';
@@ -608,7 +727,10 @@ class SuperAiService {
   }
 
   buildSmartPrompt(state, userInput, nextAction, qualityAnalysis = null) {
-    const { position, conversationHistory, currentTopic } = state;
+    const { position, conversationHistory, currentTopic, topicProgress } = state;
+    
+    // Получаем список уже пройденных тем
+    const topicsCovered = Array.from(topicProgress || new Set(['введение']));
 
     // Анализируем последний ответ пользователя
     const lastResponse = userInput;
@@ -652,14 +774,22 @@ class SuperAiService {
     }
 
     // Собираем промпт
-    let prompt = `Ты - опытный IT-интервьюер для позиции ${position}. 
+    let prompt = `Ты - опытный IT-интервьюер для позиции ${position}. Ты ведешь живой диалог, реагируешь на ответы кандидата, задаешь уточняющие вопросы, показываешь заинтересованность.
 
 АНАЛИЗ ПОСЛЕДНЕГО ОТВЕТА КАНДИДАТА:
 ${responseAnalysisText}
 Длина ответа: ${responseLength} символов
 Технические термины: ${technicalTerms}
 Текущая тема: ${currentTopic}
-Следующее действие: ${nextAction.action} (${nextAction.reason})`;
+Следующее действие: ${nextAction.action} (${nextAction.reason})
+${topicsCovered.length > 1 ? `УЖЕ ПРОЙДЕННЫЕ ТЕМЫ (НЕ ВОЗВРАЩАЙСЯ К НИМ!): ${topicsCovered.filter(t => t !== currentTopic).join(', ')}` : ''}
+
+СТИЛЬ ДИАЛОГА:
+- Веди диалог естественно, как живой человек
+- Реагируй на ответы кандидата: "Понятно", "Интересно", "Хорошо"
+- Задавай уточняющие вопросы: "А как именно?", "Можешь привести пример?"
+- Не задавай вопросы подряд без реакции на ответы
+- Показывай заинтересованность в ответах кандидата`;
 
     // Добавляем анализ качества если он передан
     if (qualityAnalysis) {
@@ -679,13 +809,13 @@ ${responseAnalysisText}
     }
 
     const actionInstructions = {
-      'continue_topic': `Задай ОДИН уточняющий вопрос по теме "${currentTopic}". ${isShort ? 'Попроси рассказать подробнее, привести примеры.' : 'Углубись в детали.'}`,
-      'next_topic': `Плавно перейди к теме "${nextAction.suggested_topic}". Объясни переход: "Теперь давайте поговорим о..."`,
-      'change_topic': `Тактично смени тему с "${currentTopic}" на "${nextAction.suggested_topic}". Скажи: "Если эта тема сложна, давайте поговорим о..."`,
-      'deep_dive_topic': `Задай более глубокий, детализированный вопрос по теме "${currentTopic}". Попроси объяснить на примерах.`,
-      'challenge_candidate': `Задай сложный, проблемный вопрос по теме "${currentTopic}" для проверки глубины знаний.`,
+      'continue_topic': `Задай ОДИН уточняющий вопрос по теме "${currentTopic}". ${isShort ? 'Попроси рассказать подробнее, привести примеры.' : 'Углубись в детали.'} Веди диалог естественно, реагируй на ответы кандидата.`,
+      'next_topic': `Плавно перейди к теме "${nextAction.suggested_topic}". Объясни переход естественно: "Теперь давайте поговорим о..." или "Хорошо, давай перейдем к...". НЕ упоминай, что предыдущая тема была пройдена.`,
+      'change_topic': `Тактично смени тему с "${currentTopic}" на "${nextAction.suggested_topic}". Скажи естественно: "Хорошо, давай поговорим о..." или "Давай переключимся на...". НЕ возвращайся к уже пройденным темам: ${topicsCovered.filter(t => t !== currentTopic && t !== nextAction.suggested_topic).join(', ') || 'нет'}.`,
+      'deep_dive_topic': `Задай более глубокий, детализированный вопрос по теме "${currentTopic}". Попроси объяснить на примерах. Веди диалог естественно, задавай уточняющие вопросы.`,
+      'challenge_candidate': `КРИТИЧЕСКИ ВАЖНО: Ты ДОЛЖЕН предложить практическое задание! Скажи ТОЧНО эти слова: "А теперь хочу посмотреть на твои практические знания. Даю тебе 10 минут на выполнение задачи у консоли". Это запустит практическое задание в консоли. НЕ проси писать код вслух! НЕ говори "Хорошего дня" или другие прощальные фразы!`,
       'complete_interview': `Вежливо заверши собеседование, поблагодари кандидата.`,
-      'change_topic_or_complete': `${isShort ? 'Предложи сменить тему' : 'Вежливо заверши интервью'}.`
+      'change_topic_or_complete': `${isShort ? 'Предложи сменить тему естественно' : 'Вежливо заверши интервью'}.`
     };
 
     prompt += `
@@ -694,12 +824,16 @@ ${responseAnalysisText}
 
 ВАЖНЫЕ ПРАВИЛА:
 1. Задай ТОЛЬКО ОДИН вопрос
-2. Будь естественным и дружелюбным
+2. Будь естественным и дружелюбным, веди диалог как живой человек
 3. Адаптируй сложность под уровень кандидата
 4. ${isShort ? 'Попроси рассказать подробнее, если ответ был коротким' : 'Продолжай углубляться в тему'}
 5. Не показывай критерии оценки
-6. КРИТИЧЕСКИ ВАЖНО: НЕ ПОВТОРЯЙ вопросы, которые уже были заданы! Посмотри в историю диалога выше и задай НОВЫЙ вопрос.
-7. Если кандидат уже ответил на вопрос, задай следующий вопрос по этой теме или перейди к новой теме.
+6. Если кандидат уже ответил на вопрос, задай следующий вопрос по этой теме или перейди к новой теме.
+7. ЗАПРЕЩЕНО просить писать или показать код! Если нужно проверить практические навыки, скажи: "А теперь хочу посмотреть на твои практические знания. Даю тебе 10 минут на выполнение задачи у консоли" - это запустит практическое задание.
+8. НЕ ВОЗВРАЩАЙСЯ к уже пройденным темам: ${topicsCovered.length > 1 ? topicsCovered.join(', ') : 'введение'}. Если тема уже была пройдена, переходи к следующей.
+9. Веди диалог естественно - реагируй на ответы кандидата, задавай уточняющие вопросы, показывай заинтересованность.
+10. ЗАПРЕЩЕНО говорить "Хорошего дня", "До свидания", "Удачи" или другие прощальные фразы в середине интервью! Ты должен задавать вопросы и продолжать собеседование до завершения.
+11. Если действие = challenge_candidate, ОБЯЗАТЕЛЬНО предложи практическое задание ТОЧНО этими словами: "А теперь хочу посмотреть на твои практические знания. Даю тебе 10 минут на выполнение задачи у консоли"
 
 ПРЕДЫДУЩИЕ ВОПРОСЫ (НЕ ПОВТОРЯЙ ИХ!):
 ${previousQuestions ? previousQuestions : 'Это первый вопрос'}
@@ -1330,9 +1464,27 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
     return Math.round((end - start) / 60000);
   }
 
-  getNextTopic(position, currentTopic) {
+  getNextTopic(position, currentTopic, sessionId = null) {
     const sequence = this.topicSequences[position] || this.topicSequences.frontend;
     const currentIndex = sequence.indexOf(currentTopic);
+    
+    // Если передан sessionId, исключаем уже пройденные темы
+    if (sessionId) {
+      const state = this.conversationStates.get(sessionId);
+      if (state && state.topicProgress) {
+        const topicsCovered = Array.from(state.topicProgress);
+        // Ищем следующую тему, которая еще не была пройдена
+        for (let i = currentIndex + 1; i < sequence.length; i++) {
+          if (!topicsCovered.includes(sequence[i])) {
+            return sequence[i];
+          }
+        }
+        // Если все темы пройдены, возвращаем завершение
+        return 'завершение';
+      }
+    }
+    
+    // Fallback: просто следующая тема в последовательности
     return currentIndex < sequence.length - 1 ? sequence[currentIndex + 1] : 'завершение';
   }
 
@@ -1352,9 +1504,10 @@ ${conversationSummary ? `\n${conversationSummary}` : ''}
   }
 
   determineMasteryLevel(score) {
-    if (score >= 8) return 'advanced';
-    if (score >= 6.5) return 'intermediate';
-    if (score >= 5) return 'beginner';
+    // Смягченные критерии для голосового интервью
+    if (score >= 7.5) return 'advanced';
+    if (score >= 6) return 'intermediate';
+    if (score >= 4.5) return 'beginner';
     return 'novice';
   }
 
