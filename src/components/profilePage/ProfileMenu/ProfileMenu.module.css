@@ -69,8 +69,8 @@
   .tabsContainer {
     width: 100%;
     overflow-x: auto;
-    justify-content: flex-start;
-    padding: 6px;
+    justify-content: center;
+    padding: 6px 0;
     gap: 6px;
     border-radius: 20px;
 

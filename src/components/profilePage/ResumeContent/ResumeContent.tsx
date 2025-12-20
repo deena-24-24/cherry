@@ -178,7 +178,9 @@ export const ResumeContent: React.FC = () => {
       </div>
 
       {!localResume ? (
-        <div>Нет резюме. Создайте новое.</div>
+        <div className={styles['noResume']}>
+          <p>У Вас нет резюме. Создайте новое.</p>
+        </div>
       ) : (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -274,7 +276,7 @@ export const ResumeContent: React.FC = () => {
           <div className={styles["actions"]}>
             {isEditing ? (
               <>
-                <Button variant="primary" onClick={handleSave}>Сохранить</Button>
+                <Button variant="primary" onClick={handleSave} styleProps={{ textColor: '#fffcf5' }}>Сохранить</Button>
                 <Button variant="secondary" onClick={() => { setIsEditing(false); setLocalResume(activeResume || null) }} className={styles["cancelButton"]}>Отмена</Button>
               </>
             ) : (
@@ -308,18 +310,18 @@ export const ResumeContent: React.FC = () => {
             </div>
 
             <div className={styles["modalActions"]}>
-              <button
+              <Button
                 className={styles["modalButtonSecondary"]}
                 onClick={closeCreateModal}
               >
                 Отмена
-              </button>
-              <button
+              </Button>
+              <Button
                 className={styles["modalButtonPrimary"]}
                 onClick={handleSubmitCreateResume}
               >
                 Создать
-              </button>
+              </Button>
             </div>
           </div>
         </div>

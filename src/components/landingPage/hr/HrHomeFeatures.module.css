@@ -21,10 +21,6 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
     margin: 0 auto;
-
-    /* чтобы transform не вылазил за контейнер */
-    /*overflow: hidden;
-    padding: 10px;*/
     position: relative;
 }
 
@@ -44,10 +40,12 @@
 
 .pink {
     border-color: var(--maroon);
+    color: var(--color-primary-blue);
 }
 
 .blue {
     border-color: var(--navy);
+    color: var(--color-primary-red);
 }
 
 .cardTitle {

@@ -15,7 +15,7 @@
 
 .buttonPrimary {
   background: var(--navy);
-  outline: 1px var(--peach) solid;
+  /*outline: 1px var(--peach) solid;*/
   outline-offset: -1px;
 }
 

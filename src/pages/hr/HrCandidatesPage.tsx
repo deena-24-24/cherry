@@ -10,6 +10,7 @@ import * as styles from './HrCandidatesPage.module.css'
 import { Resume } from '../../types/resume'
 import { ROUTES } from '../../router/routes'
 import { CandidateData } from '../../service/api/candidateService'
+import { Loader } from '../../components/ui/Loader/Loader'
 
 export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTitle = false }) => {
   const navigate = useNavigate()
@@ -115,7 +116,7 @@ export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTit
 
         <div className={styles["candidatesList"]}>
           {loading ? (
-            <div className={styles["loading"]}>Загрузка...</div>
+            <Loader />
           ) : filteredCandidates.length === 0 ? (
             <div className={styles["emptyState"]}>Ничего не найдено</div>
           ) : (

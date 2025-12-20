@@ -1,7 +1,7 @@
 /* Обертка */
 .ihp-wrapper {
     min-height: calc(100vh - var(--header-height) - var(--footer-height));
-    background: var(--cloud);
+    background: var(--color-background);
     padding: 40px 60px;
     font-family: 'Inter', sans-serif;
     margin-top: var(--header-height);
@@ -36,6 +36,7 @@
     font-size: 26px;
     font-weight: 700;
     margin-bottom: 14px;
+    color: var(--cloud);
 }
 
 .ihp-hero-text p {

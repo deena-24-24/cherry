@@ -5,6 +5,7 @@ import { MessageInput } from '../../components/chatPage/MessageInput'
 import { useChatStore } from '../../store/useChatStore'
 import { useAuthStore } from '../../store'
 import * as styles from './ChatPage.module.css'
+import { Loader } from '../../components/ui/Loader/Loader'
 
 export const ChatPage: React.FC = () => {
   const [isChatListOpen, setIsChatListOpen] = useState(false)
@@ -49,7 +50,7 @@ export const ChatPage: React.FC = () => {
   }))
 
   if (isLoadingList && chats.length === 0) {
-    return <div className={styles['centered-status']}>Загрузка чатов...</div>
+    return <Loader />
   }
 
   return (

@@ -8,6 +8,7 @@ import { ResumeContent } from "../../components/profilePage/ResumeContent/Resume
 import { useAuthStore } from "../../store"
 import { fetchUserProfile, updateUserProfile } from "../../service/api/profileService"
 import * as styles from "./ProfilePage.module.css"
+import { Loader } from '../../components/ui/Loader/Loader'
 
 const MENU_ITEMS: TabItem[] = [
   { id: 'about', label: 'Обо мне' },
@@ -97,7 +98,7 @@ export const ProfilePage: React.FC = () => {
     loadProfile()
   }
 
-  if (loading) return <div>Загрузка...</div>
+  if (loading) return <Loader />
 
   return (
     <div className={styles["page"]}>

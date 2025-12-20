@@ -13,6 +13,7 @@ import { saluteFrontendService } from '../../service/api/saluteFrontendService'
 import { socketService } from '../../service/realtime/socketService'
 import * as styles from './InterviewCallPage.module.css'
 import { API_URL } from '../../config'
+import { Loader } from '../../components/ui/Loader/Loader'
 
 export const InterviewCallPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -410,7 +411,7 @@ export const InterviewCallPage: React.FC = () => {
   }
 
   if (isLoading || !currentSession || !interviewPosition) {
-    return <div className={styles['loading-screen']}>Загрузка собеседования...</div>
+    return <Loader />
   }
 
   if (error) return <div className={styles['loading-screen']}><p className="text-red-400">{error}</p><Button onClick={() => navigate(ROUTES.HOME)} className={styles['back-btn']}>Вернуться на главную</Button></div>
