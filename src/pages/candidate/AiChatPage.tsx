@@ -3,6 +3,7 @@ import { useAiChatStore } from '../../store'
 import { ChatMessage } from '../../components/chatPage/ChatMessage'
 import { MessageInput } from '../../components/chatPage/MessageInput'
 import * as styles from './AiChatPage.module.css'
+import { Loader } from '../../components/ui/Loader/Loader'
 
 export const AiChatPage: React.FC = () => {
   const { messages, isLoading, fetchHistory, sendMessage } = useAiChatStore()
@@ -26,6 +27,7 @@ export const AiChatPage: React.FC = () => {
     await sendMessage(messageText)
   }
 
+  if (isLoading) return <Loader />
   return (
     <div className={styles["page"]}>
       <div className={styles["chat-container"]}>

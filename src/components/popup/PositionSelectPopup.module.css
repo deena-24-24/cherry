@@ -55,7 +55,7 @@
 .position-popup-header h2 {
     font-size: 28px;
     font-weight: 600;
-    color: var(--navy, #112255);
+    color: var(--color-primary-blue, #112255);
     margin: 0 0 8px 0;
     line-height: 1.2;
 }
@@ -80,7 +80,7 @@
     gap: 16px;
     padding: 20px;
     background: white;
-    border: 2px solid var(--peach, #E8D5C4);
+    border: 2px solid var(--maroon, #E8D5C4);
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -106,7 +106,7 @@
 .position-content h3 {
     font-size: 20px;
     font-weight: 600;
-    color: var(--navy, #112255);
+    color: var(--color-primary-blue, #112255);
     margin: 0 0 4px 0;
 }
 

@@ -5,6 +5,7 @@ import { API_URL } from '../../config'
 import { FinalReport, InterviewSession } from '../../types'
 import { Button } from '../../components/ui/Button/Button'
 import { FinalReportPopup } from '../../components/popup/FinalReportPopup'
+import { Loader } from '../../components/ui/Loader/Loader'
 
 interface SessionWithReport extends InterviewSession {
   completedAt?: string
@@ -124,7 +125,7 @@ export const InterviewResultsPage: React.FC = () => {
           <h3 className={styles['irp-section-title']}>Последнее интервью</h3>
 
           {loading ? (
-            <div className={styles['irp-empty']}>Загружаем ваши интервью...</div>
+            <Loader />
           ) : !latestSession ? (
             <div className={styles['irp-empty']}>
               У вас еще нет сохраненных интервью. Начните первое собеседование на главной странице.
@@ -167,6 +168,7 @@ export const InterviewResultsPage: React.FC = () => {
                 <Button
                   className="mt-3"
                   onClick={() => handleOpenReport(latestSession.id)}
+                  styleProps={{ textColor: '#fffcf5'}}
                 >
                   Посмотреть финальный отчет
                 </Button>

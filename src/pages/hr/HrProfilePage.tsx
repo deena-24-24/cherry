@@ -13,6 +13,7 @@ import * as styles from "../candidate/ProfilePage.module.css"
 import * as formStyles from "../../components/profilePage/ProfileForm/ProfileForm.module.css"
 
 import { ProfileField } from "../../components/profilePage/ProfileForm/ProfileField"
+import { Loader } from '../../components/ui/Loader/Loader'
 
 const HR_MENU_ITEMS: TabItem[] = [
   { id: 'about', label: 'Обо мне' },
@@ -85,7 +86,7 @@ export const HrProfilePage: React.FC = () => {
   const handleEditToggle = () => isEditing ? handleSave() : setIsEditing(true)
   const handleCancel = async () => { setIsEditing(false); loadProfile() }
 
-  if (loading) return <div>Загрузка...</div>
+  if (loading) return <Loader />
 
   return (
     <div className={styles["page"]}>
@@ -170,11 +171,11 @@ export const HrProfilePage: React.FC = () => {
               <div className={formStyles["actions"]}>
                 {isEditing ? (
                   <>
-                    <Button variant="primary" onClick={handleSave} className={formStyles["saveButton"]}>СОХРАНИТЬ</Button>
+                    <Button variant="primary" onClick={handleSave} className={formStyles["saveButton"]} styleProps={{ textColor: '#fffcf5' }}>СОХРАНИТЬ</Button>
                     <Button variant="secondary" onClick={handleCancel} className={formStyles["cancelButton"]}>Отмена</Button>
                   </>
                 ) : (
-                  <Button variant="primary" onClick={handleEditToggle}>РЕДАКТИРОВАТЬ</Button>
+                  <Button variant="primary" onClick={handleEditToggle} styleProps={{ textColor: '#fffcf5' }}>РЕДАКТИРОВАТЬ</Button>
                 )}
               </div>
             </div>

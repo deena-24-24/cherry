@@ -46,7 +46,7 @@ export const FavoritesContent: React.FC = () => {
     return (
       <div className={styles["emptyState"]}>
         <p>У вас пока нет избранных кандидатов</p>
-        <p>Добавьте кандидатов в избранное на странице `&quot;`Кандидаты`&quot;`</p>
+        <p>Добавьте кандидатов в избранное на странице &quot;Кандидаты&quot;</p>
       </div>
     )
   }

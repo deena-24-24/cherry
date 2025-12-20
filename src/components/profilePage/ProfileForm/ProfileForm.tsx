@@ -115,7 +115,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       <div className={styles["actions"]}>
         {isEditing ? (
           <>
-            <Button variant="primary" onClick={onEditToggle} className={styles["saveButton"]}>
+            <Button variant="primary" onClick={onEditToggle} className={styles["saveButton"]} styleProps={{ textColor: '#fffcf5' }}>
               СОХРАНИТЬ
             </Button>
             <Button variant="secondary" onClick={onCancel} className={styles["cancelButton"]}>

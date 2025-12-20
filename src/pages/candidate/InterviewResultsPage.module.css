@@ -82,7 +82,10 @@
 }
 
 .irp-score-block {
+    display: flex;
+    flex-direction: column;
     text-align: right;
+    gap: 6px;
 }
 
 .irp-empty {
@@ -132,5 +135,14 @@
     color: #6B7280;
 }
 
+@media(max-width: 600px) {
+    .irp-card{
+        flex-direction: column;
+    }
 
+    .irp-score-block {
+        text-align: center;
+        margin-top: 8px;
+    }
+}
 

@@ -1,6 +1,6 @@
 .page {
     min-height: calc(100vh - var(--header-height) - var(--footer-height));
-    background: var(--cloud);
+    background: var(--color-background);
     padding-top: 20px;
     padding-bottom: 20px;
 }
