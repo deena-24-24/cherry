@@ -6,9 +6,7 @@ import {
   SocketJoinInterview,
   SocketCompleteInterview,
   SocketAudioChunk,
-  FinalReport,
   isSocketAIResponseExtended,
-  extractAIResponse,
   isSocketAIError
 } from '../types'
 import { io, Socket } from 'socket.io-client'

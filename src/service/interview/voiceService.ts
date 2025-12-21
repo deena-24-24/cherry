@@ -2,7 +2,6 @@
 export class VoiceService {
   private isPlaying = false
   private currentUtterance: SpeechSynthesisUtterance | null = null
-  private audioContext: AudioContext | null = null
   private playbackTimeout: NodeJS.Timeout | null = null
 
   async playAudioFromText(text: string): Promise<void> {
@@ -114,12 +113,6 @@ export class VoiceService {
 
   isSpeechSupported(): boolean {
     return 'speechSynthesis' in window
-  }
-
-  getAvailableVoices(): SpeechSynthesisVoice[] {
-    return speechSynthesis.getVoices().filter(voice =>
-      voice.lang.includes('ru') || voice.lang.includes('en')
-    )
   }
 }
 

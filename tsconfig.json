@@ -23,5 +23,6 @@
         "**/*.test.tsx",
         "node_modules/@types/jest"
     ],
-    "include": ["src"]
+    "include": ["src"],
+    "files": ["src/css.d.ts"]
 }

@@ -18,6 +18,7 @@ export const InterviewResultsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [selectedReport, setSelectedReport] = useState<FinalReport | null>(null)
   const [showReport, setShowReport] = useState(false)
+  const [selectedSessionNotes, setSelectedSessionNotes] = useState<string>('')
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -67,23 +68,41 @@ export const InterviewResultsPage: React.FC = () => {
   const handleOpenReport = async (sessionId: string) => {
     try {
       setError(null)
-      const response = await fetch(`${API_URL}/api/interview/sessions/${sessionId}/report`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-      })
+      
+      // Загружаем отчет и сессию параллельно
+      const [reportResponse, sessionResponse] = await Promise.all([
+        fetch(`${API_URL}/api/interview/sessions/${sessionId}/report`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+        }),
+        fetch(`${API_URL}/api/interview/sessions/${sessionId}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          },
+        })
+      ])
 
-      if (!response.ok) {
+      if (!reportResponse.ok) {
         throw new Error('Не удалось загрузить финальный отчет')
       }
 
-      const data = await response.json()
-      if (data.success && data.report) {
-        setSelectedReport(data.report)
+      const reportData = await reportResponse.json()
+      if (reportData.success && reportData.report) {
+        setSelectedReport(reportData.report)
         setShowReport(true)
       } else {
-        throw new Error(data.error || 'Отчет не найден')
+        throw new Error(reportData.error || 'Отчет не найден')
+      }
+
+      // Получаем заметки из сессии, если удалось загрузить
+      if (sessionResponse.ok) {
+        const sessionData = await sessionResponse.json()
+        if (sessionData.success && sessionData.session?.notes) {
+          setSelectedSessionNotes(sessionData.session.notes)
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось загрузить отчет')
@@ -93,6 +112,7 @@ export const InterviewResultsPage: React.FC = () => {
   const handleCloseReport = () => {
     setShowReport(false)
     setSelectedReport(null)
+    setSelectedSessionNotes('')
   }
 
   if (!user) {
@@ -211,6 +231,7 @@ export const InterviewResultsPage: React.FC = () => {
           completionReason="Сохраненный отчет по интервью"
           wasAutomatic={true}
           onClose={handleCloseReport}
+          notes={selectedSessionNotes}
         />
       )}
     </div>

@@ -1,7 +1,7 @@
 import { socketService } from '../socketService'
 import { API_URL } from '../../config'
 import { voiceService } from './voiceService'
-import { AIResponse, SocketInterviewCompleted, isSocketInterviewCompleted, extractAIResponse, isSocketAIError } from '../../types'
+import { AIResponse, SocketInterviewCompleted, InterviewSession } from '../../types'
 
 export interface ConversationMessage {
   role: 'assistant' | 'user'
@@ -281,6 +281,32 @@ export class InterviewService {
   // Остановка аудио
   async stopAudio(): Promise<void> {
     await voiceService.stopAudio()
+  }
+
+  // Получение сессий пользователя
+  async fetchUserSessions(userId: string): Promise<InterviewSession[]> {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${API_URL}/api/interview/users/${userId}/sessions`, {
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch user sessions: ${response.status}`)
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        return data.sessions || []
+      } else {
+        throw new Error(data.error || 'Failed to fetch user sessions')
+      }
+    } catch (error) {
+      console.error('Error fetching user sessions:', error)
+      return []
+    }
   }
 
   // Очистка

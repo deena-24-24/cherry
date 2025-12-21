@@ -5,7 +5,6 @@ import { useInterviewStore } from '../../store'
 import { Button } from '../../components/ui/Button/Button'
 import { CodeConsole } from '../../components/interview/CodeConsole'
 import { NotesPanel } from '../../components/interview/NotesPanel'
-import { interviewService } from '../../service/interview/interviewService'
 import { ROUTES } from '../../router/routes'
 import { FinalReportPopup } from '../../components/interview/FinalReportPopup'
 import { FinalReport, SocketInterviewCompleted } from '../../types'
@@ -26,7 +25,8 @@ export const InterviewCallPage: React.FC = () => {
     fetchSession,
     isCallActive,
     startCall: startStoreCall,
-    endCall: endStoreCall
+    endCall: endStoreCall,
+    notes
   } = useInterviewStore()
 
   // === СОСТОЯНИЯ ДЛЯ ВСЕЙ СТРАНИЦЫ ===
@@ -38,7 +38,7 @@ export const InterviewCallPage: React.FC = () => {
   const [wasAutomatic, setWasAutomatic] = useState<boolean>(false)
   const [showInterrupted, setShowInterrupted] = useState(false)
   const [interruptionReason, setInterruptionReason] = useState<string>('')
-  const [isFinishing, setIsFinishing] = useState(false)
+  const [, setIsFinishing] = useState(false)
   const reportTimeoutRef = useRef<NodeJS.Timeout | null>(null) // Ref для таймаута ожидания отчета
   
   // === СОСТОЯНИЯ ДЛЯ ПРАКТИЧЕСКОЙ ЗАДАЧИ ===
@@ -50,8 +50,8 @@ export const InterviewCallPage: React.FC = () => {
   const codeTaskCompletedRef = useRef(false) // Флаг, что практическое задание было завершено
 
   // === СОСТОЯНИЯ ДЛЯ ГОЛОСОВОЙ ЧАСТИ ===
-  const [connectionQuality, setConnectionQuality] = useState<'good' | 'average' | 'poor'>('good')
-  const [voiceActivity, setVoiceActivity] = useState(0)
+  const [, setConnectionQuality] = useState<'good' | 'average' | 'poor'>('good')
+  const [, setVoiceActivity] = useState(0)
   const [isConnected, setIsConnected] = useState(false)
   
   // Сохраняем позицию из сессии - НЕ инициализируем useVoiceCall до загрузки позиции
@@ -162,8 +162,7 @@ export const InterviewCallPage: React.FC = () => {
     isAISpeaking,
     toggleRecording,
     transcript,
-    aiResponse,
-    error: voiceError
+    aiResponse
   } = useVoiceCall(sessionId || '', interviewPosition || '', isCodeTaskActiveRef)
   // === ФУНКЦИЯ ЗАВЕРШЕНИЯ ПРАКТИЧЕСКОЙ ЗАДАЧИ ===
   const endCodeTask = useCallback(async (allTestsPassed: boolean) => {
@@ -525,45 +524,6 @@ export const InterviewCallPage: React.FC = () => {
     setShowConsole(false)
   }
 
-  // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ РЕНДЕРИНГА ГОЛОСОВОЙ ЧАСТИ ===
-
-  const renderVoiceVisualizer = () => {
-    const bars = 8
-    return (
-      <div className="flex items-end justify-center space-x-1 h-12 mb-4">
-        {Array.from({ length: bars }).map((_, index) => {
-          const activityForBar = voiceActivity * (1 - Math.abs(index - bars/2) / bars)
-          const height = Math.max(10, (activityForBar / 100) * 32)
-
-          return (
-            <div
-              key={index}
-              className="w-2 bg-blue-500 rounded-t transition-all duration-150 ease-in-out"
-              style={{ height: `${height}px` }}
-            />
-          )
-        })}
-      </div>
-    )
-  }
-
-  const renderConnectionIndicator = () => {
-    const config = {
-      good: { color: 'bg-green-500', text: 'Отличное соединение' },
-      average: { color: 'bg-yellow-500', text: 'Среднее соединение' },
-      poor: { color: 'bg-red-500', text: 'Плохое соединение' }
-    }
-
-    const { color, text } = config[connectionQuality]
-
-    return (
-      <div className="flex items-center justify-center space-x-2 mb-4">
-        <div className={`w-3 h-3 rounded-full ${color} animate-pulse`} />
-        <span className="text-sm text-gray-300">{text}</span>
-      </div>
-    )
-  }
-
   // === РЕНДЕРИНГ ===
 
   if (isLoading) {
@@ -739,6 +699,7 @@ export const InterviewCallPage: React.FC = () => {
             completionReason={completionReason}
             wasAutomatic={wasAutomatic}
             onClose={handleCloseReport}
+            notes={notes}
           />
         )}
 

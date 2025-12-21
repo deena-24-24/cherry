@@ -865,14 +865,6 @@ ${historyText}
     return prompt;
   }
 
-  // В interviewAI.js добавляем метод
-  getEnhancedConversationHistory(sessionId, limit = 20) {
-    const state = this.conversationStates.get(sessionId);
-    if (!state) return [];
-
-    return state.conversationHistory.slice(-limit);
-  }
-
   /**
    * Краткое резюме беседы для контекста
    * Принимает либо sessionId (для получения из состояния), либо conversationHistory

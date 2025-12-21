@@ -9,13 +9,15 @@ interface FinalReportPopupProps {
   completionReason: string
   wasAutomatic: boolean
   onClose: () => void
+  notes?: string // Заметки из сессии
 }
 
 export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
   report,
   completionReason,
   wasAutomatic,
-  onClose
+  onClose,
+  notes
 }) => {
   // Убрали избыточное логирование - логи только при первой отрисовке
   React.useEffect(() => {
@@ -68,8 +70,7 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
     technical_skills,
     behavioral_analysis,
     interview_analytics,
-    detailed_feedback,
-    next_steps
+    detailed_feedback
   } = report
 
   const getRecommendationText = (recommendation: string) => {
@@ -277,21 +278,43 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
           {detailed_feedback && (
             <div className="frp-section-box">
               <h3 className="frp-section-title">📝 Детальный фидбек</h3>
-              <p className="frp-detailed-text">
-                {detailed_feedback}
-              </p>
+              <div className="frp-feedback-structured">
+                {detailed_feedback.split(/\.\s+/).filter(s => s.trim().length > 0).map((sentence, index, array) => {
+                  // Проверяем, является ли предложение важной информацией (баллы, рекомендации и т.д.)
+                  const isImportant = sentence.toLowerCase().includes('балл') || 
+                                      sentence.toLowerCase().includes('рекоменд') ||
+                                      sentence.toLowerCase().includes('найм') ||
+                                      sentence.toLowerCase().includes('уровень')
+                  
+                  // Проверяем, начинается ли с цифр (вероятно статистика)
+                  const isStats = /^\d+/.test(sentence.trim())
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`frp-feedback-sentence ${
+                        isImportant ? 'frp-feedback-important' : 
+                          isStats ? 'frp-feedback-stats' : 
+                            'frp-feedback-normal'
+                      }`}
+                    >
+                      {index < array.length - 1 ? sentence + '.' : sentence}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
 
-          {/* Следующие шаги */}
-          {next_steps && next_steps.length > 0 && (
+          {/* Заметки */}
+          {notes && notes.trim().length > 0 && (
             <div className="frp-section-box">
-              <h3 className="frp-section-title">🎯 Следующие шаги</h3>
-              <ul className="space-y-2">
-                {next_steps.map((step: string, index: number) => (
-                  <li key={index}>{step}</li>
+              <h3 className="frp-section-title">📋 Заметки интервьюера</h3>
+              <div className="frp-notes-content">
+                {notes.split('\n').filter(line => line.trim().length > 0).map((line, index) => (
+                  <div key={index} className="frp-notes-line">{line}</div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </div>

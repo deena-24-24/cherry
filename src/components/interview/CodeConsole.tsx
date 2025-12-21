@@ -1,12 +1,12 @@
 // components/interview/CodeConsole.tsx
 import React, { useState, useEffect } from 'react'
 import { compilerService } from '../../service/interview/compilerService'
-import { Button } from '../ui/Button/Button'
 import Editor from 'react-simple-code-editor'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/atom-one-dark.css'
 import 'highlight.js/lib/languages/python'
 import 'highlight.js/lib/languages/javascript'
+import * as styles from './CodeConsole.module.css'
 
 interface CodeConsoleProps {
   sessionId: string;
@@ -108,8 +108,6 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
         testCases
       )
 
-      console.log('📨 Result:', result)
-
       setOutput(result.output)
 
       if (result.testResults) {
@@ -118,9 +116,7 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
         // В режиме задачи проверяем, все ли тесты прошли
         if (isTaskMode && !taskCompleted) {
           const allPassed = result.testResults.every(tr => tr.passed)
-          console.log(`📊 Проверка результатов задачи: все тесты прошли=${allPassed}, количество тестов=${result.testResults.length}`)
           if (allPassed && result.testResults.length > 0) {
-            console.log('✅ Все тесты прошли! Задача выполнена успешно.')
             setTaskCompleted(true)
             if (onTaskComplete) {
               onTaskComplete(true)
@@ -130,7 +126,7 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
       }
 
     } catch (error) {
-      console.error('❌ Execution error:', error)
+      console.error('Execution error:', error)
       setOutput(`❌ Ошибка: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsRunning(false)
@@ -140,16 +136,13 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
   // Отслеживаем истечение времени в режиме задачи
   useEffect(() => {
     if (isTaskMode && timeRemaining !== null && timeRemaining <= 0 && !taskCompleted) {
-      console.log('⏰ Время на задачу истекло в CodeConsole')
       setTaskCompleted(true)
       if (onTaskComplete) {
         // Проверяем результаты перед завершением
         const allPassed = testResults.length > 0 && testResults.every(tr => tr.passed)
-        console.log(`📊 Задача завершена по времени. Все тесты прошли: ${allPassed}`, { testResults })
         onTaskComplete(allPassed)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTaskMode, timeRemaining, taskCompleted, onTaskComplete])
 
   // Форматирование времени для отображения
@@ -179,16 +172,16 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
   const totalTests = testResults.length
 
   return (
-    <div className="container mx-auto px-4 py-6 bg-gray-950 min-h-screen">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-center text-2xl font-bold text-gray-200">
+    <div className={styles.consoleContainer}>
+      <div className={styles.consoleHeader}>
+        <h1 className={styles.consoleTitle}>
           {isTaskMode ? 'Практическая задача' : 'Консоль программирования'}
         </h1>
         {isTaskMode && timeRemaining !== null && (
-          <div className={`text-xl font-bold ${
-            timeRemaining < 60 ? 'text-red-600' : 
-            timeRemaining < 300 ? 'text-orange-600' : 
-            'text-green-600'
+          <div className={`${styles.timer} ${
+            timeRemaining < 60 ? styles.timerDanger : 
+              timeRemaining < 300 ? styles.timerWarning : 
+                styles.timerNormal
           }`}>
             ⏱️ {formatTime(timeRemaining)}
           </div>
@@ -196,17 +189,17 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
       </div>
       
       {isTaskMode && taskCompleted && (
-        <div className={`mb-4 p-4 rounded-lg border ${
+        <div className={`${styles.taskCompletedBanner} ${
           testResults.length > 0 && testResults.every(tr => tr.passed)
-            ? 'bg-green-900/30 border-green-700 text-green-200'
-            : 'bg-red-900/30 border-red-700 text-red-200'
+            ? styles.taskCompletedSuccess
+            : styles.taskCompletedFailed
         }`}>
-          <h3 className="font-bold text-lg mb-2">
+          <h3 className={styles.taskResultTitle}>
             {testResults.length > 0 && testResults.every(tr => tr.passed)
               ? '✅ Задача выполнена! Все тесты прошли.'
               : '❌ Время истекло или не все тесты прошли.'}
           </h3>
-          <p className="text-sm">
+          <p className={styles.taskResultDescription}>
             {testResults.length > 0 && testResults.every(tr => tr.passed)
               ? 'Вы получили балл за практическую задачу.'
               : 'Балл не начислен.'}
@@ -214,38 +207,38 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
         </div>
       )}
 
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col">
-            <label htmlFor="language" className="text-sm font-medium text-gray-300 mb-1">
+      <div className={styles.controlsRow}>
+        <div className={styles.controlsLeft}>
+          <div className={styles.controlGroup}>
+            <label htmlFor="language" className={styles.controlLabel}>
               Язык программирования:
             </label>
             <select
               id="language"
               value={language}
               onChange={(e) => handleLanguageChange(e.target.value)}
-              className="px-3 py-2 border border-gray-600 rounded-md bg-gray-800 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className={styles.languageSelect}
             >
               <option value="javascript">JavaScript</option>
               <option value="python">Python</option>
             </select>
           </div>
 
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-300 mb-1">
+          <div className={styles.controlGroup}>
+            <label className={styles.controlLabel}>
               Задача:
             </label>
-            <div className="flex gap-2">
+            <div className={styles.taskButtons}>
               {codeTasks
                 .filter(task => task.language === language)
                 .map(task => (
                   <button
                     key={task.id}
                     onClick={() => loadTask(task)}
-                    className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                    className={`${styles.taskButton} ${
                       language === task.language
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        ? styles.taskButtonActive
+                        : styles.taskButtonInactive
                     }`}
                   >
                     {task.title}
@@ -255,21 +248,21 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <Button
+        <div className={styles.controlsRight}>
+          <button
             onClick={handleResetCode}
-            className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-md"
+            className={`${styles.actionButton} ${styles.buttonSecondary}`}
           >
             Сбросить код
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={handleRunCode}
             disabled={isRunning || !code.trim() || (isTaskMode && taskCompleted)}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`${styles.actionButton} ${styles.buttonPrimary}`}
           >
             {isRunning ? (
-              <span className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '16px', height: '16px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
                 Выполняется...
               </span>
             ) : isTaskMode && taskCompleted ? (
@@ -277,31 +270,28 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
             ) : (
               'Запустить код'
             )}
-          </Button>
+          </button>
         </div>
       </div>
 
-      <div className="mb-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
-        <h3 className="font-medium text-gray-200">Сумма двух чисел</h3>
-        <p className="text-sm text-gray-400 mt-1">Напишите функцию sum(a, b), которая возвращает сумму двух чисел.</p>
-
+      <div className={styles.taskInfoBox}>
+        <h3 className={styles.taskTitle}>Сумма двух чисел</h3>
+        <p className={styles.taskDescription}>
+          Напишите функцию sum(a, b), которая возвращает сумму двух чисел.
+        </p>
         {totalTests > 0 && (
-          <div className="mt-2 text-sm text-gray-400">
-            Тесты: <span className="font-medium text-gray-200">{passedTests}/{totalTests}</span> пройдено
+          <div className={styles.taskStats}>
+            Тесты: <span style={{ fontWeight: 600, color: '#f5f5ff' }}>{passedTests}/{totalTests}</span> пройдено
           </div>
         )}
       </div>
 
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-gray-300">
-            Код:
-          </label>
-          <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
-            {code.length} символов
-          </span>
+      <div className={styles.codeSection}>
+        <div className={styles.sectionHeader}>
+          <label className={styles.sectionLabel}>Код:</label>
+          <span className={styles.badge}>{code.length} символов</span>
         </div>
-        <div className="border border-gray-600 rounded-lg overflow-hidden bg-gray-900">
+        <div className={styles.codeEditorWrapper}>
           <Editor
             value={code}
             onValueChange={setCode}
@@ -310,8 +300,8 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
             style={{
               fontFamily: '"Fira Code", "Cascadia Code", monospace',
               fontSize: 14,
-              backgroundColor: '#1e1e1e',
-              color: '#d4d4d4',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              color: '#f5f5ff',
               minHeight: '300px',
             }}
             className="w-full focus:outline-none"
@@ -319,50 +309,50 @@ export const CodeConsole: React.FC<CodeConsoleProps> = ({
         </div>
       </div>
 
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-gray-300">Результат:</h3>
+      <div className={styles.outputSection}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionLabel}>Результат:</h3>
           {output && (
-            <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
-              {output.split('\n').length} строк
-            </span>
+            <span className={styles.badge}>{output.split('\n').length} строк</span>
           )}
         </div>
-        <div className="bg-gray-900 p-4 rounded-lg border border-gray-600 min-h-[150px]">
-          <div className="font-mono text-sm whitespace-pre-wrap text-gray-100">
-            {output || <span className="text-gray-500">Результат выполнения появится здесь...</span>}
+        <div className={styles.outputBox}>
+          <div className={styles.outputText}>
+            {output || <span className={styles.outputPlaceholder}>Результат выполнения появится здесь...</span>}
           </div>
         </div>
       </div>
 
       {testResults.length > 0 && (
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-300 mb-2">Результаты тестов:</h3>
-          <div className="space-y-2">
-            {testResults.map((result, index) => (
-              <div
-                key={index}
-                className={`p-3 rounded border ${
-                  result.passed ? 'bg-green-900/30 border-green-700' : 'bg-red-900/30 border-red-700'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-200">
-                    Тест {result.testId}: {result.passed ? '✅' : '❌'}
-                  </span>
-                  <span className="text-xs text-gray-400">{result.executionTime}ms</span>
+        <div className={styles.testResultsContainer}>
+          <div className={`${styles.testResultBox} ${
+            testResults.every(tr => tr.passed) 
+              ? styles.testResultSuccess
+              : styles.testResultFailed
+          }`}>
+            {testResults.every(tr => tr.passed) ? (
+              <>
+                <div className={styles.testResultHeader}>
+                  <span className={styles.testResultIcon}>✅</span>
+                  <h3 className={`${styles.testResultTitle} ${styles.testResultTitleSuccess}`}>
+                    Все тесты пройдены
+                  </h3>
                 </div>
-                {!result.passed && (
-                  <div className="mt-1 text-sm text-gray-300">
-                    <div>Ожидалось: <span className="text-gray-200">{result.expected}</span></div>
-                    <div>Получено: <span className="text-gray-200">{result.actual}</span></div>
-                    {result.error && (
-                      <div className="text-red-400">Ошибка: {result.error}</div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+                <p className={`${styles.testResultDescription} ${styles.testResultDescriptionSuccess}`}>
+                  Все {testResults.length} тестов выполнены успешно
+                </p>
+              </>
+            ) : (
+              <>
+                <div className={styles.testResultHeader}>
+                  <span className={styles.testResultIcon}>❌</span>
+                  <h3 className={`${styles.testResultTitle} ${styles.testResultTitleFailed}`}>
+                    Тесты не пройдены
+                  </h3>
+                </div>
+
+              </>
+            )}
           </div>
         </div>
       )}
