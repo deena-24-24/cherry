@@ -1,34 +1,35 @@
-@import '../ProfilePage/styles/variables.css';
-
 .page {
-  padding: 67px 90px 60px;
+  padding: 0 20px 60px;
   background: var(--color-background);
-  min-height: 100vh;
-  margin-top: 80px;
+  min-height: calc(100vh - var(--header-height) - var(--footer-height));
+  margin-top: var(--header-height);
 }
 
 .title {
-  color: var(--color-text);
+  max-width: 1200px;
+  margin: 0 auto var(--spacing-4xl);
+  color: var(--color-primary-blue);
   font-size: var(--font-size-3xl);
-  font-family: var(--font-family-title), serif;
+  font-family: var(--font-family-title), sans-serif;
   font-weight: 600;
   text-transform: uppercase;
-  line-height: var(--line-height-lg);
-  word-wrap: break-word;
-  margin-bottom: var(--spacing-4xl);
   padding-bottom: 16px;
-  border-bottom: 3px solid #78AAFF;
+  border-bottom: 3px solid var(--lavand);
 }
 
 .container {
-  padding-left: 70px;
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
-  gap: 30px;
+  gap: 40px;
   align-items: flex-start;
 }
 
 .filterContainer {
+  width: 280px;
   flex-shrink: 0;
+  position: sticky;
+  top: 100px;
 }
 
 .candidatesList {
@@ -36,13 +37,15 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
 }
 
 .loading {
   text-align: center;
-  padding: 60px 20px;
-  color: #082060;
-  font-size: 18px;
+  padding: 60px 0;
+  font-size: 20px;
+  color: var(--color-primary-blue);
+  width: 100%;
 }
 
 .emptyState {
@@ -51,12 +54,5 @@
   color: #999;
   background: #F5F5FF;
   border-radius: 15px;
-  border: 1px solid #082060;
+  border: 1px solid var(--color-primary-blue);
 }
-
-.emptyState p {
-  font-size: 18px;
-  margin: 10px 0;
-  color: #082060;
-}
-

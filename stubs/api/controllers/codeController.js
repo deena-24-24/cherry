@@ -3,20 +3,34 @@ const { exec } = require('child_process');
 const fs = require('fs').promises;
 const path = require('path');
 const { mockDB } = require('../mockData');
+const { v4: uuidv4 } = require('uuid');
+
+// Статусы выполнения
+const ExecutionStatus = {
+  OK: 'OK',
+  COMPILATION_ERROR: 'CE',
+  RUNTIME_ERROR: 'RE',
+  TIME_LIMIT_EXCEEDED: 'TL',
+  WRONG_ANSWER: 'WA',
+  SERVER_ERROR: 'SE'
+};
 
 class CodeController {
   constructor() {
     this.tempDir = path.join(__dirname, '..', '..', 'temp_code');
+    this.maxExecutionTime = 10000;
   }
 
   async executeCode(req, res) {
+    const executionId = uuidv4();
+    const startTime = Date.now();
+
     try {
       const { code, language, sessionId, stdin = '', testCases = [] } = req.body;
 
-      console.log('🚀 Выполнение кода:', {
+      console.log(`🚀 Выполнение кода [${executionId}]:`, {
         language,
         codeLength: code?.length,
-        stdinLength: stdin?.length,
         testCasesCount: testCases?.length
       });
 
@@ -25,11 +39,12 @@ class CodeController {
         return res.status(400).json({
           success: false,
           error: 'Укажите код и язык программирования',
-          output: ''
+          output: '',
+          status: ExecutionStatus.SERVER_ERROR
         });
       }
 
-      // Если есть тест-кейсы, запускаем каждый отдельно
+      // Если есть тест-кейсы, запускаем тестирование
       if (testCases.length > 0) {
         const results = await this.runTestCases(code, language, testCases, sessionId);
         res.json(results);
@@ -56,7 +71,8 @@ class CodeController {
           success: result.success,
           output: result.output,
           error: result.error,
-          executionTime: result.executionTime
+          executionTime: result.executionTime,
+          status: result.status || ExecutionStatus.OK
         });
       }
 
@@ -79,70 +95,104 @@ class CodeController {
     let filepath;
     let command;
 
-    // Подготовка для каждого языка
-    if (language === 'javascript' || language === 'typescript') {
-      const ext = language === 'typescript' ? 'ts' : 'js';
-      filepath = path.join(this.tempDir, `${filename}.${ext}`);
-
-      // Для JS оборачиваем в async функцию для обработки stdin
-      const wrappedCode = this.wrapJavaScriptCode(code, stdin);
-      await fs.writeFile(filepath, wrappedCode);
-      command = language === 'typescript'
-        ? `npx ts-node "${filepath}"`
-        : `node "${filepath}"`;
-
-    } else if (language === 'python') {
-      filepath = path.join(this.tempDir, `${filename}.py`);
-      await fs.writeFile(filepath, code);
-      command = `python "${filepath}"`;
-    } else {
-      throw new Error(`Язык "${language}" не поддерживается`);
-    }
-
     try {
       // Создаем временную папку
       await fs.mkdir(this.tempDir, { recursive: true });
 
+      // Подготовка для каждого языка
+      if (language === 'javascript') {
+        filepath = path.join(this.tempDir, `${filename}.js`);
+
+        const wrappedCode = this.wrapJavaScriptCode(code, stdin);
+        await fs.writeFile(filepath, wrappedCode);
+        command = `node "${filepath}"`;
+
+      } else if (language === 'python') {
+        filepath = path.join(this.tempDir, `${filename}.py`);
+
+        const wrappedCode = this.wrapPythonCode(code, stdin);
+        await fs.writeFile(filepath, wrappedCode);
+        command = `python "${filepath}"`;
+      } else {
+        throw new Error(`Язык "${language}" не поддерживается`);
+      }
+
       // Запускаем выполнение
-      const result = await this.executeWithTimeout(command, stdin, 10000);
+      const result = await this.executeWithTimeout(command, 10000);
 
-      // Очищаем
-      await this.cleanupFiles(filepath);
+      // Определяем статус выполнения
+      let status = ExecutionStatus.OK;
+      if (result.error) {
+        if (result.error.includes('timeout') || result.error.includes('Таймаут')) {
+          status = ExecutionStatus.TIME_LIMIT_EXCEEDED;
+        } else if (result.error.includes('SyntaxError') || result.error.includes('ReferenceError')) {
+          status = ExecutionStatus.RUNTIME_ERROR;
+        } else if (result.error.includes('sum is not defined')) {
+          status = ExecutionStatus.COMPILATION_ERROR;
+        } else {
+          status = ExecutionStatus.RUNTIME_ERROR;
+        }
+      }
 
-      return result;
+      return {
+        success: result.success,
+        output: result.output,
+        error: result.error,
+        executionTime: result.executionTime,
+        status: status
+      };
+
     } catch (error) {
+      console.error('❌ Ошибка выполнения:', error);
+      return {
+        success: false,
+        output: '',
+        error: error.message,
+        executionTime: Date.now() - startTime,
+        status: ExecutionStatus.SERVER_ERROR
+      };
+    } finally {
+      // Очищаем файлы
       await this.cleanupFiles(filepath).catch(() => {});
-      throw error;
     }
   }
 
+  // Оборачиваем JavaScript код для вызова функции sum
   wrapJavaScriptCode(code, stdin) {
-    // Если в коде есть console.log, но нет обработки stdin, оставляем как есть
-    if (!code.includes('readline') && !code.includes('process.stdin')) {
-      return code;
-    }
+    // Парсим входные данные (формат: "2 3")
+    const numbers = stdin.trim().split(/\s+/).map(Number);
+    const a = numbers[0] || 0;
+    const b = numbers[1] || 0;
 
-    // Иначе оборачиваем для поддержки stdin
-    return `
-const readline = require('readline');
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+    return `${code}
 
-let inputLines = [];
-rl.on('line', (line) => {
-  inputLines.push(line);
-});
-
-rl.on('close', () => {
-  // Выполняем пользовательский код с доступом к inputLines
-  ${code.replace(/readline\(\)/g, 'inputLines.shift()')}
-});
-`;
+// Автоматически добавленный вызов функции
+try {
+  const result = sum(${a}, ${b});
+  console.log(result);
+} catch (error) {
+  console.error('Ошибка:', error.message);
+}`;
   }
 
-  executeWithTimeout(command, stdin, timeoutMs) {
+  // Оборачиваем Python код для вызова функции sum
+  wrapPythonCode(code, stdin) {
+    // Парсим входные данные (формат: "2 3")
+    const numbers = stdin.trim().split(/\s+/).map(Number);
+    const a = numbers[0] || 0;
+    const b = numbers[1] || 0;
+
+    return `${code}
+
+# Автоматически добавленный вызов функции
+try:
+    result = sum(${a}, ${b})
+    print(result)
+except Exception as e:
+    print(f'Ошибка: {e}')`;
+  }
+
+  executeWithTimeout(command, timeoutMs) {
     return new Promise((resolve) => {
       const startTime = Date.now();
 
@@ -153,19 +203,9 @@ rl.on('close', () => {
           success: !error,
           output: stdout || '',
           error: stderr || (error ? error.message : ''),
-          executionTime,
-          memory: 0
+          executionTime
         });
       });
-
-      // КРИТИЧНО: передаем stdin в процесс
-      if (stdin && stdin.trim()) {
-        child.stdin.write(stdin);
-        child.stdin.end();
-      } else {
-        // Если нет stdin, закрываем stdin чтобы избежать зависания
-        child.stdin.end();
-      }
 
       // Таймаут
       setTimeout(() => {
@@ -175,8 +215,7 @@ rl.on('close', () => {
             success: false,
             output: '',
             error: `Таймаут выполнения (${timeoutMs/1000} секунд)`,
-            executionTime: timeoutMs,
-            memory: 0
+            executionTime: timeoutMs
           });
         }
       }, timeoutMs);
@@ -204,7 +243,8 @@ rl.on('close', () => {
         actual: result.output.trim(),
         passed,
         executionTime: result.executionTime,
-        error: result.error
+        error: result.error,
+        status: result.status
       });
 
       if (!passed) allPassed = false;
@@ -232,24 +272,34 @@ rl.on('close', () => {
       executionTime: totalTime,
       testResults: results,
       passedCount: results.filter(r => r.passed).length,
-      totalCount: results.length
+      totalCount: results.length,
+      status: allPassed ? ExecutionStatus.OK : ExecutionStatus.WRONG_ANSWER
     };
   }
 
   checkTestResult(actual, expected) {
     const cleanActual = actual.trim().replace(/\r\n/g, '\n');
     const cleanExpected = expected.trim().replace(/\r\n/g, '\n');
-    return cleanActual === cleanExpected;
+
+    // Убираем префикс ошибки если есть
+    const actualWithoutError = cleanActual.replace(/^Ошибка:\s*/i, '').replace(/^Error:\s*/i, '');
+
+    return actualWithoutError === cleanExpected;
   }
 
   formatTestResults(results) {
     let output = '🧪 Результаты тестов:\n\n';
 
     results.forEach((test, index) => {
-      output += `Тест ${index + 1}:\n`;
+      output += `Тест ${index + 1} [${test.status || 'OK'}]:\n`;
       output += `  Вход: ${test.input}\n`;
       output += `  Ожидалось: ${test.expected}\n`;
       output += `  Получено: ${test.actual}\n`;
+
+      if (test.error) {
+        output += `  Ошибка: ${test.error}\n`;
+      }
+
       output += `  Статус: ${test.passed ? '✅ ПРОЙДЕН' : '❌ НЕ ПРОЙДЕН'}\n`;
       output += `  Время: ${test.executionTime}ms\n\n`;
     });
@@ -264,61 +314,11 @@ rl.on('close', () => {
 
   async cleanupFiles(filepath) {
     try {
-      await fs.unlink(filepath);
-
-      // Удаляем скомпилированные файлы если есть
-      const dir = path.dirname(filepath);
-      const base = path.basename(filepath, path.extname(filepath));
-
-      const files = await fs.readdir(dir);
-      for (const file of files) {
-        if (file.startsWith(base)) {
-          await fs.unlink(path.join(dir, file)).catch(() => {
-          });
-        }
+      if (filepath) {
+        await fs.unlink(filepath);
       }
     } catch (error) {
-      console.log('⚠️  Не удалось очистить файлы:', error.message);
-    }
-  }
-
-  async getExecutionHistory(req, res) {
-    try {
-      const { sessionId } = req.params;
-      const history = mockDB.codeExecutions
-        .filter(e => e.sessionId === sessionId)
-        .sort((a, b) => new Date(b.executedAt) - new Date(a.executedAt));
-
-      res.json({
-        success: true,
-        history,
-        count: history.length
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
-    }
-  }
-
-  async clearHistory(req, res) {
-    try {
-      const { sessionId } = req.params;
-      const initialLength = mockDB.codeExecutions.length;
-
-      mockDB.codeExecutions = mockDB.codeExecutions.filter(e => e.sessionId !== sessionId);
-
-      res.json({
-        success: true,
-        message: `Удалено ${initialLength - mockDB.codeExecutions.length} записей`,
-        count: mockDB.codeExecutions.length
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      console.log('⚠️ Не удалось очистить файлы:', error.message);
     }
   }
 }

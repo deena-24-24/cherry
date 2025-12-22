@@ -1,0 +1,117 @@
+.hr-chat-layout {
+    display: flex;
+    height: 90vh;
+    max-width: 1200px;
+    margin: calc(var(--header-height) + 2rem) auto;
+    border-radius: 12px;
+    background-color: var(--color-background);
+    box-shadow: 0 4px 12px rgba(8, 32, 96, 0.15);
+    overflow: hidden;
+}
+
+.chat-view-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chat-header {
+    height: 90px;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--lavand);
+    background-color: var(--lavand);
+}
+
+.chat-list-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--color-primary-blue);
+}
+
+
+.chat-header h1 {
+    font-size: var(--font-size-lg);
+    margin: 0 0 0.25rem;
+    color: var(--color-primary-blue);
+}
+
+.chat-header .status {
+    font-size: var(--font-size-sm);
+    color: var(--color-primary-blue);
+    font-weight: 400;
+    margin: 0;
+}
+
+.messages-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background-color: var(--color-background);
+}
+
+.chat-footer {
+    width: 100%;
+    border-top: 1px solid var(--cloud);
+}
+
+.no-chat-selected {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--lavand);
+}
+
+.messages-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages-list::-webkit-scrollbar-track {
+    background: var(--cloud);
+}
+
+.messages-list::-webkit-scrollbar-thumb {
+    background: var(--peach);
+    border-radius: 4px;
+}
+
+.messages-list::-webkit-scrollbar-thumb:hover {
+    background: var(--lavand);
+}
+
+.centered-status, .centered-status-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: var(--font-size-lg);
+    color: var(--lavand);
+}
+
+.centered-status-error {
+    color: var(--color-error);
+}
+
+@media (max-width: 768px) {
+    .hr-chat-layout {
+        border-radius: 0;
+    }
+    .chat-list-toggle {
+        display: inline-flex;
+        margin-right: 0.75rem;
+    }
+
+    .chat-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+}
+

@@ -1,3 +1,5 @@
 export * from './user'
 export * from './interview'
 export * from './chat'
+export * from './candidateProfile'
+export * from './hrProfile'

@@ -1,27 +1,51 @@
-import React, { useRef } from 'react'
-import { useChatStore } from '../../store'
+import React, { useRef, useEffect } from 'react'
+import { useAiChatStore } from '../../store'
 import { ChatMessage } from '../../components/chatPage/ChatMessage'
 import { MessageInput } from '../../components/chatPage/MessageInput'
 import * as styles from './AiChatPage.module.css'
+import { Loader } from '../../components/ui/Loader/Loader'
 
 export const AiChatPage: React.FC = () => {
-  const { messages, isLoading, sendMessage } = useChatStore()
-  const messagesEndRef = useRef<null | HTMLDivElement>(null)
+  const { messages, isLoading, fetchHistory, sendMessage } = useAiChatStore()
+  const chatListRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetchHistory().then()
+  }, [])
+
+  useEffect(() => {
+    if (chatListRef.current) {
+      const { scrollHeight, clientHeight } = chatListRef.current
+      chatListRef.current.scrollTo({
+        top: scrollHeight - clientHeight + 100,
+        behavior: 'smooth'
+      })
+    }
+  }, [messages, isLoading])
 
   const handleSendMessage = async (messageText: string) => {
     await sendMessage(messageText)
   }
 
+  if (isLoading) return <Loader />
   return (
-    <div className="container pd-lg">
+    <div className={styles["page"]}>
       <div className={styles["chat-container"]}>
         <header className={styles["chat-header"]}>
-          <h1 className="text-center">Чат с ИИ-ассистентом</h1>
+          <h1 className="text-center" style={{ color: 'white' }}>Помощник CareerUp AI</h1>
+          <p className="text-center" style={{ fontSize: '0.9rem', opacity: 0.8, color: 'white' }}>
+            Ваш персональный консультант по подготовке к собеседованиям
+          </p>
         </header>
 
-        <div className={styles["messages-list"]}>
+        <div
+          className={styles["messages-list"]}
+          ref={chatListRef}
+        >
           {messages.map((msg) => (
-            <ChatMessage key={msg.id} message={msg} />
+            <ChatMessage
+              key={msg.id}
+              message={msg} />
           ))}
 
           {isLoading && (
@@ -29,8 +53,6 @@ export const AiChatPage: React.FC = () => {
               <ChatMessage message={{ id: 'typing', sender: 'ai', text: 'печатает...' }}/>
             </div>
           )}
-
-          <div ref={messagesEndRef} />
         </div>
 
         <footer className={styles["chat-footer"]}>

@@ -1,16 +1,68 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../components/ui/Button/Button'
 import { ROUTES } from '../../router/routes'
 import * as styles from './InterviewHomePage.module.css'
+import { API_URL } from '../../config'
+import { useAuthStore } from '../../store'
+import AiGirl from '../../assets/img.png'
+import { PositionSelectPopup, InterviewPosition } from '../../components/popup/PositionSelectPopup'
 
 export const InterviewHomePage: React.FC = () => {
   const navigate = useNavigate()
+  const { user, token } = useAuthStore()
+  const [showPositionPopup, setShowPositionPopup] = useState(false)
 
   const handleStartInterview = () => {
-    const sessionId = `session_${Date.now()}`
-    // Переходим на страницу звонка
-    navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', sessionId))
+    // Показываем попап выбора позиции
+    setShowPositionPopup(true)
+  }
+
+  const handlePositionSelect = async (position: InterviewPosition) => {
+    try {
+      if (!user) {
+        console.error('Пользователь не авторизован, не могу создать сессию интервью')
+        return
+      }
+
+      const response = await fetch(`${API_URL}/api/interview/sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          userId: user._id,
+          position: position,
+          title: 'AI собеседование',
+        }),
+      })
+
+      if (!response.ok) {
+        console.error('Не удалось создать сессию интервью, статус:', response.status)
+        // Фолбэк: поведение как раньше — локальный sessionId
+        const fallbackSessionId = `session_${Date.now()}`
+        navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', fallbackSessionId))
+        return
+      }
+
+      const data = await response.json()
+      const sessionId = data.sessionId || data.session?.id
+
+      if (!sessionId) {
+        console.error('Сервер не вернул sessionId для созданной сессии')
+        const fallbackSessionId = `session_${Date.now()}`
+        navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', fallbackSessionId))
+        return
+      }
+
+      // Переходим на страницу звонка с ID сессии из мок-БД
+      navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', sessionId))
+    } catch (error) {
+      console.error('Ошибка при старте интервью:', error)
+      const fallbackSessionId = `session_${Date.now()}`
+      navigate(ROUTES.INTERVIEW_CALL.replace(':sessionId', fallbackSessionId))
+    }
   }
 
   const handleViewResults = () => {
@@ -20,15 +72,6 @@ export const InterviewHomePage: React.FC = () => {
   return (
     <div className={styles["ihp-wrapper"]}>
       <div className={styles["ihp-container"]}>
-        {/* Хедер
-        <header className="ihp-header">
-          <h1>
-            AI Interview Assistant
-          </h1>
-          <p>
-            Подготовьтесь к собеседованию с искусственным интеллектом
-          </p>
-        </header> */}
 
         {/* HERO БЛОК → как на макете */}
         <section className={styles["ihp-hero"]}>
@@ -43,21 +86,17 @@ export const InterviewHomePage: React.FC = () => {
             </p>
 
             {/* ЭТА КНОПКА ПЕРЕВОДИТ НА СТРАНИЦУ ЗВОНКА */}
-            <Button className={styles["ihp-hero-btn"]} onClick={handleStartInterview}>
+            <Button className={styles["ihp-hero-btn"]}
+              onClick={handleStartInterview}
+              styleProps={{ borderColor: '#36447c' }}>
               ПРИСТУПИТЬ К ИНТЕРВЬЮ
             </Button>
           </div>
 
           <div className={styles["ihp-hero-image"]}>
-            {/* todo: Добавить ссылку */}
-            <img />
+            <img src={AiGirl}/>
           </div>
         </section>
-
-        {/* Дополнительная информация */}
-        <div className={styles["ihp-bottom-info"]}>
-          <p>После нажатия кнопки вы попадете в виртуальную комнату собеседования</p>
-        </div>
 
         {/* Карточки фич */}
         <h3 className={styles["ihp-section-title"]}>ВАШИ ИНТЕРВЬЮ</h3>
@@ -69,12 +108,19 @@ export const InterviewHomePage: React.FC = () => {
             <span className={styles["ihp-calendar"]}>📅</span> 18/10/2025
           </div>
 
-          <button className={styles["ihp-interview-btn"]} onClick={handleViewResults}>
+          <Button className={styles["ihp-interview-btn"]} onClick={handleViewResults}>
             ПОСМОТРЕТЬ ФИДБЕК
-          </button>
+          </Button>
         </div>
 
       </div>
+
+      {/* Попап выбора направления собеседования */}
+      <PositionSelectPopup
+        isOpen={showPositionPopup}
+        onClose={() => setShowPositionPopup(false)}
+        onSelect={handlePositionSelect}
+      />
     </div>
   )
 }

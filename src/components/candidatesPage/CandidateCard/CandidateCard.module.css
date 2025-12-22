@@ -1,0 +1,153 @@
+.card {
+  width: 100%;
+  min-height: auto;
+  background: white;
+  border-radius: 15px;
+  border: 1px solid var(--lavand);
+  padding: 24px;
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(8, 32, 96, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(8, 32, 96, 0.1);
+  border-color: var(--color-primary-blue);
+}
+
+.cardContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid var(--lavand);
+  background-color: var(--color-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--lavand);
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.name {
+  font-family: 'Anek Telugu', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-primary-blue);
+  text-transform: uppercase;
+}
+
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.detailItem {
+  font-family: 'Geist', sans-serif;
+  font-size: 14px;
+  color: #666;
+  background: #F5F5FF;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skillTag {
+  background: var(--peach);
+  border-radius: 7px;
+  border: 1px solid var(--lavand);
+  padding: 4px 12px;
+  color: var(--color-primary-blue);
+  font-size: 14px;
+  font-family: 'Anek Telugu', sans-serif;
+  font-weight: 500;
+  text-transform: capitalize;
+  line-height: 15.4px;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+  min-width: 160px;
+  margin-left: auto;
+}
+
+.viewButton {
+  width: 100%;
+  background-color: var(--color-primary-blue);
+  color: white;
+}
+.viewButton:hover {
+  background-color: #0A2A7A;
+}
+
+.messageButton {
+  width: 100%;
+  background-color: white;
+  color: var(--color-primary-blue);
+  border: 1px solid var(--color-primary-blue);
+}
+
+.messageButton:hover {
+  background-color: var(--color-background);
+}
+
+.favoriteButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--color-primary-blue);
+  background: #F5F5FF;
+  color: var(--color-primary-blue);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  margin-top: 5px;
+}
+
+.favoriteButtonActive {
+  background: var(--color-primary-blue);
+  color: #F5F5FF;
+}

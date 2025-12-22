@@ -33,7 +33,7 @@ class HrController {
           lastName: user.lastName || '',
           email: user.email || '',
           phone: user.phone || '',
-          country: user.country || '',
+          city: user.city || '',
           about: user.about || '',
           avatar: user.avatar || '',
           // HR-специфичные поля
@@ -55,7 +55,7 @@ class HrController {
         hr.lastName = user.lastName || hr.lastName || '';
         hr.email = user.email || hr.email || '';
         hr.phone = user.phone || hr.phone || '';
-        hr.country = user.country || hr.country || '';
+        hr.city = user.city || hr.city || '';
         hr.about = user.about || hr.about || '';
         hr.avatar = user.avatar || hr.avatar || '';
         hr.companyName = user.companyName || hr.companyName || '';
@@ -112,8 +112,8 @@ class HrController {
       if (updateData.phone !== undefined) {
         user.phone = updateData.phone;
       }
-      if (updateData.country !== undefined) {
-        user.country = updateData.country;
+      if (updateData.city !== undefined) {
+        user.city = updateData.city;
       }
       if (updateData.about !== undefined) {
         user.about = updateData.about;
@@ -134,7 +134,7 @@ class HrController {
         lastName: user.lastName || '',
         email: user.email || '',
         phone: user.phone || '',
-        country: user.country || '',
+        city: user.city || '',
         about: user.about || '',
         avatar: user.avatar || '',
         // HR-специфичные поля

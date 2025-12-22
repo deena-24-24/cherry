@@ -3,25 +3,25 @@
     align-items: center;
     gap: 10px;
     padding: 10px;
-    border-top: 1px solid #c8e6ff;
-    background-color: #f5f5ff;
+    border-top: 1px solid var(--cloud);
+    background-color: var(--lavand);
 }
 
 .message-input-field {
     flex-grow: 1;
-    border: 1px solid #c8e6ff;
+    border: 1px solid var(--cloud);
     padding: 12px;
-    font-size: 1rem;
-    background-color: #ffffff;
+    font-size: var(--font-size-base);
+    background-color: var(--color-background);
     border-radius: 20px;
     outline: none;
     transition: all 0.2s;
-    color: #082060;
+    color: var(--color-primary-blue);
 }
 
 .message-input-field:focus {
-    background-color: #ffffff;
-    border-color: #78aaff;
+    background-color: white;
+    border-color: var(--lavand);
 }
 
 .icon-button {
@@ -32,12 +32,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #78aaff;
+    color: var(--navy);
     transition: color 0.2s ease;
 }
 
 .icon-button:hover:not(:disabled) {
-    color: #082060;
+    color: var(--color-primary-blue);
 }
 
 .icon-button:disabled {
@@ -46,9 +46,9 @@
 }
 
 .send-button {
-    color: #78aaff;
+    color: var(--color-primary-blue);
 }
 
 .send-button:hover:not(:disabled) {
-    color: #082060;
+    color: var(--color-primary-blue);
 }

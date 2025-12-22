@@ -14,8 +14,8 @@
 }
 
 .buttonPrimary {
-  background: var(--color-primary);
-  outline: 1px var(--color-border) solid;
+  background: var(--navy);
+  /*outline: 1px var(--peach) solid;*/
   outline-offset: -1px;
 }
 
@@ -23,17 +23,17 @@
 .buttonPrimary:active { opacity: 0.8; }
 
 .buttonSecondary {
-  background: var(--color-secondary);
-  border: 1px var(--color-accent) solid;
+  background: var(--cloud);
+  border: 1px var(--lavand) solid;
 }
 
 .buttonSecondary:hover {
-  background: var(--color-secondary-hover);
-  border-color: var(--color-primary-light);
+  background: var(--lavand);
+  border-color: var(--navy);
 }
 
 .buttonText {
-  /*color: var(--color-text-light);*/
+  /*color: var(--color-primary-light);*/
   font-size: var(--font-size-lg);
   font-family: var(--font-family-mono), sans-serif;
   font-weight: 500;
@@ -43,5 +43,11 @@
 }
 
 .buttonSecondary .buttonText {
-  color: var(--color-text);
+  color: var(--color-primary-blue);
+}
+
+@media (max-width: 420px) {
+  .buttonText{
+    font-size: var(--font-size-md);
+  }
 }

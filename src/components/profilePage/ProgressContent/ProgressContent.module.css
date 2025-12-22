@@ -1,0 +1,174 @@
+.noProgress {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  background: #F5F5FF;
+  border-radius: 15px;
+  border: 1px solid var(--color-primary-blue);
+}
+
+.noProgress p {
+  font-size: 18px;
+  margin: 10px 0;
+  color: var(--color-primary-blue);
+}
+
+.progressContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 100%;
+}
+
+.positionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.positionTitle {
+  color: var(--maroon);
+  font-size: 24px;
+  font-family: 'Anek Telugu', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--cloud);
+  padding-bottom: 10px;
+}
+
+/* Блок собеседований */
+.interviewsBlock {
+  width: 100%;
+  height: 233px;
+  position: relative;
+  display: flex;
+  gap: 20px;
+}
+
+.interviewCardLeft {
+  flex: 1.5;
+  background: var(--ui-bg-card);
+  border-radius: 15px;
+  border: 1px var(--lavand) solid;
+  position: relative;
+  padding: 20px;
+}
+
+.interviewCardRight {
+  flex: 1;
+  background: var(--ui-bg-card);
+  border-radius: 15px;
+  border: 1px var(--lavand) solid;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Текстовые стили */
+.cardTitle {
+  color: var(--color-primary-blue);
+  font-size: 24px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  padding-right: 40px;
+}
+
+.statLabel {
+  color: var(--color-primary-blue);
+  font-size: 24px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 400;
+}
+
+.statValue {
+  color: var(--color-primary-blue);
+  font-size: 24px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 400;
+}
+
+.scoreTitle {
+  color: var(--color-primary-blue);
+  font-size: 16px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.scoreValue {
+  color: var(--color-primary-blue);
+  font-size: 64px;
+  font-family: 'Geist', sans-serif;
+  font-weight: 700;
+}
+
+/* ========================= */
+/* 📱 Mobile (до 500px) */
+/* ========================= */
+@media (max-width: 500px) {
+
+  .progressContainer {
+    gap: 32px;
+  }
+
+  .positionGroup {
+    gap: 16px;
+  }
+
+  .positionTitle {
+    font-size: 18px;
+    padding-bottom: 8px;
+  }
+
+  /* Основной блок */
+  .interviewsBlock {
+    flex-direction: column;
+    height: auto;              /* ❗ убираем фикс */
+    gap: 16px;
+    margin-bottom: 24px;       /* ❗ решает налезание на следующий блок */
+  }
+
+  .interviewCardLeft,
+  .interviewCardRight {
+    width: 100%;
+    flex: none;
+    padding: 16px;
+  }
+
+  /* Тексты */
+  .cardTitle {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .statRow {
+    padding-right: 0;
+    margin-bottom: 12px;
+  }
+
+  .statLabel,
+  .statValue {
+    font-size: 16px;
+  }
+
+  .scoreTitle {
+    font-size: 14px;
+  }
+
+  .scoreValue {
+    font-size: 48px;
+    line-height: 1;
+  }
+}

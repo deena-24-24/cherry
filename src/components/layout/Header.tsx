@@ -4,8 +4,8 @@ import { Button } from '../ui/Button/Button'
 import { ROUTES } from '../../router/routes'
 import { usePopupStore } from '../../store'
 import { useAuthStore } from '../../store'
-import { CandidateNavigation } from './CandidateNavigation'
-import { HrNavigation } from './HrNavigation'
+import { CandidateNavigation } from '../landingPage/candidate/CandidateNavigation'
+import { HrNavigation } from '../landingPage/hr/HrNavigation'
 import logoTitle from '../../assets/logo_title.svg'
 import * as styles from './Header.module.css'
 import gsap from 'gsap'
@@ -31,6 +31,19 @@ export const Header: React.FC = () => {
   const toggleMobile = () => {
     setIsMobileOpen(prev => !prev)
   }
+
+  useEffect(() => {
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobileOpen])
+
 
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isNavVisible, setIsNavVisible] =useState(true)
@@ -83,7 +96,7 @@ export const Header: React.FC = () => {
               ) : (<HrNavigation />)
             )}
 
-            <Button className={styles["loginButton"]} onClick={handleAuthClick}>
+            <Button className={styles["loginButton"]} onClick={handleAuthClick} styleProps={{ width: '100px' }} >
               <span className={styles["loginButtonText"]}>
                 {user ? 'ВЫХОД' : 'ВХОД'}
               </span>

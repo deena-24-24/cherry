@@ -1,0 +1,99 @@
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.topSection {
+  display: flex;
+  gap: var(--spacing-3xl);
+  align-items: flex-start;
+  width: 100%;
+  justify-content: space-between;
+
+  background: var(--ui-bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--lavand);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-card);
+}
+
+.mainFields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+.avatarSection {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: var(--spacing-sm);
+}
+
+.bottomSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+
+  background: var(--ui-bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--lavand);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-card);
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-lg);
+  justify-content: flex-start;
+  margin-top: var(--spacing-lg);
+  padding-bottom: var(--spacing-2xl);
+}
+
+.saveButton,
+.cancelButton {
+  min-width: 180px;
+}
+
+/* Адаптивность */
+@media (max-width: 900px) {
+  .topSection {
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: var(--spacing-xl);
+    padding: var(--spacing-xl);
+  }
+
+  .mainFields {
+    width: 100%;
+  }
+
+  .avatarSection {
+    width: 100%;
+    border-bottom: 1px solid var(--lavand);
+    padding-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .bottomSection {
+    padding: var(--spacing-xl);
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .saveButton, .cancelButton {
+    width: 100%;
+  }
+}
