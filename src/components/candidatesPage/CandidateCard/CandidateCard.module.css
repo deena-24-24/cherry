@@ -151,3 +151,163 @@
   background: var(--color-primary-blue);
   color: #F5F5FF;
 }
+
+/* Планшеты (768px - 1024px) */
+@media (max-width: 1024px) {
+  .card {
+    padding: 20px;
+  }
+
+  .cardContent {
+    gap: 16px;
+  }
+
+  .avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .avatarPlaceholder {
+    font-size: 28px;
+  }
+
+  .name {
+    font-size: 18px;
+  }
+
+  .actions {
+    min-width: 140px;
+  }
+}
+
+/* Мобильные устройства (до 768px) */
+@media (max-width: 768px) {
+  .card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .cardContent {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .avatar {
+    width: 60px;
+    height: 60px;
+    align-self: flex-start;
+  }
+
+  .avatarPlaceholder {
+    font-size: 24px;
+  }
+
+  .info {
+    width: 100%;
+  }
+
+  .name {
+    font-size: 18px;
+  }
+
+  .details {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .detailItem {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+
+  .skills {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .skillTag {
+    font-size: 12px;
+    padding: 3px 10px;
+    height: 26px;
+  }
+
+  .actions {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 0;
+    margin-top: 8px;
+    min-width: auto;
+  }
+
+  .viewButton,
+  .messageButton {
+    flex: 1;
+    max-width: calc(50% - 5px);
+  }
+
+  .favoriteButton {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+}
+
+/* Маленькие мобильные (до 480px) */
+@media (max-width: 480px) {
+  .card {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .cardContent {
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .avatarPlaceholder {
+    font-size: 20px;
+  }
+
+  .name {
+    font-size: 16px;
+  }
+
+  .details {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .detailItem {
+    font-size: 11px;
+  }
+
+  .skillTag {
+    font-size: 11px;
+    padding: 2px 8px;
+    height: 24px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .viewButton,
+  .messageButton {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .favoriteButton {
+    align-self: flex-end;
+  }
+}

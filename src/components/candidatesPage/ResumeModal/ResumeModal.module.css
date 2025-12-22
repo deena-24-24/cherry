@@ -6,21 +6,24 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  padding-top: calc(80px + 20px);
 }
 
 .modalContent {
   background: white;
   border-radius: 15px;
   max-width: 800px;
-  max-height: 90vh;
+  width: min(800px, calc(100vw - 40px));
+  max-height: calc(100vh - 80px - 40px);
   overflow-y: auto;
   padding: 30px;
   position: relative;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  margin-top: 0;
 }
 
 .closeButton {
@@ -212,3 +215,161 @@
   color: var(--lavand);
 }
 
+/* Планшеты (768px - 1024px) */
+@media (max-width: 1024px) {
+  .modalOverlay {
+    padding: 20px;
+    padding-top: calc(80px + 20px);
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .modalContent {
+    max-width: 90vw;
+    width: min(700px, calc(100vw - 40px));
+    padding: 25px;
+    max-height: calc(100vh - 80px - 40px);
+    margin-top: 0;
+  }
+
+  .resumeTitle {
+    font-size: 28px;
+  }
+
+  .candidateName {
+    font-size: 20px;
+  }
+}
+
+/* Мобильные устройства (до 768px) */
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 0;
+    padding-top: 80px;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .modalContent {
+    max-width: 95vw;
+    width: min(600px, calc(100vw - 20px));
+    max-height: calc(100vh - 80px - 20px);
+    padding: 20px;
+    border-radius: 20px;
+    margin-top: 10px;
+  }
+
+  .closeButton {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    font-size: 28px;
+    background: var(--color-primary-blue);
+    color: white;
+  }
+
+  .closeButton:hover {
+    background: #0A2A7A;
+  }
+
+  .resumeHeader {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    padding-right: 50px;
+  }
+
+  .resumeTitle {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .candidateName {
+    font-size: 18px;
+  }
+
+  .resumeBody {
+    gap: 20px;
+  }
+
+  .section {
+    padding: 16px;
+  }
+
+  .sectionTitle {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+}
+@media (max-width: 625px){
+  .modalOverlay {
+    justify-content: left;
+    padding-left: 5px;
+  }
+}
+/* Маленькие мобильные (до 480px) */
+@media (max-width: 480px) {
+  .modalOverlay {
+    padding: 0;
+    padding-top: 80px;
+    align-items: flex-start;
+    justify-content: left;
+  }
+
+  .modalContent {
+    max-width: 95vw;
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 80px - 16px);
+    padding: 16px;
+    border-radius: 15px;
+    margin-top: 8px;
+  }
+
+  .closeButton {
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    font-size: 24px;
+  }
+
+  .resumeHeader {
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    padding-right: 45px;
+  }
+
+  .resumeTitle {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+
+  .candidateName {
+    font-size: 16px;
+  }
+
+  .resumeBody {
+    gap: 16px;
+  }
+
+  .section {
+    padding: 12px;
+  }
+
+  .sectionTitle {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .infoRow {
+    margin-bottom: 12px;
+  }
+
+  .label {
+    font-size: 12px;
+  }
+
+  .value {
+    font-size: 14px;
+  }
+}

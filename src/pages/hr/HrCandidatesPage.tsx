@@ -19,6 +19,7 @@ export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTit
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCandidate, setSelectedCandidate] = useState<Resume | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
 
   const [filters, setFilters] = useState<FilterState>({
     position: '', city: '', experience: '', skills: [], sortBy: 'rating',
@@ -34,6 +35,19 @@ export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTit
       } catch (error) { console.error(error) } finally { setLoading(false) }
     }
     loadData()
+  }, [])
+
+  // На десктопе фильтры всегда видны
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 769) {
+        setShowFilters(true)
+      }
+    }
+    
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
 
@@ -107,10 +121,21 @@ export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTit
 
   return (
     <>
-      {showTitle && <div className={styles["title"]}>КАНДИДАТЫ</div>}
+      {showTitle && (
+        <div className={styles["titleContainer"]}>
+          <div className={styles["title"]}>КАНДИДАТЫ</div>
+          <button
+            className={styles["filterToggle"]}
+            onClick={() => setShowFilters(!showFilters)}
+            aria-label="Показать/скрыть фильтры"
+          >
+            {showFilters ? '✕' : '☰'} Фильтры
+          </button>
+        </div>
+      )}
 
       <div className={styles["container"]}>
-        <div className={styles["filterContainer"]}>
+        <div className={`${styles["filterContainer"]} ${showFilters ? styles["filterContainerOpen"] : ''}`}>
           <CandidatesFilter filters={filters} onFiltersChange={setFilters} availableSkills={availableSkills} />
         </div>
 
