@@ -44,8 +44,8 @@ router.get('/sessions/:sessionId', validateSessionExists, interviewController.ge
 router.put('/sessions/:sessionId/complete', validateSessionExists, auth, interviewController.completeInterview);
 
 // Заметки
-// Обновление заметок (требует авторизации)
-router.post('/sessions/:sessionId/notes', validateSessionExists, auth, interviewController.updateNotes);
+// Обновление заметок (без аутентификации, так как происходит в рамках активной сессии)
+router.post('/sessions/:sessionId/notes', validateSessionExists, interviewController.updateNotes);
 router.get('/sessions/:sessionId/notes', validateSessionExists, interviewController.getNotes);
 
 // Диалог и история

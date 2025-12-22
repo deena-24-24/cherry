@@ -24,7 +24,8 @@ export const InterviewCallPage: React.FC = () => {
     fetchSession,
     isCallActive,
     startCall: startStoreCall,
-    endCall: endStoreCall
+    endCall: endStoreCall,
+    notes
   } = useInterviewStore()
 
   // === СОСТОЯНИЯ ДЛЯ ВСЕЙ СТРАНИЦЫ ===
@@ -205,42 +206,6 @@ export const InterviewCallPage: React.FC = () => {
     }
   }, [sessionId, interviewPosition])
 
-  // === ФУНКЦИЯ ДЛЯ ПОЛЛИНГА ОТЧЕТА (HTTP FALLBACK) ===
-  const startPollingForReport = useCallback(() => {
-    if (pollingIntervalRef.current) return // Уже опрашиваем
-
-    console.log("🔄 Starting HTTP polling for final report...")
-
-    pollingIntervalRef.current = setInterval(async () => {
-      if (!sessionId) return
-
-      try {
-        const token = localStorage.getItem('token')
-        const response = await fetch(`${API_URL}/api/interview/sessions/${sessionId}/report`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          if (data.success && data.report) {
-            console.log("✅ Report received via HTTP polling!")
-            // Вызываем тот же обработчик, что и для сокета
-            handleInterviewCompleted({
-              sessionId,
-              finalReport: data.report,
-              completionReason: "Завершено (HTTP)",
-              wasAutomatic: true
-            })
-          }
-        }
-      } catch (err) {
-        console.warn("Polling attempt failed, retrying...", err)
-      }
-    }, 3000) // Опрос каждые 3 секунды
-  }, [sessionId])
-
   const stopPolling = useCallback(() => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current)
@@ -248,25 +213,6 @@ export const InterviewCallPage: React.FC = () => {
       console.log("🛑 Polling stopped")
     }
   }, [])
-
-  // === 1. Обработка НАЧАЛА ЗАВЕРШЕНИЯ ===
-  useEffect(() => {
-    const onCompletionStart = () => {
-      console.log("🏁 Начало завершения интервью (event received)")
-      setIsInterviewEnded(true)
-      setIsGeneratingReport(true)
-      setShowFinalReport(true)
-
-      // Запускаем поллинг как подстраховку от разрыва сокета
-      startPollingForReport()
-    }
-
-    socketService.onCompletionStarted(onCompletionStart)
-    return () => {
-      socketService.offCompletionStarted()
-      stopPolling()
-    }
-  }, [startPollingForReport, stopPolling])
 
   // === 2. Обработка ГОТОВОГО ОТЧЕТА (Socket + HTTP Handler) ===
   const handleInterviewCompleted = useCallback((data: SocketInterviewCompleted) => {
@@ -304,6 +250,86 @@ export const InterviewCallPage: React.FC = () => {
     socketService.disconnect()
     endStoreCall()
   }, [endStoreCall, stopPolling])
+
+  // === ФУНКЦИЯ ДЛЯ ПОЛЛИНГА ОТЧЕТА (HTTP FALLBACK) ===
+  const startPollingForReport = useCallback(() => {
+    if (pollingIntervalRef.current) return // Уже опрашиваем
+
+    console.log("🔄 Starting HTTP polling for final report...")
+    let pollCount = 0
+    const maxPolls = 20 // Максимум 20 попыток (60 секунд)
+
+    pollingIntervalRef.current = setInterval(async () => {
+      if (!sessionId) return
+      
+      pollCount++
+      
+      // Останавливаем поллинг после максимального количества попыток
+      if (pollCount > maxPolls) {
+        stopPolling()
+        console.warn("⏱️ Polling timeout: report not received after 60 seconds")
+        return
+      }
+
+      try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`${API_URL}/api/interview/sessions/${sessionId}/report`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          // Подавляем вывод ошибок в консоль браузера для 404
+          // Используем signal для возможности отмены
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.report) {
+            console.log("✅ Report received via HTTP polling!")
+            stopPolling() // Останавливаем поллинг после получения отчета
+            // Вызываем тот же обработчик, что и для сокета
+            handleInterviewCompleted({
+              sessionId,
+              finalReport: data.report,
+              completionReason: "Завершено (HTTP)",
+              wasAutomatic: true
+            })
+          }
+        } else if (response.status === 404) {
+          // 404 - отчет еще не готов, это нормально, продолжаем поллинг
+          // Браузер все равно покажет это в консоли, но это ожидаемое поведение
+          // Можно игнорировать эти сообщения в DevTools
+        } else {
+          console.warn(`⚠️ Polling failed with status ${response.status}, retrying...`)
+        }
+      } catch (err) {
+        // Игнорируем ошибки сети, если это не последняя попытка
+        if (pollCount < maxPolls) {
+          // Не логируем каждую ошибку сети, чтобы не засорять консоль
+        } else {
+          console.warn("⚠️ Polling failed after all attempts:", err)
+        }
+      }
+    }, 3000) // Опрос каждые 3 секунды
+  }, [sessionId, handleInterviewCompleted])
+
+  // === 1. Обработка НАЧАЛА ЗАВЕРШЕНИЯ ===
+  useEffect(() => {
+    const onCompletionStart = () => {
+      console.log("🏁 Начало завершения интервью (event received)")
+      setIsInterviewEnded(true)
+      setIsGeneratingReport(true)
+      setShowFinalReport(true)
+
+      // Запускаем поллинг как подстраховку от разрыва сокета
+      startPollingForReport()
+    }
+
+    socketService.onCompletionStarted(onCompletionStart)
+    return () => {
+      socketService.offCompletionStarted()
+      stopPolling()
+    }
+  }, [startPollingForReport, stopPolling])
 
   useLayoutEffect(() => {
     socketService.onInterviewCompleted(handleInterviewCompleted)
@@ -563,6 +589,7 @@ export const InterviewCallPage: React.FC = () => {
             wasAutomatic={wasAutomatic}
             onClose={handleCloseReport}
             isLoading={isGeneratingReport}
+            notes={finalReport?.notes || notes}
           />
         )}
 

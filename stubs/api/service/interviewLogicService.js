@@ -344,8 +344,13 @@ class InterviewLogicService {
     const state = await stateService.getSession(sessionId);
     if (!state || !state.conversationHistory || state.conversationHistory.length === 0) {
       console.warn("⚠️ No history found, returning mock report");
-      return this.createMockFinalReport();
+      return this.createMockFinalReport(sessionId);
     }
+
+    // Получаем заметки из сессии
+    const { mockDB } = require('../mockData');
+    const session = mockDB.sessions.find(s => s.id === sessionId);
+    const notes = session?.notes || '';
 
     const duration = await this.calculateDurationMinutes(sessionId);
 
@@ -424,6 +429,11 @@ class InterviewLogicService {
 
       const report = JSON.parse(cleanJson);
 
+      // Добавляем заметки в отчет
+      if (notes && notes.trim().length > 0) {
+        report.notes = notes;
+      }
+
       console.log("✅ Report generated successfully");
       return report;
 
@@ -433,8 +443,20 @@ class InterviewLogicService {
     }
   }
 
-  createMockFinalReport() {
-    return {
+  createMockFinalReport(sessionId = null) {
+    // Получаем заметки из сессии, если sessionId передан
+    let notes = '';
+    if (sessionId) {
+      try {
+        const { mockDB } = require('../mockData');
+        const session = mockDB.sessions.find(s => s.id === sessionId);
+        notes = session?.notes || '';
+      } catch (error) {
+        console.warn('⚠️ Could not fetch notes for mock report:', error.message);
+      }
+    }
+
+    const report = {
       overall_assessment: {
         final_score: 8.5,
         level: "Middle+",
@@ -469,6 +491,13 @@ class InterviewLogicService {
       next_steps: ["Назначить техническое интервью с тимлидом", "Предложить оффер"],
       raw_data: { evaluationHistory: [], actionsHistory: [] }
     };
+
+    // Добавляем заметки, если они есть
+    if (notes && notes.trim().length > 0) {
+      report.notes = notes;
+    }
+
+    return report;
   }
 
   async calculateDurationMinutes(sessionId) {

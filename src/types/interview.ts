@@ -217,6 +217,7 @@ export interface FinalReport {
   interview_analytics: InterviewAnalytics
   detailed_feedback: string
   next_steps: string[]
+  notes?: string // Заметки интервьюера
   raw_data: {
     evaluationHistory: Array<{
       topic: string
