@@ -105,7 +105,7 @@ export const InterviewHomePage: React.FC = () => {
           <div className={styles["ihp-interview-title"]}>Отчёты по прошлым интервью</div>
 
           <div className={styles["ihp-interview-date"]}>
-            <span className={styles['ihp-calendar']}>Здесь вы можете просмотреть фидбек по пройденными Вами интервью</span>
+            <span className={styles['ihp-date-text']}>Здесь вы можете просмотреть фидбек по пройденными Вами интервью</span>
           </div>
 
           <Button className={styles["ihp-interview-btn"]} onClick={handleViewResults}>
