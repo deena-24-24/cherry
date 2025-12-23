@@ -148,7 +148,14 @@ class InterviewLogicService {
 
       // 4. ГЕНЕРАЦИЯ ОБЫЧНОГО ОТВЕТА (ЕСЛИ ЛИМИТЫ НЕ ПРЕВЫШЕНЫ)
       const prompt = this.buildTextOnlyPrompt(state, transcript);
-      const llm = getModel({ provider: 'gigachat', model: 'GigaChat-2-Max', streaming: true, temperature: 0.7 });
+      // Передаем sessionId для кэширования контекста в GigaChat
+      const llm = getModel({ 
+        provider: 'gigachat', 
+        model: 'GigaChat-2-Max', 
+        streaming: true, 
+        temperature: 0.7,
+        sessionId: sessionId  // Для кэширования контекста через X-Session-ID
+      });
       const stream = await llm.stream(prompt);
 
       let aiReplyText = "";
@@ -420,7 +427,14 @@ class InterviewLogicService {
     `;
 
     try {
-      const llm = getModel({ provider: 'gigachat', model: 'GigaChat-2-Max', streaming: false, temperature: 0.4 });
+      // Передаем sessionId для кэширования контекста при генерации отчета
+      const llm = getModel({ 
+        provider: 'gigachat', 
+        model: 'GigaChat-2-Max', 
+        streaming: false, 
+        temperature: 0.4,
+        sessionId: sessionId  // Для кэширования контекста через X-Session-ID (GigaChat API)
+      });
 
       const response = await llm.invoke(prompt);
       const responseText = typeof response === 'string' ? response : response.content;
