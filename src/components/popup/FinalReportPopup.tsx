@@ -354,9 +354,9 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
         </div>
 
         {/* Футер */}
-        <div className="bg-gray-900 px-6 py-4 rounded-b-2xl border-t border-gray-700">
+        <div className="frp-footer-wrapper">
           <div className="frp-footer">
-            <Button onClick={onClose}>
+            <Button onClick={onClose} className="frp-footer-btn">
               Завершить просмотр
             </Button>
           </div>
