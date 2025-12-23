@@ -56,17 +56,23 @@
     max-width: 420px;
     text-align: center;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    margin: 10px;
 }
 
 .subscription__popup h3 {
     font-size: 22px;
     margin-bottom: 12px;
+    color: var(--cloud);
 }
 
 .subscription__popup p {
     font-size: 16px;
-    color: #cbd5f5;
+    color: var(--color-background);
     margin-bottom: 24px;
+}
+
+.popup__button {
+    border: solid 1px var(--peach);
 }
 
 

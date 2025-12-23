@@ -27,12 +27,8 @@ export const Footer: React.FC = () => {
               user.role === 'candidate' ? (
                 <div className={styles["section"]}>
                   <div className={styles["sectionTitle"]}>Обучение</div>
-
                   <NavLink to={ROUTES.INTERVIEW_HOME} className={styles["link"]}>
                     ИИ-собеседования
-                  </NavLink>
-                  <NavLink to={ROUTES.RESUME} className={styles["link"]}>
-                    Резюме
                   </NavLink>
                   <NavLink to={ROUTES.AI_CHAT} className={styles["link"]}>
                     AI-Чат
@@ -40,13 +36,13 @@ export const Footer: React.FC = () => {
                   <NavLink to={ROUTES.CHAT} className={styles["link"]}>
                     HR-Чат
                   </NavLink>
+                  <NavLink to={ROUTES.RESUME} className={styles["link"]}>
+                  Профиль
+                  </NavLink>
                 </div>
               ) : (
                 <div className={styles["section"]}>
                   <div className={styles["sectionTitle"]}>Поиск кандидатов</div>
-                  <NavLink to={ROUTES.HR_DASHBOARD} className={styles["link"]}>
-                    Дашборд
-                  </NavLink>
                   <NavLink to={ROUTES.CHAT} className={styles["link"]}>
                     Чаты
                   </NavLink>

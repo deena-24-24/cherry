@@ -11,6 +11,9 @@
 .ihp-container {
     max-width: 1000px;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* HERO */
@@ -74,19 +77,21 @@
 
 /* CARD */
 .ihp-interview-card {
-    width: 240px;
+    width: 90%;
     background: linear-gradient(180deg, white 0%, var(--lavand) 100%);
     border-radius: 14px;
     padding: 22px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    align-items: center;
 }
 
 .ihp-interview-title {
     font-size: 18px;
     font-weight: 700;
     color: var(--color-primary-blue);
+    text-align: center;
 }
 
 .ihp-interview-date {
@@ -95,6 +100,7 @@
     gap: 6px;
     font-size: 13px;
     color: var(--color-primary-blue);
+    text-align: center;
 }
 
 .ihp-calendar {
@@ -139,7 +145,7 @@
 
     .ihp-interview-card {
         width: 100%;
-        max-width: 360px;
+        max-width: 700px;
     }
 }
 

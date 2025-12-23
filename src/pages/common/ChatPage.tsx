@@ -74,7 +74,6 @@ export const ChatPage: React.FC = () => {
           <>
             <header className={styles['chat-header']}>
               <button
-                className={styles['chat-list-toggle']}
                 onClick={() => setIsChatListOpen(true)}
               >
                 ☰

@@ -54,7 +54,7 @@ export const SubscriptionBanner: React.FC = () => {
               Мы уже работаем над системой подписки.
             </p>
 
-            <Button onClick={() => setIsOpen(false)}>
+            <Button className={styles['popup__button']} onClick={() => setIsOpen(false)}>
               Понятно
             </Button>
           </div>
