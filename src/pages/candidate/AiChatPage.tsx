@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { useAiChatStore } from '../../store'
 import { ChatMessage } from '../../components/chatPage/ChatMessage'
 import { MessageInput } from '../../components/chatPage/MessageInput'
@@ -8,10 +8,19 @@ import { Loader } from '../../components/ui/Loader/Loader'
 export const AiChatPage: React.FC = () => {
   const { messages, isLoading, fetchHistory, sendMessage } = useAiChatStore()
   const chatListRef = useRef<HTMLDivElement>(null)
+  const [isPageLoading, setIsPageLoading] = useState(true)
 
   useEffect(() => {
-    fetchHistory().then()
-  }, [])
+    const loadData = async () => {
+      try {
+        await fetchHistory()
+      } finally {
+        setIsPageLoading(false)
+      }
+    }
+
+    loadData()
+  }, [fetchHistory])
 
   useEffect(() => {
     if (chatListRef.current) {
@@ -27,7 +36,7 @@ export const AiChatPage: React.FC = () => {
     await sendMessage(messageText)
   }
 
-  if (isLoading) return <Loader />
+  if (isPageLoading) return <Loader />
   return (
     <div className={styles["page"]}>
       <div className={styles["chat-container"]}>

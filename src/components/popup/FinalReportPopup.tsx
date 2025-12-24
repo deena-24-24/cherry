@@ -193,7 +193,6 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
               </div>
               <div>
                 <h4 className="frp-section-title frp-subtitle-improve">Зоны роста</h4>
-                {/*<ul className=" list-disc list-inside text-gray-300 text-sm">*/}
                 <ul className="frp-list">
                   {overall_assessment.improvements?.map((improvement: string, index: number) => (
                     <li key={index}>{improvement}</li>
@@ -235,7 +234,7 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
                 {technical_skills.weak_areas && technical_skills.weak_areas.length > 0 && (
                   <div>
                     <h4 className="frp-section-title frp-subtitle-weak">Зоны роста</h4>
-                    <div className="frp-section-title">
+                    <div className="frp-badges-row">
                       {technical_skills.weak_areas.map((area: string, index: number) => (
                         <span key={index} className="frp-badge yellow">
                           {area}
