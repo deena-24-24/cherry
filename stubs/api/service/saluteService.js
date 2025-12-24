@@ -19,7 +19,13 @@ class SaluteService {
     }
 
     try {
-      const authKey = process.env.SALUTE_AUTH || process.env.GIGA_AUTH;
+      // ПРИОРИТЕТ: SALUTE_AUTH > REACT_APP_SALUTE_SPEECH_API_KEY > GIGA_AUTH
+      // REACT_APP_SALUTE_SPEECH_API_KEY доступен только на фронтенде, но если он есть в .env на бэкенде,
+      // то можно использовать его напрямую (без префикса REACT_APP_)
+      const authKey = process.env.SALUTE_AUTH || 
+                     process.env.SALUTE_SPEECH_API_KEY || 
+                     process.env.REACT_APP_SALUTE_SPEECH_API_KEY ||
+                     process.env.GIGA_AUTH;
       const scope = process.env.SALUTE_SCOPE || 'SALUTE_SPEECH_PERS';
 
       if (!authKey) {

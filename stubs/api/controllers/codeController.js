@@ -23,7 +23,6 @@ class CodeController {
 
   async executeCode(req, res) {
     const executionId = uuidv4();
-    const startTime = Date.now();
 
     try {
       const { code, language, sessionId, stdin = '', testCases = [] } = req.body;
@@ -267,7 +266,6 @@ except Exception as e:
 
     return {
       success: allPassed,
-      output: this.formatTestResults(results),
       error: allPassed ? '' : 'Некоторые тесты не пройдены',
       executionTime: totalTime,
       testResults: results,
@@ -285,31 +283,6 @@ except Exception as e:
     const actualWithoutError = cleanActual.replace(/^Ошибка:\s*/i, '').replace(/^Error:\s*/i, '');
 
     return actualWithoutError === cleanExpected;
-  }
-
-  formatTestResults(results) {
-    let output = '🧪 Результаты тестов:\n\n';
-
-    results.forEach((test, index) => {
-      output += `Тест ${index + 1} [${test.status || 'OK'}]:\n`;
-      output += `  Вход: ${test.input}\n`;
-      output += `  Ожидалось: ${test.expected}\n`;
-      output += `  Получено: ${test.actual}\n`;
-
-      if (test.error) {
-        output += `  Ошибка: ${test.error}\n`;
-      }
-
-      output += `  Статус: ${test.passed ? '✅ ПРОЙДЕН' : '❌ НЕ ПРОЙДЕН'}\n`;
-      output += `  Время: ${test.executionTime}ms\n\n`;
-    });
-
-    const passed = results.filter(r => r.passed).length;
-    const total = results.length;
-
-    output += `📊 Итого: ${passed}/${total} тестов пройдено`;
-
-    return output;
   }
 
   async cleanupFiles(filepath) {

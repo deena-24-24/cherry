@@ -16,8 +16,22 @@ const synthesize = async (req, res) => {
 
     res.send(audioBuffer);
   } catch (error) {
-    console.error('Controller TTS Error:', error.message);
-    res.status(500).json({ message: 'TTS Error' });
+    // Если ошибка аутентификации или scope, возвращаем 401 - это не критическая ошибка
+    // Фронтенд должен использовать браузерный fallback
+    if (error.message.includes('Failed to auth') || error.message.includes('scope')) {
+      console.warn('⚠️ Salute TTS authentication failed, client should use browser fallback:', error.message);
+      return res.status(401).json({ 
+        message: 'TTS Authentication Error',
+        details: 'Salute API authentication failed. Using browser TTS fallback.',
+        fallback: true
+      });
+    }
+    
+    console.error('❌ Controller TTS Error:', error.message);
+    res.status(500).json({ 
+      message: 'TTS Error',
+      details: error.message 
+    });
   }
 };
 

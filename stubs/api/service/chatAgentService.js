@@ -33,7 +33,12 @@ class ChatAgentService {
 
       // 1. Получаем модель
       // Убедитесь, что GIGA_AUTH корректен в .env
-      const llm = getModel({ provider: 'gigachat', streaming: false });
+      // Используем общий sessionId для агента (можно улучшить, передавая sessionId извне)
+      const llm = getModel({ 
+        provider: 'gigachat', 
+        streaming: false,
+        sessionId: 'chat_agent_global'  // Глобальный sessionId для агента
+      });
 
       // 2. Биндим инструменты
       // Проверка на наличие метода bindTools (для совместимости версий)

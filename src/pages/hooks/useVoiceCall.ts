@@ -48,6 +48,7 @@ export const useVoiceCall = (
   useEffect(() => {
     // Когда аудио-сервис говорит "я всё", мы снимаем флаг говорения
     saluteFrontendService.setAudioEndListener(() => {
+      console.log('🔊 Audio playback ended, unlocking microphone')
       setIsAISpeaking(false)
     })
 
@@ -56,71 +57,6 @@ export const useVoiceCall = (
       saluteFrontendService.setAudioEndListener(() => {})
     }
   }, [])
-
-  useEffect(() => {
-    if (!sessionId || !position) return
-
-    const initSocket = async () => {
-      try {
-        if (socketService.getConnectionState() === 'disconnected') {
-          await interviewService.startInterview(sessionId, position)
-        }
-
-        // Обработка обычных полных сообщений
-        socketService.onMessage(async (data) => {
-          setIsAIThinking(false)
-          setAiResponse(data.text)
-          setIsAISpeaking(true) // Блокируем микрофон
-          await saluteFrontendService.playAudioFromText(data.text)
-        })
-
-        // --- STREAMING HANDLERS ---
-
-        socketService.onStreamStart(() => {
-          setIsAIThinking(false) // Больше не думает
-          setIsAISpeaking(true)  // Теперь говорит (блокируем микрофон)
-          setAiResponse("")
-        })
-
-        socketService.onStreamChunk((textChunk) => {
-          setAiResponse(prev => prev + textChunk)
-          saluteFrontendService.playAudioFromText(textChunk)
-        })
-
-        socketService.onStreamEnd(() => {
-          // Стрим закончился, но мы НЕ разблокируем микрофон здесь.
-          // Мы ждем, пока saluteFrontendService.onPlaybackEnded вызовет setIsAISpeaking(false)
-          // Это произойдет, когда доиграет последний кусочек из очереди.
-        })
-      } catch (error) {
-        setError(`Ошибка подключения к серверу: ${error}`)
-      }
-    }
-
-    initSocket()
-
-    return () => {
-      interviewService.cleanup()
-      saluteFrontendService.stopAudio()
-      stopAudioCapture()
-    }
-  }, [sessionId, position])
-
-  const stopAudioCapture = () => {
-    if (scriptProcessorRef.current) {
-      scriptProcessorRef.current.disconnect(); scriptProcessorRef.current = null
-    }
-    if (sourceRef.current) {
-      sourceRef.current.disconnect(); sourceRef.current = null
-    }
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop()); mediaStreamRef.current = null
-    }
-    if (audioContextRef.current) {
-      audioContextRef.current.close(); audioContextRef.current = null
-    }
-  }
-
   const startRecording = useCallback(async () => {
     // Строгая блокировка
     if (isMicrophoneBlocked) {
@@ -189,6 +125,99 @@ export const useVoiceCall = (
       setError('Ошибка распознавания речи')
     }
   }, [isRecording, sessionId, position])
+
+  // Автоматическое включение микрофона после завершения речи ИИ
+  useEffect(() => {
+    // Если ИИ закончил говорить и думать, и микрофон не записывает, включаем его автоматически
+    if (
+      !isAISpeaking && 
+      !isAIThinking && 
+      !isRecording && 
+      sessionId && 
+      position &&
+      socketService.getConnectionState() === 'connected'
+    ) {
+      // Небольшая задержка, чтобы дать время системе обработать завершение аудио
+      const autoStartTimeout = setTimeout(() => {
+        // Проверяем еще раз перед включением
+        if (
+          !isAISpeaking && 
+          !isAIThinking && 
+          !isRecording && 
+          socketService.getConnectionState() === 'connected'
+        ) {
+          console.log('🎤 Auto-starting microphone after AI finished speaking')
+          startRecording()
+        }
+      }, 500) // 500ms задержка
+
+      return () => clearTimeout(autoStartTimeout)
+    }
+  }, [isAISpeaking, isAIThinking, isRecording, sessionId, position, startRecording])
+
+  useEffect(() => {
+    if (!sessionId || !position) return
+
+    const initSocket = async () => {
+      try {
+        if (socketService.getConnectionState() === 'disconnected') {
+          await interviewService.startInterview(sessionId, position)
+        }
+
+        // Обработка обычных полных сообщений
+        socketService.onMessage(async (data) => {
+          setIsAIThinking(false)
+          setAiResponse(data.text)
+          setIsAISpeaking(true) // Блокируем микрофон
+          await saluteFrontendService.playAudioFromText(data.text)
+        })
+
+        // --- STREAMING HANDLERS ---
+
+        socketService.onStreamStart(() => {
+          setIsAIThinking(false) // Больше не думает
+          setIsAISpeaking(true)  // Теперь говорит (блокируем микрофон)
+          setAiResponse("")
+        })
+
+        socketService.onStreamChunk((textChunk) => {
+          setAiResponse(prev => prev + textChunk)
+          saluteFrontendService.playAudioFromText(textChunk)
+        })
+
+        socketService.onStreamEnd(() => {
+          // Стрим закончился, но мы НЕ разблокируем микрофон здесь.
+          // Мы ждем, пока saluteFrontendService.onPlaybackEnded вызовет setIsAISpeaking(false)
+          // Это произойдет, когда доиграет последний кусочек из очереди.
+        })
+      } catch (error) {
+        setError(`Ошибка подключения к серверу: ${error}`)
+      }
+    }
+
+    initSocket()
+
+    return () => {
+      interviewService.cleanup()
+      saluteFrontendService.stopAudio()
+      stopAudioCapture()
+    }
+  }, [sessionId, position])
+
+  const stopAudioCapture = () => {
+    if (scriptProcessorRef.current) {
+      scriptProcessorRef.current.disconnect(); scriptProcessorRef.current = null
+    }
+    if (sourceRef.current) {
+      sourceRef.current.disconnect(); sourceRef.current = null
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop()); mediaStreamRef.current = null
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close(); audioContextRef.current = null
+    }
+  }
 
   const toggleRecording = useCallback(() => {
     if (!isRecording && isMicrophoneBlocked) return
