@@ -168,7 +168,7 @@ export const InterviewResultsPage: React.FC = () => {
                 <Button
                   className="mt-3"
                   onClick={() => handleOpenReport(latestSession.id)}
-                  styleProps={{ textColor: '#fffcf5'}}
+                  styleProps={{ textColor: '#fffcf5' }}
                 >
                   Посмотреть финальный отчет
                 </Button>

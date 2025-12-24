@@ -148,7 +148,14 @@ class InterviewLogicService {
 
       // 4. ГЕНЕРАЦИЯ ОБЫЧНОГО ОТВЕТА (ЕСЛИ ЛИМИТЫ НЕ ПРЕВЫШЕНЫ)
       const prompt = this.buildTextOnlyPrompt(state, transcript);
-      const llm = getModel({ provider: 'gigachat', model: 'GigaChat-2-Max', streaming: true, temperature: 0.7 });
+      // Передаем sessionId для кэширования контекста в GigaChat
+      const llm = getModel({ 
+        provider: 'gigachat', 
+        model: 'GigaChat-2-Max', 
+        streaming: true, 
+        temperature: 0.7,
+        sessionId: sessionId  // Для кэширования контекста через X-Session-ID
+      });
       const stream = await llm.stream(prompt);
 
       let aiReplyText = "";
@@ -199,9 +206,113 @@ class InterviewLogicService {
 
     } catch (error) {
       console.error('Streaming Error:', error);
-      const fallback = "Извините, произошла техническая заминка. Повторите, пожалуйста, ваш ответ.";
-      if (onChunk) onChunk(fallback);
-      return { text: fallback };
+      
+      // Проверяем, является ли это ошибкой оплаты GigaChat (402 Payment Required)
+      const isPaymentError = error?.response?.status === 402 || 
+                            error?.message?.includes('402') || 
+                            error?.message?.includes('Payment Required');
+      
+      if (isPaymentError) {
+        console.warn('⚠️ GigaChat Payment Required (402). Attempting fallback to alternative provider...');
+        
+        // Пытаемся использовать fallback провайдер (DeepSeek или Ollama)
+        try {
+          const fallbackProvider = process.env.GITHUB_TOKEN ? 'deepseek' : 'ollama';
+          console.log(`🔄 Trying fallback provider: ${fallbackProvider}`);
+          
+          const prompt = this.buildTextOnlyPrompt(state, transcript);
+          const fallbackLlm = getModel({ 
+            provider: fallbackProvider, 
+            streaming: true, 
+            temperature: 0.7
+          });
+          
+          const stream = await fallbackLlm.stream(prompt);
+          let aiReplyText = "";
+
+          for await (const chunk of stream) {
+            const content = chunk.content;
+            if (content) {
+              aiReplyText += content;
+              if (onChunk) onChunk(content);
+            }
+          }
+
+          state.conversationHistory.push({
+            role: 'assistant',
+            content: aiReplyText,
+            timestamp: new Date()
+          });
+
+          this.backgroundAnalysis(state, transcript, aiReplyText, sessionId);
+          await stateService.updateSession(sessionId, state);
+
+          console.log(`✅ Successfully used fallback provider: ${fallbackProvider}`);
+          return {
+            text: aiReplyText,
+            isStreamed: true,
+            metadata: {
+              isInterviewComplete: false,
+              usedFallback: true,
+              fallbackProvider: fallbackProvider
+            }
+          };
+        } catch (fallbackError) {
+          console.error('❌ Fallback provider also failed:', fallbackError);
+          // Если fallback тоже не работает - завершаем интервью с отчетом
+          console.warn('⚠️ All LLM providers failed. Completing interview with error report.');
+          
+          const errorMessage = "Извините, произошла техническая ошибка с системой ИИ. Интервью завершено. Сейчас будет подготовлен финальный отчет на основе имеющихся данных.";
+          if (onChunk) onChunk(errorMessage);
+          
+          state.conversationHistory.push({
+            role: 'assistant',
+            content: errorMessage,
+            timestamp: new Date()
+          });
+          await stateService.updateSession(sessionId, state);
+          
+          // Генерируем финальный отчет с указанием причины
+          const finalReport = await this.generateComprehensiveReport(sessionId, 'Ошибка LLM');
+          
+          return {
+            text: errorMessage,
+            metadata: {
+              isInterviewComplete: true,
+              completionReason: 'Ошибка LLM (все провайдеры недоступны)',
+              wasAutomatic: true,
+              finalReport: finalReport
+            }
+          };
+        }
+      }
+      
+      // Для других ошибок LLM - также завершаем интервью
+      console.error('❌ LLM Error (non-payment):', error.message || error);
+      console.warn('⚠️ LLM error occurred. Completing interview with error report.');
+      
+      const errorMessage = "Извините, произошла техническая ошибка с системой ИИ. Интервью завершено. Сейчас будет подготовлен финальный отчет на основе имеющихся данных.";
+      if (onChunk) onChunk(errorMessage);
+      
+      state.conversationHistory.push({
+        role: 'assistant',
+        content: errorMessage,
+        timestamp: new Date()
+      });
+      await stateService.updateSession(sessionId, state);
+      
+      // Генерируем финальный отчет с указанием причины
+      const finalReport = await this.generateComprehensiveReport(sessionId, 'Ошибка LLM');
+      
+      return {
+        text: errorMessage,
+        metadata: {
+          isInterviewComplete: true,
+          completionReason: `Ошибка LLM: ${error.message || 'Неизвестная ошибка'}`,
+          wasAutomatic: true,
+          finalReport: finalReport
+        }
+      };
     }
   }
 
@@ -337,38 +448,104 @@ class InterviewLogicService {
     };
   }
 
-  async generateComprehensiveReport(sessionId) {
+  async generateComprehensiveReport(sessionId, errorReason = null) {
     console.log(`📊 Generating REAL report for session ${sessionId}...`);
+    if (errorReason) {
+      console.warn(`⚠️ Report generation reason: ${errorReason}`);
+    }
 
     // 1. Получаем историю сообщений
     const state = await stateService.getSession(sessionId);
     if (!state || !state.conversationHistory || state.conversationHistory.length === 0) {
       console.warn("⚠️ No history found, returning mock report");
-      return this.createMockFinalReport();
+      return await this.createMockFinalReport(sessionId, errorReason);
     }
 
+    // Получаем заметки из сессии
+    const { mockDB } = require('../mockData');
+    const session = mockDB.sessions.find(s => s.id === sessionId);
+    const notes = session?.notes || '';
+    const codeTaskResults = session?.codeTaskResults || [];
+
     const duration = await this.calculateDurationMinutes(sessionId);
+    const totalExchanges = state.conversationHistory.filter(m => m.role === 'user').length;
+    const topicsCovered = Array.from(state.topicProgress || []).length;
+    const hasCodeTask = state.hasCodeTask || false;
+    const codeTaskPassed = codeTaskResults.length > 0 && codeTaskResults.some(r => r.allTestsPassed);
+    const codeTaskScore = codeTaskResults.length > 0 ? codeTaskResults[codeTaskResults.length - 1].score : null;
 
     // 2. Формируем контекст диалога для LLM
     const conversationText = state.conversationHistory
       .map(m => `${m.role === 'user' ? 'Кандидат' : 'Интервьюер (AI)'}: ${m.content}`)
       .join('\n');
 
+    // Определяем качество интервью для контекста оценки
+    const isShortInterview = totalExchanges < 3 || duration < 2;
+    const isInsufficientData = totalExchanges < 2 || conversationText.length < 100;
+
     const prompt = `
       Ты - старший технический интервьюер (Senior Technical Interviewer). 
       Твоя задача - проанализировать проведенное собеседование и составить финальный отчет в формате JSON.
       
-      ПОЗИЦИЯ: ${state.position}
-      ПРОДОЛЖИТЕЛЬНОСТЬ: ${duration} мин
+      КОНТЕКСТ ИНТЕРВЬЮ:
+      - ПОЗИЦИЯ: ${state.position}
+      - ПРОДОЛЖИТЕЛЬНОСТЬ: ${duration} мин
+      - КОЛИЧЕСТВО ОБМЕНОВ (вопрос-ответ): ${totalExchanges}
+      - ТЕМ ПОКРЫТО: ${topicsCovered}
+      - ПРАКТИЧЕСКОЕ ЗАДАНИЕ: ${hasCodeTask ? 'Да' : 'Нет'}
+      ${hasCodeTask && codeTaskResults.length > 0 ? `- РЕЗУЛЬТАТ ПРАКТИКИ: ${codeTaskPassed ? 'Пройдено успешно' : 'Не пройдено или частично'}, балл: ${codeTaskScore !== null ? codeTaskScore : 'не указан'}` : ''}
+      
+      ${isShortInterview ? '⚠️ ВНИМАНИЕ: Интервью было очень коротким. Оценка должна быть консервативной и учитывать недостаток данных.' : ''}
+      ${isInsufficientData ? '⚠️ ВНИМАНИЕ: Недостаточно данных для полноценной оценки. Confidence должен быть низким (0.3-0.5), а final_score должен отражать ограниченность данных.' : ''}
       
       ИСТОРИЯ ДИАЛОГА:
       ${conversationText}
       
-      ТРЕБОВАНИЯ К ОТЧЕТУ:
-      1. Оцени кандидата строго, но справедливо.
-      2. Выдели реальные сильные и слабые стороны на основе ответов.
-      3. Определи уровень (Junior, Middle, Senior).
-      4. Дай рекомендацию (hire, no_hire, etc).
+      ${notes ? `ЗАМЕТКИ КАНДИДАТА:
+      ${notes}` : ''}
+      
+      ${errorReason ? `⚠️ ВАЖНО: Интервью было прервано из-за технической ошибки: ${errorReason}. Оценка должна быть консервативной, так как данных недостаточно. В detailed_feedback обязательно укажи, что интервью было прервано из-за технической ошибки и рекомендуется повторное собеседование.` : ''}
+      
+      ТРЕБОВАНИЯ К ОЦЕНКЕ:
+      1. **Строгость оценки:**
+         ${isShortInterview ? '- Интервью было прервано рано - оценка должна быть НИЗКОЙ (3-5/10) с низкой уверенностью (0.3-0.5)' : ''}
+         ${isInsufficientData ? '- Недостаточно данных - оценка должна быть НИЗКОЙ (2-4/10) с очень низкой уверенностью (0.2-0.4)' : ''}
+         - Если было менее 3 обменов: final_score НЕ БОЛЕЕ 5/10, confidence НЕ БОЛЕЕ 0.5
+         - Если было менее 2 обменов: final_score НЕ БОЛЕЕ 3/10, confidence НЕ БОЛЕЕ 0.3
+         - Если интервью длилось менее 2 минут: final_score НЕ БОЛЕЕ 4/10
+      
+      2. **Учет практического задания:**
+         ${hasCodeTask ? 
+           (codeTaskResults.length > 0 ? 
+             (codeTaskPassed ? 
+               '- Практическое задание ВЫПОЛНЕНО УСПЕШНО - это СИЛЬНЫЙ ПЛЮС к оценке (+1-2 балла к final_score)' :
+               '- Практическое задание НЕ ВЫПОЛНЕНО или выполнено плохо - это МИНУС к оценке (-1-2 балла от final_score)'
+             ) :
+             '- Практическое задание было предложено, но результат не получен - не учитывать в оценке'
+           ) :
+           '- Практического задания НЕ было - это нормально, но не добавляет баллов'
+         }
+      
+      3. **КРИТИЧНОСТЬ к заявлениям кандидата:**
+         - НЕ ДОБАВЛЯЙ в "strengths" (сильные стороны) технологии/навыки, которые НЕ БЫЛИ ПРОВЕРЕНЫ
+         - Если кандидат только УПОМЯНУЛ технологию (например, "я делал на Python"), но не ответил на вопросы по ней - это НЕ сильная сторона
+         - Сильные стороны должны быть ТОЛЬКО из проверенных знаний (есть вопросы и ответы по теме)
+         - Если интервью короткое (менее 3 обменов) - НЕ добавляй технические навыки в сильные стороны, только общие качества (коммуникация, если видна)
+         - Если кандидат только заявил о навыке без проверки - добавь его в "improvements" или "potential_areas", но НЕ в "strengths"
+         - Будь КРИТИЧНЫМ: заявление ≠ знание. Нужна проверка.
+      
+      4. **Качество оценки:**
+         - Оценивай ТОЛЬКО на основе реальных ответов кандидата
+         - Если данных мало - будь консервативным (низкая оценка, низкая уверенность)
+         - Если данных достаточно (3+ обменов, 2+ минут) - оценивай по содержанию
+         - Если данных много (5+ обменов, 5+ минут) - оценивай полно и справедливо
+         - НЕ завышай оценку из-за упоминаний технологий без проверки
+      
+      5. **Рекомендация:**
+         - При final_score < 4: recommendation = "no_hire"
+         - При final_score 4-6: recommendation = "maybe_hire" или "no_hire"
+         - При final_score 7-8: recommendation = "hire" или "maybe_hire"
+         - При final_score 9-10: recommendation = "strong_hire" или "hire"
       
       ФОРМАТ ОТВЕТА (JSON):
       Ты ДОЛЖЕН вернуть ТОЛЬКО валидный JSON без Markdown разметки. Структура:
@@ -415,7 +592,14 @@ class InterviewLogicService {
     `;
 
     try {
-      const llm = getModel({ provider: 'gigachat', model: 'GigaChat-2-Max', streaming: false, temperature: 0.4 });
+      // Передаем sessionId для кэширования контекста при генерации отчета
+      const llm = getModel({ 
+        provider: 'gigachat', 
+        model: 'GigaChat-2-Max', 
+        streaming: false, 
+        temperature: 0.4,
+        sessionId: sessionId  // Для кэширования контекста через X-Session-ID (GigaChat API)
+      });
 
       const response = await llm.invoke(prompt);
       const responseText = typeof response === 'string' ? response : response.content;
@@ -424,30 +608,130 @@ class InterviewLogicService {
 
       const report = JSON.parse(cleanJson);
 
+      // Добавляем заметки в отчет
+      if (notes && notes.trim().length > 0) {
+        report.notes = notes;
+      }
+
       console.log("✅ Report generated successfully");
       return report;
 
     } catch (error) {
       console.error("❌ Error generating report with LLM:", error);
-      return this.createMockFinalReport();
+      
+      // Проверяем, является ли это ошибкой оплаты GigaChat (402 Payment Required)
+      const isPaymentError = error?.response?.status === 402 || 
+                            error?.message?.includes('402') || 
+                            error?.message?.includes('Payment Required');
+      
+      if (isPaymentError) {
+        console.warn('⚠️ GigaChat Payment Required (402) during report generation. Using mock report.');
+      }
+      
+      // В любом случае возвращаем mock отчет при ошибке
+      return await this.createMockFinalReport(sessionId, errorReason);
     }
   }
 
-  createMockFinalReport() {
-    return {
+  async createMockFinalReport(sessionId = null, errorReason = null) {
+    // Получаем заметки и данные сессии, если sessionId передан
+    let notes = '';
+    let totalExchanges = 0;
+    let duration = 0;
+    let hasCodeTask = false;
+    let codeTaskPassed = false;
+    
+    if (sessionId) {
+      try {
+        const { mockDB } = require('../mockData');
+        const session = mockDB.sessions.find(s => s.id === sessionId);
+        notes = session?.notes || '';
+        
+        // Получаем состояние для расчета метрик
+        const state = await stateService.getSession(sessionId);
+        if (state) {
+          totalExchanges = state.conversationHistory?.filter(m => m.role === 'user').length || 0;
+          hasCodeTask = state.hasCodeTask || false;
+          if (state.sessionStart) {
+            duration = Math.round((new Date() - new Date(state.sessionStart)) / 1000 / 60);
+          }
+        }
+        
+        // Проверяем результаты практического задания
+        if (session?.codeTaskResults && session.codeTaskResults.length > 0) {
+          codeTaskPassed = session.codeTaskResults.some(r => r.allTestsPassed);
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not fetch session data for mock report:', error.message);
+      }
+    }
+
+    // Рассчитываем оценку на основе метрик
+    let baseScore;
+    let confidence;
+    
+    // Учет количества обменов
+    if (totalExchanges >= 5) {
+      baseScore = 7.5;
+      confidence = 0.8;
+    } else if (totalExchanges >= 3) {
+      baseScore = 6.0;
+      confidence = 0.6;
+    } else if (totalExchanges >= 2) {
+      baseScore = 4.0;
+      confidence = 0.4;
+    } else if (totalExchanges >= 1) {
+      baseScore = 3.0;
+      confidence = 0.3;
+    } else {
+      baseScore = 2.0;
+      confidence = 0.2;
+    }
+    
+    // Учет длительности
+    if (duration < 2) {
+      baseScore = Math.min(baseScore, 4.0);
+      confidence = Math.min(confidence, 0.4);
+    }
+    
+    // Учет практического задания
+    if (hasCodeTask && codeTaskPassed) {
+      baseScore = Math.min(10, baseScore + 1.5);
+      confidence = Math.min(1.0, confidence + 0.1);
+    } else if (hasCodeTask && !codeTaskPassed) {
+      baseScore = Math.max(1, baseScore - 1.5);
+      confidence = Math.max(0.1, confidence - 0.1);
+    }
+    
+    // Определяем рекомендацию
+    let recommendation = "no_hire";
+    if (baseScore >= 8) recommendation = "strong_hire";
+    else if (baseScore >= 7) recommendation = "hire";
+    else if (baseScore >= 5) recommendation = "maybe_hire";
+    
+    // Определяем уровень
+    let level = "Junior";
+    if (baseScore >= 8) level = "Senior";
+    else if (baseScore >= 6) level = "Middle";
+    
+    const report = {
       overall_assessment: {
-        final_score: 8.5,
-        level: "Middle+",
-        recommendation: "hire",
-        confidence: 0.9,
-        strengths: ["React Hooks", "CSS Grid", "Communication"],
-        improvements: ["WebSockets deep dive", "Docker optimization"],
+        final_score: Math.round(baseScore * 10) / 10,
+        level: level,
+        recommendation: recommendation,
+        confidence: Math.round(confidence * 10) / 10,
+        strengths: totalExchanges >= 3 && duration >= 2 
+          ? (codeTaskPassed ? ["Базовые знания", "Практические навыки"] : ["Базовые знания", "Готовность к обучению"])
+          : (totalExchanges > 0 ? ["Готовность к общению"] : ["Недостаточно данных для оценки"]),
+        improvements: totalExchanges >= 3 
+          ? (hasCodeTask && !codeTaskPassed ? ["Практические навыки программирования", "Углубить знания"] : ["Нужно больше практики", "Углубить знания"])
+          : ["Необходимо пройти полноценное собеседование", "Проверить технические навыки на практике"],
         potential_areas: []
       },
       technical_skills: {
-        topics_covered: ["Frontend Core", "React", "State Management"],
-        strong_areas: ["UI Development"],
-        weak_areas: ["DevOps basics"],
+        topics_covered: totalExchanges >= 3 ? ["Frontend Core", "React", "State Management"] : ["Недостаточно данных"],
+        strong_areas: totalExchanges >= 3 && duration >= 2 ? (codeTaskPassed ? ["UI Development", "Практические навыки"] : ["UI Development"]) : [],
+        weak_areas: totalExchanges >= 3 ? ["DevOps basics"] : ["Недостаточно данных для оценки"],
         technical_depth: 8,
         recommendations: ["Поглубже изучить CI/CD"]
       },
@@ -458,17 +742,32 @@ class InterviewLogicService {
         adaptability: { score: 8, feedback: "Адекватно реагирует на сложные вопросы." }
       },
       interview_analytics: {
-        total_duration: "20 мин",
-        total_questions: 5,
-        topics_covered_count: 4,
-        average_response_quality: 8,
-        topic_progression: ["Intro", "JS", "React", "Outro"],
-        action_pattern: { total_actions: 5, action_breakdown: {}, most_common_action: "question", completion_rate: "completed" }
+        total_duration: `${duration} мин`,
+        total_questions: totalExchanges,
+        topics_covered_count: totalExchanges > 0 ? 1 : 0,
+        average_response_quality: Math.round(baseScore / 10 * 5) + 3,
+        topic_progression: totalExchanges > 0 ? ["Intro"] : [],
+        action_pattern: { total_actions: totalExchanges, action_breakdown: {}, most_common_action: "question", completion_rate: "completed" }
       },
-      detailed_feedback: "Собеседование прошло успешно. Кандидат продемонстрировал глубокие знания в основной специализации.",
-      next_steps: ["Назначить техническое интервью с тимлидом", "Предложить оффер"],
+      detailed_feedback: errorReason 
+        ? `Интервью было прервано из-за технической ошибки: ${errorReason}. Оценка составлена на основе имеющихся данных (${totalExchanges} обменов, ${duration} минут). Из-за ограниченности данных оценка может быть неточной. Рекомендуется провести повторное собеседование.`
+        : totalExchanges < 3 
+          ? `Это предварительный отчет. Оценка основана на ограниченных данных (${totalExchanges} обменов, ${duration} минут). Рекомендуется провести более полное собеседование для точной оценки.`
+          : `Оценка основана на ${totalExchanges} обменах за ${duration} минут.`,
+      next_steps: errorReason 
+        ? ["Провести повторное собеседование после устранения технических проблем", "Оценить кандидата на основе имеющихся данных"]
+        : totalExchanges < 3 
+          ? ["Продолжить собеседование для более полной оценки", "Проверить технические навыки на практике"]
+          : ["Продолжить развитие в указанных направлениях"],
       raw_data: { evaluationHistory: [], actionsHistory: [] }
     };
+
+    // Добавляем заметки, если они есть
+    if (notes && notes.trim().length > 0) {
+      report.notes = notes;
+    }
+
+    return report;
   }
 
   async calculateDurationMinutes(sessionId) {

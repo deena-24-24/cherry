@@ -69,9 +69,19 @@
   opacity: 0.8;
 }
 
+@media (max-width: 850px) {
+  .inner {
+    width: 80%;
+  }
+  /* Скрываем "Обучение" полностью */
+  .sections > .section:first-child {
+    display: none;
+  }
+}
 
 @media (max-width: 600px) {
   .inner {
+    width: 90%;
     flex-direction: column;         /* ⬅ Лого сверху, секции под ним */
     align-items: center;
   }
@@ -79,11 +89,6 @@
   .sections {
     flex-direction: column;         /* ⬅ Секции одна под другой */
     gap: 30px;
-  }
-
-  /* Скрываем "Обучение" полностью */
-  .sections > .section:first-child {
-    display: none;
   }
 }
 

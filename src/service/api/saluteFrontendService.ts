@@ -69,9 +69,25 @@ export class SaluteFrontendService {
         body: JSON.stringify({ text })
       })
 
-      if (!response.ok) throw new Error('TTS Failed')
+      if (!response.ok) {
+        // Для 401 (ошибка аутентификации) это нормально - используем fallback
+        // Для других ошибок тоже используем fallback, но логируем
+        if (response.status === 401) {
+          // Не логируем как ошибку - это ожидаемое поведение при отсутствии правильного токена
+          return this.playBrowserFallback(text)
+        }
+        
+        const errorText = await response.text().catch(() => 'Unknown error')
+        console.warn(`⚠️ Salute TTS failed (${response.status}), using browser fallback:`, errorText.substring(0, 100))
+        return this.playBrowserFallback(text)
+      }
 
       const blob = await response.blob()
+      if (blob.size === 0) {
+        console.warn('⚠️ Salute returned empty audio, using browser fallback')
+        return this.playBrowserFallback(text)
+      }
+
       const audioUrl = URL.createObjectURL(blob)
 
       return new Promise((resolve) => {
@@ -83,18 +99,22 @@ export class SaluteFrontendService {
           resolve() // Разрешаем промис, чтобы processQueue пошел дальше
         }
 
-        this.currentAudio.onerror = () => {
-          console.warn("Audio error")
-          resolve() // Даже при ошибке разрешаем, чтобы не зависнуть
+        this.currentAudio.onerror = (e) => {
+          console.warn("⚠️ Audio playback error, falling back to browser TTS", e)
+          URL.revokeObjectURL(audioUrl)
+          this.currentAudio = null
+          this.playBrowserFallback(text).then(() => resolve())
         }
 
         this.currentAudio.play().catch(e => {
-          console.warn("Autoplay blocked", e)
-          resolve()
+          console.warn("⚠️ Autoplay blocked, falling back to browser TTS", e)
+          URL.revokeObjectURL(audioUrl)
+          this.currentAudio = null
+          this.playBrowserFallback(text).then(() => resolve())
         })
       })
     } catch (error) {
-      console.error(error)
+      console.warn('⚠️ Salute TTS error, using browser fallback:', error instanceof Error ? error.message : 'Unknown error')
       return this.playBrowserFallback(text)
     }
   }
@@ -102,14 +122,51 @@ export class SaluteFrontendService {
   private playBrowserFallback(text: string): Promise<void> {
     return new Promise((resolve) => {
       if (!('speechSynthesis' in window)) {
+        console.warn('⚠️ Browser TTS not available')
         resolve()
         return
       }
+      
+      // Останавливаем предыдущее воспроизведение, если есть
+      window.speechSynthesis.cancel()
+      
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.lang = 'ru-RU'
-      utterance.onend = () => resolve()
-      utterance.onerror = () => resolve()
-      window.speechSynthesis.speak(utterance)
+      utterance.rate = 1.0
+      utterance.pitch = 1.0
+      utterance.volume = 1.0
+      
+      utterance.onend = () => {
+        // Вызываем callback завершения воспроизведения, если очередь пуста
+        if (this.onPlaybackEnded && this.audioQueue.length === 0) {
+          setTimeout(() => {
+            if (this.audioQueue.length === 0 && !this.isPlaying) {
+              this.onPlaybackEnded()
+            }
+          }, 100)
+        }
+        resolve()
+      }
+      
+      utterance.onerror = (e) => {
+        console.warn('⚠️ Browser TTS error:', e)
+        // Даже при ошибке вызываем callback, если очередь пуста
+        if (this.onPlaybackEnded && this.audioQueue.length === 0) {
+          setTimeout(() => {
+            if (this.audioQueue.length === 0 && !this.isPlaying) {
+              this.onPlaybackEnded()
+            }
+          }, 100)
+        }
+        resolve()
+      }
+      
+      try {
+        window.speechSynthesis.speak(utterance)
+      } catch (e) {
+        console.warn('⚠️ Failed to start browser TTS:', e)
+        resolve()
+      }
     })
   }
 
@@ -133,7 +190,10 @@ export class SaluteFrontendService {
 
   async recognizeAudio(audioBlob: Blob): Promise<string> {
     const { token } = useAuthStore.getState()
-    if (!token) throw new Error('No token')
+    if (!token) {
+      console.warn('⚠️ No auth token for STT, returning empty string')
+      return ''
+    }
 
     try {
       const response = await fetch(`${API_URL}/api/salute/recognize`, {
@@ -144,12 +204,18 @@ export class SaluteFrontendService {
         },
         body: audioBlob
       })
-      if (!response.ok) throw new Error('STT Failed')
+      
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error')
+        console.warn(`⚠️ Salute STT failed (${response.status}):`, errorText.substring(0, 100))
+        return '' // Возвращаем пустую строку вместо ошибки
+      }
+      
       const data = await response.json()
       return data.text || ''
     } catch (error) {
-      console.error('Salute STT Error:', error)
-      return ''
+      console.warn('⚠️ Salute STT error:', error instanceof Error ? error.message : 'Unknown error')
+      return '' // Возвращаем пустую строку, чтобы не прерывать поток
     }
   }
 

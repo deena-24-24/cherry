@@ -1,11 +1,7 @@
 // src/service/interview/interviewService.ts
 import { socketService } from '../realtime/socketService'
 import { API_URL } from '../../config'
-import {
-  AIResponse,
-  SocketInterviewCompleted,
-  InterviewSession
-} from '../../types'
+import { AIResponse, InterviewSession, SocketInterviewCompleted } from '../../types'
 
 export interface ConversationMessage {
   role: 'assistant' | 'user'
@@ -120,21 +116,43 @@ export class InterviewService {
     }
   }
 
-  async saveNotes(notes: string): Promise<{ success: boolean }> {
-    if (!this.currentSessionId) return { success: false }
+  async saveNotes(notes: string, sessionId?: string): Promise<{ success: boolean }> {
+    const targetSessionId = sessionId || this.currentSessionId
+    if (!targetSessionId) {
+      console.warn('⚠️ Cannot save notes: no session ID available', { 
+        providedSessionId: sessionId, 
+        currentSessionId: this.currentSessionId 
+      })
+      return { success: false }
+    }
+    
     try {
-      const response = await fetch(`${API_URL}/api/interview/sessions/${this.currentSessionId}/notes`, {
+      // Аутентификация не требуется, так как сохранение происходит в рамках активной сессии
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+
+      // Опционально добавляем токен, если он есть (для совместимости)
+      const token = localStorage.getItem('token')
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch(`${API_URL}/api/interview/sessions/${targetSessionId}/notes`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
+        headers,
         body: JSON.stringify({ notes }),
       })
-      if (!response.ok) throw new Error('Failed to save notes')
+      
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error')
+        console.warn(`⚠️ Failed to save notes (${response.status}):`, errorText.substring(0, 100))
+        return { success: false }
+      }
+
       return await response.json()
     } catch (error) {
-      console.error('Error saving notes:', error)
+      console.warn('⚠️ Error saving notes:', error instanceof Error ? error.message : 'Unknown error')
       return { success: false }
     }
   }
