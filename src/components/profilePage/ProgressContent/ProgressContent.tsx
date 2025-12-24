@@ -22,6 +22,20 @@ export const ProgressContent: React.FC = () => {
         ])
         setResumes(resumesData)
         setSessions(sessionsData)
+        
+        // Отладочная информация
+        console.log('📊 ProgressContent: Загружено резюме:', resumesData.length)
+        console.log('📊 ProgressContent: Загружено сессий:', sessionsData.length)
+        console.log('📊 ProgressContent: Сессии с finalReport:', 
+          sessionsData.filter(s => s.finalReport?.overall_assessment?.final_score).length
+        )
+        sessionsData.forEach(s => {
+          console.log(`  - ${s.title} (${s.position}):`, {
+            hasFinalReport: !!s.finalReport,
+            hasScore: typeof s.finalReport?.overall_assessment?.final_score === 'number',
+            score: s.finalReport?.overall_assessment?.final_score
+          })
+        })
       } catch (error) {
         console.error("Error loading progress data:", error)
       } finally {
@@ -42,32 +56,103 @@ export const ProgressContent: React.FC = () => {
     )
   }
 
+  // Если есть сессии, но нет резюме - показываем все сессии
+  const allSessionsWithScore = sessions.filter(s =>
+    typeof s.finalReport?.overall_assessment?.final_score === 'number'
+  )
+
+  // Если нет резюме, но есть сессии с оценками - показываем их
+  if (resumes.length === 0 && allSessionsWithScore.length > 0) {
+    const totalInterviews = allSessionsWithScore.length
+    const successfulInterviews = allSessionsWithScore.filter(s => {
+      const score = s.finalReport?.overall_assessment?.final_score ?? 0
+      return score >= 5
+    }).length
+    const totalScore = allSessionsWithScore.reduce((acc, s) => {
+      const score = s.finalReport?.overall_assessment?.final_score ?? 0
+      console.log(`  📈 Балл интервью "${s.title}": ${score}`)
+      return acc + score
+    }, 0)
+    const averageScore = allSessionsWithScore.length > 0
+      ? (totalScore / allSessionsWithScore.length).toFixed(1)
+      : "0.0"
+    
+    console.log(`📊 Общий средний балл: ${totalScore} / ${allSessionsWithScore.length} = ${averageScore}`)
+
+    return (
+      <div className={styles["progressContainer"]}>
+        <div className={styles["positionGroup"]}>
+          <div className={styles["positionTitle"]}>
+            Все интервью
+          </div>
+          <div className={styles["interviewsBlock"]}>
+            <div className={styles["interviewCardLeft"]}>
+              <div className={styles["cardTitle"]}>ИИ-Собеседований</div>
+              <div className={styles["statRow"]}>
+                <span className={styles["statLabel"]}>Всего</span>
+                <span className={styles["statValue"]}>{totalInterviews}</span>
+              </div>
+              <div className={styles["statRow"]}>
+                <span className={styles["statLabel"]}>Успешно</span>
+                <span className={styles["statValue"]}>{successfulInterviews}</span>
+              </div>
+            </div>
+            <div className={styles["interviewCardRight"]}>
+              <div className={styles["scoreTitle"]}>Средний балл</div>
+              <div className={styles["scoreValue"]}>{averageScore}</div>
+              <div style={{ fontSize: '14px', color: '#666' }}>/ 10</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={styles["progressContainer"]}>
       {resumes.map((resume) => {
-        // Фильтруем сессии для текущей позиции из резюме
-        const positionSessions = sessions.filter(
-          s => s.position?.toLowerCase() === resume.position.toLowerCase() ||
-            s.position?.toLowerCase() === resume.title.toLowerCase()
-        )
+        // Фильтруем сессии для текущей позиции из резюме (более гибкая фильтрация)
+        const positionSessions = sessions.filter(s => {
+          const sessionPosition = s.position?.toLowerCase() || ''
+          const resumePosition = resume.position?.toLowerCase() || ''
+          const resumeTitle = resume.title?.toLowerCase() || ''
+          
+          return sessionPosition === resumePosition ||
+            sessionPosition === resumeTitle ||
+            sessionPosition.includes(resumePosition) ||
+            resumePosition.includes(sessionPosition)
+        })
 
-        const totalInterviews = positionSessions.length
-        const completedInterviews = positionSessions.filter(s => s.status === 'completed').length
-
-        // Фильтруем только те сессии, где есть финальная оценка
-        const completedWithScore = positionSessions.filter(s =>
+        // Фильтруем только те сессии, где есть финальная оценка из фидбека
+        const sessionsWithScore = positionSessions.filter(s =>
           typeof s.finalReport?.overall_assessment?.final_score === 'number'
         )
 
-        // Считаем сумму безопасно
-        const totalScore = completedWithScore.reduce((acc, s) =>
-          acc + (s.finalReport?.overall_assessment?.final_score ?? 0), 0
-        )
+        // Количество интервью = количество сессий с финальной оценкой
+        const totalInterviews = sessionsWithScore.length
 
-        // Расчет среднего балла
-        const averageScore = completedWithScore.length > 0
-          ? (totalScore / completedWithScore.length).toFixed(1)
+        // Успешные интервью = те, где балл >= 5/10
+        const successfulInterviews = sessionsWithScore.filter(s => {
+          const score = s.finalReport?.overall_assessment?.final_score ?? 0
+          return score >= 5
+        }).length
+
+        // Считаем сумму баллов из фидбека
+        const totalScore = sessionsWithScore.reduce((acc, s) => {
+          const score = s.finalReport?.overall_assessment?.final_score ?? 0
+          console.log(`  📈 Балл интервью "${s.title}": ${score}`)
+          return acc + score
+        }, 0)
+
+        // Расчет среднего балла из фидбека
+        const averageScore = sessionsWithScore.length > 0
+          ? (totalScore / sessionsWithScore.length).toFixed(1)
           : "0.0"
+        
+        console.log(`📊 Средний балл для "${resume.position}": ${totalScore} / ${sessionsWithScore.length} = ${averageScore}`)
+
+        // Показываем только если есть интервью для этой позиции
+        if (totalInterviews === 0) return null
 
         return (
           <div key={resume.id} className={styles["positionGroup"]}>
@@ -89,7 +174,7 @@ export const ProgressContent: React.FC = () => {
 
                 <div className={styles["statRow"]}>
                   <span className={styles["statLabel"]}>Успешно</span>
-                  <span className={styles["statValue"]}>{completedInterviews}</span>
+                  <span className={styles["statValue"]}>{successfulInterviews}</span>
                 </div>
               </div>
 

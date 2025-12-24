@@ -30,6 +30,8 @@ export interface CandidateData {
   resumeFileData?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Рейтинг из интервью (средний балл)
+  rating?: number | null;
 }
 
 

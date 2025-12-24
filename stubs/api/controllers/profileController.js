@@ -25,7 +25,7 @@ const getProfile = async (req, res) => {
       about: user.about || '',
       companyName: user.companyName || '',
       position: user.position || '',
-      avatar: user.avatar || '',
+      avatar: user.avatar || user.avatarUrl || '',
       role: user.role
     };
 
@@ -76,6 +76,7 @@ const updateProfile = async (req, res) => {
     }
     if (updateData.avatar !== undefined) {
       user.avatar = updateData.avatar;
+      user.avatarUrl = updateData.avatar; // Синхронизируем оба поля для совместимости
     }
     
     // Для HR также обновляем companyName и position
@@ -102,7 +103,7 @@ const updateProfile = async (req, res) => {
         mockDB.candidates[candidateIndex].phone = user.phone || '';
         mockDB.candidates[candidateIndex].city = user.city || '';
         mockDB.candidates[candidateIndex].about = user.about || '';
-        mockDB.candidates[candidateIndex].avatar = user.avatar || '';
+        mockDB.candidates[candidateIndex].avatar = user.avatar || user.avatarUrl || '';
         mockDB.candidates[candidateIndex].updatedAt = new Date().toISOString();
       }
     }
@@ -136,7 +137,7 @@ const updateProfile = async (req, res) => {
       about: user.about || '',
       companyName: user.companyName || '',
       position: user.position || '',
-      avatar: user.avatar || '',
+      avatar: user.avatar || user.avatarUrl || '',
       role: user.role
     };
 

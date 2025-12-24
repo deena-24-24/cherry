@@ -8,9 +8,24 @@ const getCandidates = async (req, res) => {
     // Берем все резюме
     const allResumes = mockDB.resumes;
 
-    // Обогащаем данными пользователя
+    // Обогащаем данными пользователя и рейтингом
     const enrichedCandidates = allResumes.map(resume => {
       const user = mockDB.users.find(u => u._id === resume.userId);
+      
+      // Вычисляем рейтинг (средний балл из интервью)
+      const candidateSessions = mockDB.sessions.filter(s => s.candidateId === resume.userId);
+      const sessionsWithScore = candidateSessions.filter(s =>
+        typeof s.finalReport?.overall_assessment?.final_score === 'number'
+      );
+      
+      let rating = null;
+      if (sessionsWithScore.length > 0) {
+        const totalScore = sessionsWithScore.reduce((acc, s) =>
+          acc + (s.finalReport?.overall_assessment?.final_score ?? 0), 0
+        );
+        rating = parseFloat((totalScore / sessionsWithScore.length).toFixed(1));
+      }
+      
       return {
         // Данные резюме имеют приоритет (например, навыки, опыт)
         ...resume,
@@ -21,7 +36,9 @@ const getCandidates = async (req, res) => {
         email: user?.email || '',
         avatar: user?.avatarUrl || '', // mockDB uses avatarUrl in users
         city: user?.city || '',
-        phone: user?.phone || ''
+        phone: user?.phone || '',
+        // Рейтинг из интервью
+        rating: rating
       };
     });
 

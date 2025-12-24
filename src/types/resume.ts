@@ -31,4 +31,6 @@ export interface Resume {
 
   resumeFileName?: string;
   resumeFileData?: string;
+  // Рейтинг из интервью (средний балл)
+  rating?: number | null;
 }

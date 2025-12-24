@@ -82,12 +82,24 @@ export const ProfilePage: React.FC = () => {
     }
   }
 
-  const handleEditToggle = () => {
+  const handleEditToggle = async () => {
     if (isEditing) {
-      updateUserProfile({ ...formData, avatar: avatarUrl }).then(updated => {
-        if(updated) updateUser({ ...updated })
-        setIsEditing(false)
-      })
+      // Проверяем валидацию email перед сохранением
+      if (emailError) {
+        console.error('Ошибка валидации email:', emailError)
+        return // Не сохраняем, если есть ошибка email
+      }
+      
+      try {
+        const updated = await updateUserProfile({ ...formData, avatar: avatarUrl })
+        if (updated) {
+          updateUser({ ...updated })
+          setIsEditing(false)
+        }
+      } catch (error) {
+        console.error('Ошибка сохранения профиля:', error)
+        alert(error instanceof Error ? error.message : 'Не удалось сохранить профиль')
+      }
     } else {
       setIsEditing(true)
     }

@@ -3,7 +3,7 @@
   min-height: 349px;
   background: #F5F5FF;
   border-radius: 15px;
-  border: 1px solid var(--color-primary-blue);
+  border: 1px solid var(--lavand);
   padding: 20px;
   position: relative;
   flex-shrink: 0;
@@ -72,9 +72,8 @@
   font-weight: 600;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: center;
-  transform: rotate(45deg);
   flex-shrink: 0;
 }
 
@@ -140,12 +139,30 @@
   height: 16px;
   border-radius: 50%;
   border: 1px solid var(--color-primary-blue);
-  background: #F5F5FF;
+  background: white;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
+  accent-color: var(--color-primary-blue);
 }
 
 .radioInput:checked {
   background: var(--color-primary-blue);
+  border-color: var(--color-primary-blue);
+}
+
+.radioInput:checked::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
 }
 
 /* Планшеты (768px - 1024px) */

@@ -1,13 +1,13 @@
 .card {
   width: 100%;
   min-height: auto;
-  background: white;
+  background: #F5F5FF;
   border-radius: 15px;
   border: 1px solid var(--lavand);
   padding: 24px;
   margin-bottom: 20px;
   position: relative;
-  box-shadow: 0 4px 15px rgba(8, 32, 96, 0.05);
+  
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -19,21 +19,51 @@
 
 .cardContent {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 20px;
+  gap: 16px;
+}
+
+.avatarContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  align-self: flex-start;
 }
 
 .avatar {
-  flex-shrink: 0;
   width: 80px;
   height: 80px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid var(--lavand);
   background-color: var(--color-background);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.rating {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  padding: 8px 12px;
+  background: var(--color-primary-blue);
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+}
+
+.ratingValue {
+  font-size: 20px;
+  font-family: 'Anek Telugu', sans-serif;
+  line-height: 1;
+}
+
+.ratingMax {
+  font-size: 14px;
+  font-family: 'Geist', sans-serif;
+  opacity: 0.9;
 }
 
 .avatarImage {
@@ -48,35 +78,27 @@
   color: var(--lavand);
 }
 
-.info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .name {
   font-family: 'Anek Telugu', sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: var(--color-primary-blue);
   text-transform: uppercase;
+  margin-top: 8px;
 }
 
 .details {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 8px;
 }
 
 .detailItem {
   font-family: 'Geist', sans-serif;
   font-size: 14px;
-  color: #666;
-  background: #F5F5FF;
-  padding: 4px 8px;
-  border-radius: 6px;
+  color: #999;
+  background: transparent;
+  padding: 0;
 }
 
 .skills {
@@ -104,27 +126,29 @@
 
 .actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
-  align-items: flex-end;
-  min-width: 160px;
-  margin-left: auto;
+  align-items: center;
+  width: 100%;
+  margin-top: 8px;
 }
 
 .viewButton {
-  width: 100%;
+  flex: 1;
   background-color: var(--color-primary-blue);
   color: white;
+  text-transform: uppercase;
 }
 .viewButton:hover {
   background-color: #0A2A7A;
 }
 
 .messageButton {
-  width: 100%;
+  flex: 1;
   background-color: white;
   color: var(--color-primary-blue);
   border: 1px solid var(--color-primary-blue);
+  text-transform: uppercase;
 }
 
 .messageButton:hover {
@@ -136,15 +160,15 @@
   height: 40px;
   border-radius: 50%;
   border: 1px solid var(--color-primary-blue);
-  background: #F5F5FF;
+  background: white;
   color: var(--color-primary-blue);
-  font-size: 24px;
+  font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  margin-top: 5px;
+  flex-shrink: 0;
 }
 
 .favoriteButtonActive {
@@ -159,7 +183,7 @@
   }
 
   .cardContent {
-    gap: 16px;
+    gap: 14px;
   }
 
   .avatar {
@@ -171,12 +195,21 @@
     font-size: 28px;
   }
 
-  .name {
+  .rating {
+    padding: 6px 10px;
+  }
+
+  .ratingValue {
     font-size: 18px;
   }
 
-  .actions {
-    min-width: 140px;
+  .ratingMax {
+    font-size: 12px;
+  }
+
+  .name {
+    font-size: 18px;
+    margin-top: 6px;
   }
 }
 
@@ -188,41 +221,45 @@
   }
 
   .cardContent {
-    flex-direction: column;
-    gap: 16px;
+    gap: 14px;
   }
 
   .avatar {
     width: 60px;
     height: 60px;
-    align-self: flex-start;
   }
 
   .avatarPlaceholder {
     font-size: 24px;
   }
 
-  .info {
-    width: 100%;
+  .rating {
+    padding: 6px 10px;
+  }
+
+  .ratingValue {
+    font-size: 16px;
+  }
+
+  .ratingMax {
+    font-size: 11px;
   }
 
   .name {
     font-size: 18px;
+    margin-top: 6px;
   }
 
   .details {
     gap: 8px;
-    margin-bottom: 12px;
   }
 
   .detailItem {
     font-size: 12px;
-    padding: 3px 6px;
   }
 
   .skills {
     gap: 6px;
-    margin-bottom: 12px;
   }
 
   .skillTag {
@@ -232,27 +269,14 @@
   }
 
   .actions {
-    width: 100%;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-left: 0;
-    margin-top: 8px;
-    min-width: auto;
-  }
-
-  .viewButton,
-  .messageButton {
-    flex: 1;
-    max-width: calc(50% - 5px);
+    gap: 8px;
+    margin-top: 4px;
   }
 
   .favoriteButton {
     width: 36px;
     height: 36px;
-    font-size: 20px;
-    margin-top: 0;
-    flex-shrink: 0;
+    font-size: 18px;
   }
 }
 
@@ -276,14 +300,29 @@
     font-size: 20px;
   }
 
+  .avatarContainer {
+    gap: 8px;
+  }
+
+  .rating {
+    padding: 4px 8px;
+  }
+
+  .ratingValue {
+    font-size: 14px;
+  }
+
+  .ratingMax {
+    font-size: 10px;
+  }
+
   .name {
     font-size: 16px;
+    margin-top: 4px;
   }
 
   .details {
-    flex-direction: column;
     gap: 6px;
-    align-items: flex-start;
   }
 
   .detailItem {
@@ -297,17 +336,19 @@
   }
 
   .actions {
-    flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    margin-top: 2px;
   }
 
   .viewButton,
   .messageButton {
-    width: 100%;
-    max-width: 100%;
+    font-size: 12px;
+    padding: 8px 12px;
   }
 
   .favoriteButton {
-    align-self: flex-end;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
   }
 }

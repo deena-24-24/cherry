@@ -28,7 +28,7 @@
 
 .closeButton {
   position: absolute;
-  top: 15px;
+  top: 10px;
   right: 15px;
   width: 30px;
   height: 30px;
@@ -39,7 +39,7 @@
   color: var(--color-primary-blue);
   cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: center;
   line-height: 1;
 }
@@ -68,6 +68,28 @@
   font-size: 24px;
   font-family: 'Geist', sans-serif;
   font-weight: 600;
+}
+
+.candidatePhoto {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 0;
+}
+
+.photoImage {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.photoImage:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
 .resumeBody {
@@ -239,6 +261,15 @@
   .candidateName {
     font-size: 20px;
   }
+
+  .candidatePhoto {
+    margin-bottom: 25px;
+  }
+
+  .photoImage {
+    width: 180px;
+    height: 180px;
+  }
 }
 
 /* Мобильные устройства (до 768px) */
@@ -265,13 +296,9 @@
     width: 36px;
     height: 36px;
     font-size: 28px;
-    background: var(--color-primary-blue);
-    color: white;
+    
   }
 
-  .closeButton:hover {
-    background: #0A2A7A;
-  }
 
   .resumeHeader {
     margin-bottom: 20px;
@@ -286,6 +313,15 @@
 
   .candidateName {
     font-size: 18px;
+  }
+
+  .candidatePhoto {
+    margin-bottom: 20px;
+  }
+
+  .photoImage {
+    width: 150px;
+    height: 150px;
   }
 
   .resumeBody {
@@ -346,6 +382,15 @@
 
   .candidateName {
     font-size: 16px;
+  }
+
+  .candidatePhoto {
+    margin-bottom: 16px;
+  }
+
+  .photoImage {
+    width: 120px;
+    height: 120px;
   }
 
   .resumeBody {

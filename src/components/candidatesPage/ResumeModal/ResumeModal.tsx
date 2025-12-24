@@ -24,6 +24,13 @@ export const ResumeModal: React.FC<ResumeModalProps> = ({ candidate, onClose }) 
           <div className={styles["candidateName"]}>{fullName}</div>
         </div>
 
+        {/* Фото кандидата */}
+        {candidate.avatar && (
+          <div className={styles["candidatePhoto"]}>
+            <img src={candidate.avatar} alt={fullName} className={styles["photoImage"]} />
+          </div>
+        )}
+
         <div className={styles["resumeBody"]}>
           {/* Личная информация */}
           <div className={styles["section"]}>
