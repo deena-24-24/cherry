@@ -96,7 +96,6 @@ module.exports.getModel = ({
     sessionId = null,  // Для кэширования контекста через X-Session-ID
     temperature = null  // Для установки temperature
 }) => {
-<<<<<<< HEAD
     const availableProviders = Object.keys(llmProviders);
     
     // Если запрошенный провайдер недоступен, используем первый доступный
@@ -109,13 +108,6 @@ module.exports.getModel = ({
         provider = fallbackProvider;
     }
     
-    const llm = llmProviders[provider];
-    if (llm.model !== undefined) {
-        llm.model = model;
-    }
-    if (llm.streaming !== undefined) {
-        llm.streaming = streaming;
-=======
     // Для GigaChat создаем новый экземпляр с заголовками, если нужен sessionId
     if (provider === 'gigachat' && sessionId) {
         // Создаем новый экземпляр GigaChat с заголовком X-Session-ID для кэширования контекста
@@ -151,11 +143,14 @@ module.exports.getModel = ({
 
     // Для остальных случаев используем базовый экземпляр
     const llm = llmProviders[provider];
-    llm.model = model;
-    llm.streaming = streaming;
-    if (temperature !== null) {
+    if (llm.model !== undefined) {
+        llm.model = model;
+    }
+    if (llm.streaming !== undefined) {
+        llm.streaming = streaming;
+    }
+    if (temperature !== null && llm.temperature !== undefined) {
         llm.temperature = temperature;
->>>>>>> dev
     }
 
     return llm;
