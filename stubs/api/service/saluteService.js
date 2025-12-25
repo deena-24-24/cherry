@@ -33,7 +33,6 @@ class SaluteService {
       }
 
       const rquid = uuidv4();
-      console.log(`🔄 Updating SaluteSpeech Token (Scope: ${scope})...`);
 
       const response = await axios.post(
         'https://ngw.devices.sberbank.ru:9443/api/v2/oauth',
@@ -51,7 +50,6 @@ class SaluteService {
       this.accessToken = response.data.access_token;
       this.tokenExpiresAt = Date.now() + (response.data.expires_at - 60000);
 
-      console.log('✅ SaluteSpeech Token updated successfully');
       return this.accessToken;
     } catch (error) {
       const errorData = error.response?.data || error.message;
@@ -94,8 +92,6 @@ class SaluteService {
     const token = await this.getToken();
     const rquid = uuidv4();
 
-    console.log(`🎤 Sending audio to Sber (${audioBuffer.length} bytes), RqUID: ${rquid}`);
-
     try {
       const response = await axios.post(
         'https://smartspeech.sber.ru/rest/v1/speech:recognize',
@@ -110,13 +106,9 @@ class SaluteService {
         }
       );
 
-      console.log('✅ Sber Response Status:', response.status);
-
       // Sber может вернуть 200 OK, но пустой результат, если была тишина
       if (response.data && response.data.result && response.data.result.length > 0) {
-        const text = response.data.result[0];
-        console.log('🗣️ Recognized text:', text);
-        return text;
+        return response.data.result[0];
       }
 
       console.warn('⚠️ Sber returned success but no text found');

@@ -2,7 +2,7 @@
     width: 100%;
     min-height: 480px;
     padding: 60px 32px;
-    background: linear-gradient(135deg, var(--navy), #1e1b4b, var(--maroon));
+    background: linear-gradient(135deg, var(--navy), var(--color-primary-blue), var(--maroon));
     display: flex;
     justify-content: center;
     align-items: center;

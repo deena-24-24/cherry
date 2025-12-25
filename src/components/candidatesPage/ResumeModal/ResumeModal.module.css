@@ -187,7 +187,7 @@
 }
 
 .skillTag {
-  background: var(--peach);
+  background: var(--color-background);
   border-radius: 7px;
   border: 1px solid var(--lavand);
   padding: 6px 12px;

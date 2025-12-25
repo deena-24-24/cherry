@@ -65,12 +65,10 @@ export class InterviewService {
   }
 
   private handleAIResponse(data: AIResponse) {
-    console.log('📨 AI Response received:', data.text)
     this.aiMessageCallbacks.forEach(callback => callback(data))
   }
 
   private handleInterviewCompleted(data: SocketInterviewCompleted) {
-    console.log('🏁 Interview completed event received:', data)
     this.interviewCompletedCallbacks.forEach(callback => callback(data))
   }
 
@@ -78,7 +76,6 @@ export class InterviewService {
     if (!this.isConnected || !this.currentSessionId) throw new Error('Socket not connected')
     const success = socketService.sendTranscript(this.currentSessionId, text, position)
     if (!success) throw new Error('Failed to send transcript')
-    console.log('📤 Sent transcript:', text)
   }
 
   async sendAudioChunk(chunk: ArrayBuffer): Promise<void> {
@@ -108,7 +105,6 @@ export class InterviewService {
     try {
       const success = socketService.sendCompleteInterview(this.currentSessionId)
       if (!success) throw new Error('Failed to send complete-interview')
-      console.log('✅ Complete interview request sent')
       return { success: true }
     } catch (error) {
       console.error('Error completing interview:', error)

@@ -45,8 +45,6 @@ const vacancySearchTool = new DynamicStructuredTool({
     location: z.string().optional().describe("Город (например, 'Москва')"),
   }),
   func: async ({ query, location }) => {
-    console.log(`🛠 Agent searching HH: ${query} ${location || ''}`);
-
     const items = await fetchHHVacancies(query, location);
     if (!items || !items.length) return "Вакансий не найдено.";
 
@@ -72,7 +70,6 @@ const salaryAnalyzerTool = new DynamicStructuredTool({
   }),
   func: async ({ role, experienceLevel }) => {
     const searchText = experienceLevel ? `${experienceLevel} ${role}` : role;
-    console.log(`🛠 Agent analyzing salaries for: ${searchText}`);
 
     const items = await fetchHHVacancies(searchText);
 
@@ -107,7 +104,6 @@ const githubSearchTool = new DynamicStructuredTool({
     language: z.string().optional().describe("Язык программирования (например, 'javascript', 'python')"),
   }),
   func: async ({ query, language }) => {
-    console.log(`🛠 Agent searching GitHub: ${query}`);
     try {
       let q = query;
       if (language) q += ` language:${language}`;
@@ -144,7 +140,6 @@ const companyResearchTool = new DynamicStructuredTool({
     else if (infoType === "stack") searchQuery = `какой стек технологий использует компания ${companyName} habr`;
     else searchQuery = `новости и информация о компании ${companyName} IT`;
 
-    console.log(`🛠 Agent researching company: ${searchQuery}`);
     try {
       const result = await webSearchTool.invoke({ input: searchQuery });
       return JSON.stringify(result);
@@ -163,7 +158,6 @@ const interviewQuestionsTool = new DynamicStructuredTool({
   }),
   func: async ({ topic }) => {
     const searchQuery = `популярные вопросы с собеседований ${topic} 2024 2025 с ответами`;
-    console.log(`🛠 Agent finding interview questions: ${topic}`);
     try {
       const result = await webSearchTool.invoke({ input: searchQuery });
       return JSON.stringify(result);

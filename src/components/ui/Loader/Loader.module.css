@@ -1,10 +1,14 @@
 .loader-page {
     position: fixed;
     inset: 0;
-    background: white;
+    background: var(--color-background);
     z-index: 9999;
 }
 
+.loader-component {
+    display: flex;
+    z-index: 9999;
+}
 
 .loader {
     position: absolute;
@@ -13,6 +17,10 @@
     transform: translate(-50%, -50%);
     width: 100px;
     height: 100px;
+}
+
+.small-loader {
+    text-align: center;
 }
 
 .loader span {

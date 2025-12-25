@@ -120,6 +120,9 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
               </div>
             )}
           </div>
+          <span className={styles["position"]}>
+            {position ? position : `Стаж ${calculateExperience()}`}
+          </span>
           {candidate.rating !== null && candidate.rating !== undefined && (
             <div className={styles["rating"]}>
               <span className={styles["ratingValue"]}>{candidate.rating}</span>
@@ -134,9 +137,6 @@ export const CandidateCard: React.FC<CandidateCardProps> = ({
         {/* Детали */}
         <div className={styles["details"]}>
           <span className={styles["detailItem"]}>{candidate.city || 'Город не указан'}</span>
-          <span className={styles["detailItem"]}>
-            {position ? position : `Стаж ${calculateExperience()}`}
-          </span>
         </div>
 
         {/* Навыки */}

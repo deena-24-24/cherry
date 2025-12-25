@@ -1,8 +1,8 @@
 .page {
     min-height: calc(100vh - var(--header-height) - var(--footer-height));
     background: var(--color-background);
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding-top:  2rem;
+    padding-bottom: 2rem;
 }
 
 .chat-container {
@@ -10,7 +10,7 @@
     flex-direction: column;
     height: 80vh;
     max-width: 800px;
-    margin: calc(var(--header-height) + 2rem) auto;
+    margin: calc(var(--header-height)) auto;
     border-radius: 12px;
     background-color: var(--cloud);
     box-shadow: 0 4px 12px rgba(8, 32, 96, 0.15);

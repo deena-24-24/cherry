@@ -22,16 +22,8 @@ class CodeController {
   }
 
   async executeCode(req, res) {
-    const executionId = uuidv4();
-
     try {
       const { code, language, sessionId, stdin = '', testCases = [] } = req.body;
-
-      console.log(`🚀 Выполнение кода [${executionId}]:`, {
-        language,
-        codeLength: code?.length,
-        testCasesCount: testCases?.length
-      });
 
       // Валидация
       if (!code || !language) {
@@ -228,7 +220,6 @@ except Exception as e:
 
     for (let i = 0; i < testCases.length; i++) {
       const testCase = testCases[i];
-      console.log(`🧪 Запуск теста ${i + 1}:`, testCase.input);
 
       const result = await this.executeCodeSafely(code, language, testCase.input);
       totalTime += result.executionTime;
@@ -291,7 +282,7 @@ except Exception as e:
         await fs.unlink(filepath);
       }
     } catch (error) {
-      console.log('⚠️ Не удалось очистить файлы:', error.message);
+      console.errror('⚠️ Не удалось очистить файлы:', error.message);
     }
   }
 }

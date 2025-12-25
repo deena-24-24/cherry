@@ -55,13 +55,10 @@ initializeSocket(io);
 // Запуск задач по расписанию
 if (cleanupOldSessions) {
   // setInterval(cleanupOldSessions, 6 * 60 * 60 * 1000);
-  console.log('🕒 Session cleanup scheduled');
 }
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 Socket.io ready at ws://localhost:${PORT}`);
 });
 
 module.exports = app;

@@ -21,7 +21,6 @@ class InterviewController {
 
       // Если в памяти нет, но в БД есть - восстанавливаем/инициализируем
       if (!aiState) {
-        console.log(`🤖 Re-initializing AI session for ${sessionId}`);
         await interviewLogic.initializeSession(sessionId, session.position || 'frontend');
         aiState = await stateService.getSession(sessionId);
       } else {
@@ -280,12 +279,6 @@ class InterviewController {
       const { sessionId } = req.params;
       const { score, allTestsPassed, completedAt } = req.body;
 
-      console.log(`📊 Сохранение результата практического задания для сессии ${sessionId}:`, {
-        score,
-        allTestsPassed,
-        completedAt
-      });
-
       // Проверяем существование сессии
       const session = mockDB.sessions.find(s => s.id === sessionId);
       if (!session) {
@@ -306,8 +299,6 @@ class InterviewController {
         completedAt: completedAt || new Date().toISOString(),
         submittedAt: new Date().toISOString()
       });
-
-      console.log(`✅ Результат практического задания сохранен для сессии ${sessionId}`);
 
       res.json({
         success: true,

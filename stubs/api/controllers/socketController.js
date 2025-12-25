@@ -25,7 +25,6 @@ function saveFinalReportToMockDB(sessionId, finalReport) {
     session.status = 'completed';
     session.completedAt = new Date().toISOString();
     session.finalReport = finalReport;
-    console.log(`💾 Report saved for session ${sessionId} with score ${finalReport.overall_assessment.final_score}`);
   } catch (error) {
     console.error('DB Save Error:', error);
   }
@@ -76,7 +75,6 @@ module.exports = function initializeSocket(io) {
 
         // === ПРОВЕРКА НА АВТОМАТИЧЕСКОЕ ЗАВЕРШЕНИЕ ПОСЛЕ ОТВЕТА ИИ ===
         if (aiResponse.metadata?.isInterviewComplete) {
-          console.log(`🏁 Session ${sessionId} marked as complete by AI logic`);
 
           // 1. СРАЗУ уведомляем фронтенд о начале завершения (блокируем интерфейс)
           socket.emit('interview-completion-started', { sessionId });
@@ -86,7 +84,6 @@ module.exports = function initializeSocket(io) {
           let finalReport = aiResponse.metadata.finalReport;
 
           if (!finalReport) {
-            console.log('Generating report...');
             finalReport = await interviewLogic.generateComprehensiveReport(sessionId);
           }
 
@@ -102,7 +99,6 @@ module.exports = function initializeSocket(io) {
               finalText: interviewLogic.getSmartCompletionMessage(finalReport)
             };
 
-            console.log('📤 Sending interview-completed event');
             socket.emit('interview-completed', payload);
             socket.to(sessionId).emit('interview-completed', payload);
           }, 1000);
@@ -117,7 +113,6 @@ module.exports = function initializeSocket(io) {
     socket.on('complete-interview', async (data) => {
       try {
         const { sessionId, force = false } = data;
-        console.log(`🛑 Manual completion requested for ${sessionId}`);
 
         // 1. уведомляем фронтенд о начале генерации
         socket.emit('interview-completion-started', { sessionId });

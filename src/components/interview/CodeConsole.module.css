@@ -180,7 +180,7 @@
 }
 
 .taskButtonActive:hover {
-    background: var(--maroon, #95525b);
+    background: var(--maroon);
 }
 
 .taskButtonInactive {
@@ -233,8 +233,8 @@
 }
 
 .buttonPrimary:hover:not(:disabled) {
-    background: var(--maroon, #95525b);
-    border-color: var(--maroon, #95525b);
+    background: var(--maroon);
+    border-color: var(--maroon);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(149, 82, 91, 0.3);
 }

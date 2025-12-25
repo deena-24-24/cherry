@@ -24,7 +24,6 @@ class SocketService {
 
     return new Promise((resolve) => {
       this.socket?.on('connect', () => {
-        console.log('✅ Socket connected')
         const joinData: SocketJoinInterview = { sessionId, position }
         this.socket?.emit('join-interview', joinData)
         resolve(true)

@@ -18,12 +18,6 @@ class HrController {
       // Ищем данные HR
       let hr = mockDB.hrs?.find(h => h.userId === userId);
 
-      console.log('🔍 Загрузка данных HR:', {
-        userId,
-        hasHr: !!hr,
-        totalHrs: mockDB.hrs?.length || 0
-      });
-
       // Если данных HR нет, создаем из данных пользователя
       if (!hr) {
         hr = {
@@ -95,10 +89,6 @@ class HrController {
 
       const updateData = req.body;
 
-      console.log('📥 Получены данные для обновления HR:', {
-        updateDataKeys: Object.keys(updateData)
-      });
-
       // Обновляем данные пользователя (базовый профиль)
       if (updateData.firstName !== undefined) {
         user.firstName = updateData.firstName;
@@ -146,12 +136,10 @@ class HrController {
       if (hrIndex !== -1) {
         hrData.createdAt = mockDB.hrs[hrIndex].createdAt;
         mockDB.hrs[hrIndex] = hrData;
-        console.log('✅ Данные HR обновлены в mockDB');
       } else {
         // Создаем новые данные HR
         hrData.createdAt = new Date().toISOString();
         mockDB.hrs.push(hrData);
-        console.log('✅ Созданы новые данные HR в mockDB');
       }
 
       res.json({ message: 'Данные HR обновлены', hr: hrData });

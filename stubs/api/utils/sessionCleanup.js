@@ -16,10 +16,6 @@ function cleanupOldSessions(maxAgeHours = 24) {
       cleanedCount++;
     }
   });
-
-  if (cleanedCount > 0) {
-    console.log(`🧹 Cleaned ${cleanedCount} old sessions`);
-  }
 }
 
 // Запускаем очистку каждые 6 часов

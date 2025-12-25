@@ -62,10 +62,6 @@ const mockDB = {
       updatedAt: new Date().toISOString()
     }
   ],
-  candidates: [],
-  hrs: [
-    { userId: 'user_2', firstName: 'Анна', lastName: 'Петрова', companyName: 'Tech Corp' }
-  ],
   hrConversations: [
     {
       id: 'chat_1',
@@ -83,7 +79,7 @@ const mockDB = {
   sessions: [
     {
       id: 'session_1',
-      title: 'Frontend Interview #1',
+      title: 'Frontend Interview',
       position: 'Frontend Developer',
       difficulty: 'middle',
       status: 'completed',
@@ -138,7 +134,7 @@ const mockDB = {
     },
     {
       id: 'session_2',
-      title: 'Frontend Interview #2',
+      title: 'Frontend Interview',
       position: 'Frontend Developer',
       difficulty: 'senior',
       status: 'completed',

@@ -77,7 +77,6 @@ const addFavorite = async (req, res) => {
 
     if (!hr.favoriteCandidateIds.includes(candidateId)) {
       hr.favoriteCandidateIds.push(candidateId);
-      console.log(`HR ${userId} добавил в избранное кандидата ${candidateId}`);
     }
 
     res.json({ message: 'Кандидат добавлен в избранное', favoriteIds: hr.favoriteCandidateIds });
@@ -102,8 +101,6 @@ const removeFavorite = async (req, res) => {
     }
 
     hr.favoriteCandidateIds = hr.favoriteCandidateIds.filter(id => id !== candidateId);
-    console.log(`HR ${userId} удалил из избранного кандидата ${candidateId}`);
-
     res.json({ message: 'Кандидат удален из избранного', favoriteIds: hr.favoriteCandidateIds });
   } catch (error) {
     console.error('Error removing favorite:', error);

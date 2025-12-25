@@ -8,8 +8,6 @@ const stateService = require('../service/interviewStateService');
 const validateSessionExists = async (req, res, next) => {
   const { sessionId } = req.params;
 
-  console.log(`🔍 [validateSessionExists] Checking session ${sessionId}`);
-
   try {
     // 1. Проверяем в mockDB (база данных)
     const sessionInDB = mockDB.sessions.find(s => s.id === sessionId);
@@ -27,8 +25,6 @@ const validateSessionExists = async (req, res, next) => {
 
     // 4. Если это GET запрос на получение сессии - СОЗДАЕМ ЕЕ (Lazy Initialization)
     if (req.method === 'GET' && req.path.endsWith(`/sessions/${sessionId}`)) {
-      console.log(`🆕 GET request for missing session ${sessionId} - Creating new...`);
-
       // Создаем запись в БД
       const newSession = {
         id: sessionId,
@@ -51,7 +47,6 @@ const validateSessionExists = async (req, res, next) => {
     }
 
     // 5. Сессия не найдена
-    console.log(`❌ Session ${sessionId} not found anywhere`);
     return res.status(404).json({
       success: false,
       error: 'Interview session not found',

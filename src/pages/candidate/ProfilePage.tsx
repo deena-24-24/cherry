@@ -50,7 +50,7 @@ export const ProfilePage: React.FC = () => {
       if (profileData.avatar) setAvatarUrl(profileData.avatar)
     } catch (error) {
       console.error(error)
-      // Исправлено: удалены (user as any), так как поля существуют в интерфейсе User
+      // Фолбэк на данные из user (из localStorage/токена), если API упал
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -87,9 +87,9 @@ export const ProfilePage: React.FC = () => {
       // Проверяем валидацию email перед сохранением
       if (emailError) {
         console.error('Ошибка валидации email:', emailError)
-        return // Не сохраняем, если есть ошибка email
+        return
       }
-      
+
       try {
         const updated = await updateUserProfile({ ...formData, avatar: avatarUrl })
         if (updated) {

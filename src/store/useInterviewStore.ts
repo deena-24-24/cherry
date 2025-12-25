@@ -43,7 +43,6 @@ export const useInterviewStore = create<InterviewState>((set) => ({
 
       // Проверяем, был ли запрос отменен
       if (signal?.aborted) {
-        console.log('Запрос был отменен')
         return
       }
 
@@ -55,7 +54,6 @@ export const useInterviewStore = create<InterviewState>((set) => ({
 
       // Проверяем еще раз на отмену после получения данных
       if (signal?.aborted) {
-        console.log('Запрос был отменен после получения данных')
         return
       }
 
@@ -71,7 +69,6 @@ export const useInterviewStore = create<InterviewState>((set) => ({
     } catch (err) {
       // Игнорируем ошибки отмены запроса
       if (err.name === 'AbortError') {
-        console.log('Fetch запрос отменен')
         return
       }
 

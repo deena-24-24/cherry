@@ -91,8 +91,6 @@ class InterviewLogicService {
       const completionCheck = await this.shouldCompleteInterview(sessionId);
 
       if (completionCheck.complete) {
-        console.log(`🤖 AI decided to finish session ${sessionId} BEFORE generation. Reason: ${completionCheck.reason}`);
-
         const goodbyeMessage = "Спасибо за ваши ответы. Мы достаточно обсудили основные темы. На этом техническая часть интервью завершена. Сейчас я подготовлю финальный отчет.";
 
         if (onChunk) onChunk(goodbyeMessage);
@@ -119,7 +117,6 @@ class InterviewLogicService {
       const codeTaskCheck = this.shouldTriggerCodeTask(state, transcript);
 
       if (codeTaskCheck.trigger) {
-        console.log(`🚀 Triggering Code Task for session ${sessionId}`);
 
         // Фраза-триггер, которую ждет фронтенд
         const triggerPhrase = "А теперь хочу посмотреть на твои практические знания. Даю тебе 10 минут на выполнение задачи у консоли.";
@@ -182,7 +179,6 @@ class InterviewLogicService {
       const isNaturalGoodbye = ["всего доброго", "до свидания", "завершаем", "на этом всё", "спасибо за уделенное время", "подготовлю отчет"].some(phrase => lowerReply.includes(phrase));
 
       if (isNaturalGoodbye) {
-        console.log(`🤖 AI said goodbye naturally in session ${sessionId}`);
         return {
           text: aiReplyText,
           isStreamed: true,
@@ -218,8 +214,7 @@ class InterviewLogicService {
         // Пытаемся использовать fallback провайдер (DeepSeek или Ollama)
         try {
           const fallbackProvider = process.env.GITHUB_TOKEN ? 'deepseek' : 'ollama';
-          console.log(`🔄 Trying fallback provider: ${fallbackProvider}`);
-          
+
           const prompt = this.buildTextOnlyPrompt(state, transcript);
           const fallbackLlm = getModel({ 
             provider: fallbackProvider, 
@@ -247,7 +242,6 @@ class InterviewLogicService {
           this.backgroundAnalysis(state, transcript, aiReplyText, sessionId);
           await stateService.updateSession(sessionId, state);
 
-          console.log(`✅ Successfully used fallback provider: ${fallbackProvider}`);
           return {
             text: aiReplyText,
             isStreamed: true,
@@ -449,7 +443,6 @@ class InterviewLogicService {
   }
 
   async generateComprehensiveReport(sessionId, errorReason = null) {
-    console.log(`📊 Generating REAL report for session ${sessionId}...`);
     if (errorReason) {
       console.warn(`⚠️ Report generation reason: ${errorReason}`);
     }
@@ -613,7 +606,6 @@ class InterviewLogicService {
         report.notes = notes;
       }
 
-      console.log("✅ Report generated successfully");
       return report;
 
     } catch (error) {

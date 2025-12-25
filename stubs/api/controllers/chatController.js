@@ -150,7 +150,6 @@ const startChat = async (req, res) => {
     };
 
     mockDB.hrConversations.push(conversation);
-    console.log(`Создан новый чат ${newChatId} между ${hrId} и ${candidateId}`);
 
     res.status(201).json({ id: conversation.id, isNew: true });
 

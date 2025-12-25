@@ -1,10 +1,10 @@
 import React from 'react'
 import * as styles from './Loader.module.css'
 
-export const Loader: React.FC = () => {
+export const SmallLoader: React.FC = () => {
 
   return (
-    <div className={styles["loader-page"]}>
+    <div className={styles["loader-component"]}>
       <div className={styles["loader"]}>
         <span/>
         <span/>
@@ -12,5 +12,6 @@ export const Loader: React.FC = () => {
         <span/>
       </div>
     </div>
+
   )
 }

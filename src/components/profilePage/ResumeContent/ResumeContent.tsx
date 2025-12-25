@@ -4,6 +4,7 @@ import * as styles from "./ResumeContent.module.css"
 import { Resume } from "../../../types/resume"
 import { fetchMyResumes, createResume, updateResume, deleteResume } from "../../../service/api/resumeService"
 import { AVAILABLE_POSITIONS } from '../../../constants/positions'
+import { SmallLoader } from '../../ui/Loader/SmallLoader'
 
 export const ResumeContent: React.FC = () => {
   const [resumes, setResumes] = useState<Resume[]>([])
@@ -96,7 +97,7 @@ export const ResumeContent: React.FC = () => {
       if (newResumes.length > 0) setSelectedResumeId(newResumes[0].id)
       else setSelectedResumeId(null)
     } catch (e) {
-      console.log(`Ошибка удаления: ${e}`)
+      console.error(`Ошибка удаления: ${e}`)
     }
   }
 
@@ -148,7 +149,9 @@ export const ResumeContent: React.FC = () => {
     setLocalResume({ ...localResume, skills: localResume.skills.filter((_, i) => i !== idx) })
   }
 
-  if (isLoading) return <div>Загрузка...</div>
+  if (isLoading) {
+    return <SmallLoader />
+  }
 
   return (
     <div className={styles["resumeContent"]}>
@@ -293,8 +296,6 @@ export const ResumeContent: React.FC = () => {
         <div className={styles["modalOverlay"]} onClick={closeCreateModal}>
           <div className={styles["modalContent"]} onClick={e => e.stopPropagation()}>
             <h3 className={styles["modalTitle"]}>Новое резюме</h3>
-
-            {/* Поле для ввода названия убрано */}
 
             <div>
               <label className={styles["modalLabel"]}>Выберите позицию</label>

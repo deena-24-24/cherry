@@ -132,7 +132,6 @@ export const InterviewCallPage: React.FC = () => {
     const hasTrigger = triggers.some(t => lowerResponse.includes(t))
 
     if (hasTrigger) {
-      console.log('🚀 Обнаружена практическая задача! Запуск таймера...')
       startCodeTask()
     }
   }, [aiResponse, isCodeTaskActive])
@@ -161,8 +160,6 @@ export const InterviewCallPage: React.FC = () => {
   const handleTaskComplete = useCallback(async (allTestsPassed: boolean) => {
     if (taskCompletedRef.current) return // Защита от двойного вызова
     taskCompletedRef.current = true
-
-    console.log(`🏁 Задача завершена. Успех: ${allTestsPassed}`)
 
     // Остановка таймера
     if (codeTaskTimerRef.current) {
@@ -211,7 +208,6 @@ export const InterviewCallPage: React.FC = () => {
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current)
       pollingIntervalRef.current = null
-      console.log("🛑 Polling stopped")
     }
   }, [])
 
@@ -221,8 +217,6 @@ export const InterviewCallPage: React.FC = () => {
     // Но проверяем isGeneratingReport, так как он сбрасывается первым
     setFinalReport((prev) => {
       if (prev) return prev // Уже есть отчет
-
-      console.log("✅ Interview Completed Processing:", data)
 
       // Очищаем таймеры
       if (reportTimeoutRef.current) {
@@ -256,7 +250,6 @@ export const InterviewCallPage: React.FC = () => {
   const startPollingForReport = useCallback(() => {
     if (pollingIntervalRef.current) return // Уже опрашиваем
 
-    console.log("🔄 Starting HTTP polling for final report...")
     let pollCount = 0
     const maxPolls = 20 // Максимум 20 попыток (60 секунд)
 
@@ -285,9 +278,7 @@ export const InterviewCallPage: React.FC = () => {
         if (response.ok) {
           const data = await response.json()
           if (data.success && data.report) {
-            console.log("✅ Report received via HTTP polling!")
             stopPolling() // Останавливаем поллинг после получения отчета
-            // Вызываем тот же обработчик, что и для сокета
             handleInterviewCompleted({
               sessionId,
               finalReport: data.report,
@@ -316,7 +307,6 @@ export const InterviewCallPage: React.FC = () => {
   // === 1. Обработка НАЧАЛА ЗАВЕРШЕНИЯ ===
   useEffect(() => {
     const onCompletionStart = () => {
-      console.log("🏁 Начало завершения интервью (event received)")
       setIsInterviewEnded(true)
       setIsGeneratingReport(true)
       setShowFinalReport(true)

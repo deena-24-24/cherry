@@ -44,7 +44,7 @@
 
 .position-popup-close:hover {
     background: rgba(0, 0, 0, 0.05);
-    color: var(--maroon, #8B2635);
+    color: var(--maroon);
 }
 
 .position-popup-header {
@@ -80,7 +80,7 @@
     gap: 16px;
     padding: 20px;
     background: white;
-    border: 2px solid var(--maroon, #E8D5C4);
+    border: 2px solid var(--maroon);
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.2s ease;

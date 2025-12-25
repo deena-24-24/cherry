@@ -5,6 +5,7 @@ import { fetchMyResumes } from "../../../service/api/resumeService"
 import { interviewService } from '../../../service/api/interviewService'
 import { Resume } from "../../../types/resume"
 import { InterviewSession } from "../../../types"
+import { SmallLoader } from '../../ui/Loader/SmallLoader'
 
 export const ProgressContent: React.FC = () => {
   const { user } = useAuthStore()
@@ -22,20 +23,7 @@ export const ProgressContent: React.FC = () => {
         ])
         setResumes(resumesData)
         setSessions(sessionsData)
-        
-        // Отладочная информация
-        console.log('📊 ProgressContent: Загружено резюме:', resumesData.length)
-        console.log('📊 ProgressContent: Загружено сессий:', sessionsData.length)
-        console.log('📊 ProgressContent: Сессии с finalReport:', 
-          sessionsData.filter(s => s.finalReport?.overall_assessment?.final_score).length
-        )
-        sessionsData.forEach(s => {
-          console.log(`  - ${s.title} (${s.position}):`, {
-            hasFinalReport: !!s.finalReport,
-            hasScore: typeof s.finalReport?.overall_assessment?.final_score === 'number',
-            score: s.finalReport?.overall_assessment?.final_score
-          })
-        })
+
       } catch (error) {
         console.error("Error loading progress data:", error)
       } finally {
@@ -45,7 +33,9 @@ export const ProgressContent: React.FC = () => {
     loadData()
   }, [user?._id])
 
-  if (loading) return <div>Загрузка прогресса...</div>
+  if (loading) {
+    return <SmallLoader />
+  }
 
   // Если нет резюме, показываем заглушку
   if (resumes.length === 0) {
@@ -70,15 +60,12 @@ export const ProgressContent: React.FC = () => {
     }).length
     const totalScore = allSessionsWithScore.reduce((acc, s) => {
       const score = s.finalReport?.overall_assessment?.final_score ?? 0
-      console.log(`  📈 Балл интервью "${s.title}": ${score}`)
       return acc + score
     }, 0)
     const averageScore = allSessionsWithScore.length > 0
       ? (totalScore / allSessionsWithScore.length).toFixed(1)
       : "0.0"
     
-    console.log(`📊 Общий средний балл: ${totalScore} / ${allSessionsWithScore.length} = ${averageScore}`)
-
     return (
       <div className={styles["progressContainer"]}>
         <div className={styles["positionGroup"]}>
@@ -140,7 +127,6 @@ export const ProgressContent: React.FC = () => {
         // Считаем сумму баллов из фидбека
         const totalScore = sessionsWithScore.reduce((acc, s) => {
           const score = s.finalReport?.overall_assessment?.final_score ?? 0
-          console.log(`  📈 Балл интервью "${s.title}": ${score}`)
           return acc + score
         }, 0)
 
@@ -149,15 +135,13 @@ export const ProgressContent: React.FC = () => {
           ? (totalScore / sessionsWithScore.length).toFixed(1)
           : "0.0"
         
-        console.log(`📊 Средний балл для "${resume.position}": ${totalScore} / ${sessionsWithScore.length} = ${averageScore}`)
-
         // Показываем только если есть интервью для этой позиции
         if (totalInterviews === 0) return null
 
         return (
           <div key={resume.id} className={styles["positionGroup"]}>
             <div className={styles["positionTitle"]}>
-              {resume.position} <span style={{ fontSize: '0.6em', color: '#666' }}>({resume.title})</span>
+              {resume.position}
             </div>
 
             {/* Блок "ИИ-Собеседований" для этой позиции */}

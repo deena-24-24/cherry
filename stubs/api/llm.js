@@ -7,8 +7,6 @@ const { Ollama } = require("@langchain/ollama");
 // ЯВНО .env файл
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
-console.log('🔧 Loading LLM configuration from .env...');
-console.log('GIGA_AUTH present:', !!process.env.GIGA_AUTH);
 
 const httpsAgent = new Agent({
     rejectUnauthorized: false,
@@ -34,7 +32,6 @@ if (process.env.GIGA_AUTH) {
             httpsAgent,
             model: 'GigaChat-2-Max',
         });
-        console.log('✅ GigaChat initialized');
     } catch (error) {
         console.warn('⚠️ Failed to initialize GigaChat:', error.message);
     }
@@ -58,7 +55,6 @@ if (token) {
             }
         });
         llm2.defaultModel = "deepseek/DeepSeek-V3-0324";
-        console.log('✅ DeepSeek initialized');
     } catch (error) {
         console.warn('⚠️ Failed to initialize DeepSeek:', error.message);
     }
@@ -75,7 +71,6 @@ try {
         maxRetries: 2,
     });
     ollamallm.defaultModel = 'qwen2.5:72b';
-    console.log('✅ Ollama initialized');
 } catch (error) {
     console.warn('⚠️ Failed to initialize Ollama:', error.message);
     console.warn('   Make sure Ollama is running locally if you want to use it.');
@@ -86,8 +81,6 @@ const llmProviders = {};
 if (llm2) llmProviders.deepseek = llm2;
 if (llm) llmProviders.gigachat = llm;
 if (ollamallm) llmProviders.ollama = ollamallm;
-
-console.log(`📦 Available LLM providers: ${Object.keys(llmProviders).join(', ') || 'none'}`);
 
 module.exports.getModel = ({
     model = 'GigaChat-2-Max',
@@ -137,7 +130,6 @@ module.exports.getModel = ({
             console.warn(`⚠️ Could not set X-Session-ID header: ${e.message}`);
         }
         
-        console.log(`💾 GigaChat: Using session cache for sessionId: ${sessionId}`);
         return gigachatInstance;
     }
 

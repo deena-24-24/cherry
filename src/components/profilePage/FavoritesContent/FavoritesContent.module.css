@@ -12,13 +12,6 @@
   
 }
 
-.loading {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--color-primary-blue);
-  font-size: 18px;
-}
-
 .emptyState {
   text-align: center;
   padding: 60px 20px;

@@ -1,20 +1,21 @@
 .card {
   width: 100%;
   min-height: auto;
-  background: #F5F5FF;
-  border-radius: 15px;
+  background: var(--ui-bg-card);
+  border-radius: var(--radius-xl);
   border: 1px solid var(--lavand);
   padding: 24px;
   margin-bottom: 20px;
   position: relative;
-  
-  transition: transform 0.2s, box-shadow 0.2s;
+
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: var(--shadow-soft);
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(8, 32, 96, 0.1);
-  border-color: var(--color-primary-blue);
+  box-shadow: var(--shadow-card);
+  border-color: var(--navy);
 }
 
 .cardContent {
@@ -36,7 +37,8 @@
   height: 80px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: var(--color-background);
+  background-color: var(--cloud);
+  border: 1px solid var(--lavand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,22 +50,32 @@
   align-items: baseline;
   gap: 2px;
   padding: 8px 12px;
-  background: var(--color-primary-blue);
-  border-radius: 8px;
-  color: white;
+  background: var(--navy);
+  border-radius: var(--radius-lg);
+  color: var(--cloud);
   font-weight: 600;
+}
+
+.position {
+  font-family: var(--font-family-title), sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--maroon);
+  text-transform: uppercase;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
 }
 
 .ratingValue {
   font-size: 20px;
-  font-family: 'Anek Telugu', sans-serif;
+  font-family: var(--font-family-title), sans-serif;
   line-height: 1;
 }
 
 .ratingMax {
   font-size: 14px;
-  font-family: 'Geist', sans-serif;
-  opacity: 0.9;
+  font-family: var(--font-family-sans), sans-serif;
+  opacity: 0.8;
 }
 
 .avatarImage {
@@ -79,12 +91,13 @@
 }
 
 .name {
-  font-family: 'Anek Telugu', sans-serif;
+  font-family: var(--font-family-title), sans-serif;
   font-size: 20px;
-  font-weight: 600;
-  color: var(--color-primary-blue);
+  font-weight: 700;
+  color: var(--navy);
   text-transform: uppercase;
   margin-top: 8px;
+  letter-spacing: 0.02em;
 }
 
 .details {
@@ -94,11 +107,20 @@
 }
 
 .detailItem {
-  font-family: 'Geist', sans-serif;
+  background: var(--cloud);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--peach);
+  padding: 4px 12px;
+  color: var(--maroon);
   font-size: 14px;
-  color: #999;
-  background: transparent;
-  padding: 0;
+  font-family: var(--font-family-title), sans-serif;
+  font-weight: 500;
+  text-transform: capitalize;
+  line-height: 15.4px;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .skills {
@@ -108,13 +130,13 @@
 }
 
 .skillTag {
-  background: var(--peach);
-  border-radius: 7px;
+  background: var(--cloud);
+  border-radius: var(--radius-md);
   border: 1px solid var(--lavand);
   padding: 4px 12px;
-  color: var(--color-primary-blue);
+  color: var(--navy);
   font-size: 14px;
-  font-family: 'Anek Telugu', sans-serif;
+  font-family: var(--font-family-title), sans-serif;
   font-weight: 500;
   text-transform: capitalize;
   line-height: 15.4px;
@@ -135,33 +157,40 @@
 
 .viewButton {
   flex: 1;
-  background-color: var(--color-primary-blue);
-  color: white;
+  background-color: var(--navy);
+  color: var(--cloud);
   text-transform: uppercase;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-family-mono), monospace;
+  font-weight: 500;
 }
 .viewButton:hover {
-  background-color: #0A2A7A;
+  opacity: 0.9;
+  background-color: var(--navy);
 }
 
 .messageButton {
   flex: 1;
-  background-color: white;
-  color: var(--color-primary-blue);
-  border: 1px solid var(--color-primary-blue);
+  background-color: transparent;
+  color: var(--navy);
+  border: 1px solid var(--navy);
   text-transform: uppercase;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-family-mono), monospace;
+  font-weight: 500;
 }
 
 .messageButton:hover {
-  background-color: var(--color-background);
+  background-color: var(--cloud);
 }
 
 .favoriteButton {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid var(--color-primary-blue);
-  background: white;
-  color: var(--color-primary-blue);
+  border: 1px solid var(--navy);
+  background: transparent;
+  color: var(--navy);
   font-size: 20px;
   cursor: pointer;
   display: flex;
@@ -171,9 +200,18 @@
   flex-shrink: 0;
 }
 
+.favoriteButton:hover {
+  background-color: var(--cloud);
+}
+
 .favoriteButtonActive {
-  background: var(--color-primary-blue);
-  color: #F5F5FF;
+  background: var(--navy);
+  color: var(--cloud);
+}
+
+.favoriteButtonActive:hover {
+  background: var(--navy);
+  opacity: 0.9;
 }
 
 /* Планшеты (768px - 1024px) */
@@ -207,7 +245,7 @@
     font-size: 12px;
   }
 
-  .name {
+  .name .position {
     font-size: 18px;
     margin-top: 6px;
   }
@@ -245,7 +283,7 @@
     font-size: 11px;
   }
 
-  .name {
+  .name .position {
     font-size: 18px;
     margin-top: 6px;
   }
@@ -316,7 +354,7 @@
     font-size: 10px;
   }
 
-  .name {
+  .name .position {
     font-size: 16px;
     margin-top: 4px;
   }

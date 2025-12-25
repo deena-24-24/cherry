@@ -48,7 +48,6 @@ export const useVoiceCall = (
   useEffect(() => {
     // Когда аудио-сервис говорит "я всё", мы снимаем флаг говорения
     saluteFrontendService.setAudioEndListener(() => {
-      console.log('🔊 Audio playback ended, unlocking microphone')
       setIsAISpeaking(false)
     })
 
@@ -146,7 +145,6 @@ export const useVoiceCall = (
           !isRecording && 
           socketService.getConnectionState() === 'connected'
         ) {
-          console.log('🎤 Auto-starting microphone after AI finished speaking')
           startRecording()
         }
       }, 500) // 500ms задержка

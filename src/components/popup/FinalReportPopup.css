@@ -736,7 +736,7 @@
 }
 
 .frp-spinner-ring:nth-child(4) {
-    border-top-color: var(--maroon, #991b1b);
+    border-top-color: var(--maroon);
     width: 55%;
     height: 55%;
     top: 22.5%;

@@ -17,7 +17,6 @@ import { InterviewResultsPage } from '../pages/candidate/InterviewResultsPage'
 import { AiChatPage } from '../pages/candidate/AiChatPage'
 import { ChatPage } from '../pages/common/ChatPage'
 import { HrProfilePage } from '../pages/hr/HrProfilePage'
-import { HrDashboardPage } from '../pages/hr/HrDashboardPage'
 import { HrCandidatesPage } from '../pages/hr/HrCandidatesPage'
 
 // Stores
@@ -31,11 +30,8 @@ export const AppRouter: React.FC = () => {
   const { login } = useAuthStore()
 
   const handleLogin = (userData: { user: User; token: string }) => {
-    console.log('handleLogin called with:', userData)
     if (userData && userData.user && userData.token) {
-      console.log('Calling login with user:', userData.user, 'token:', userData.token)
       login(userData.user, userData.token)
-      console.log('Login completed')
     } else {
       console.error('Invalid userData:', userData)
     }
@@ -43,8 +39,6 @@ export const AppRouter: React.FC = () => {
 
   return (
     <>
-      {/*<Header /> - убрала в MainLayout*/}
-
       <main className="min-h-screen">
         <Routes>
           <Route element={<MainLayout />}>
@@ -106,14 +100,6 @@ export const AppRouter: React.FC = () => {
             />
 
             {/* HR Routes */}
-            <Route
-              path={ROUTES.HR_DASHBOARD}
-              element={
-                <ProtectedRoute>
-                  <HrDashboardPage />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path={ROUTES.HR_PROFILE}
               element={

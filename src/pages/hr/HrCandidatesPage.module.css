@@ -1,5 +1,5 @@
 .page {
-  padding: 0 20px 60px;
+  padding: 40px 20px 80px;
   background: var(--color-background);
   min-height: calc(100vh - var(--header-height) - var(--footer-height));
   margin-top: var(--header-height);
@@ -7,51 +7,62 @@
 
 .titleContainer {
   max-width: 1200px;
-  margin: 0 auto var(--spacing-4xl);
+  margin: 0 auto 30px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  padding-bottom: 16px;
-  border-bottom: 3px solid var(--lavand);
+  justify-content: center;
+  position: relative;
 }
 
+/* Стиль заголовка как на странице профиля */
 .title {
-  color: var(--color-primary-blue);
-  font-size: var(--font-size-3xl);
+  color: var(--navy);
+  font-size: 42px;
   font-family: var(--font-family-title), sans-serif;
-  font-weight: 600;
+  font-weight: 800;
   text-transform: uppercase;
+  text-align: center;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--navy), var(--maroon));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
 }
 
 .filterToggle {
   display: none;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  background: var(--color-primary-blue);
-  color: white;
+  padding: 10px 20px;
+  background: var(--navy);
+  color: var(--cloud);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'Anek Telugu', sans-serif;
-  transition: background 0.2s;
+  font-family: var(--font-family-sans), sans-serif;
+  transition: opacity 0.2s, transform 0.2s;
+  margin-top: 15px;
+  text-transform: uppercase;
 }
 
 .filterToggle:hover {
-  background: #0A2A7A;
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 /* Показываем кнопку фильтров только на мобильных */
 @media (min-width: 769px) {
   .filterToggle {
-    display: none !important;
+    display: none;
   }
 
   .filterContainer {
-    max-height: none !important;
-    opacity: 1 !important;
+    max-height: none;
+    opacity: 1;
   }
 }
 
@@ -59,7 +70,7 @@
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  gap: 40px;
+  gap: 30px;
   align-items: flex-start;
 }
 
@@ -67,7 +78,7 @@
   width: 280px;
   flex-shrink: 0;
   position: sticky;
-  top: 100px;
+  top: 100px; /* Отступ сверху при прокрутке */
   transition: all 0.3s ease;
 }
 
@@ -82,34 +93,35 @@
 /* Планшеты (768px - 1024px) */
 @media (max-width: 1024px) {
   .container {
-    gap: 30px;
+    gap: 20px;
   }
 
   .filterContainer {
     width: 240px;
     top: 90px;
   }
+
+  .title {
+    font-size: 36px;
+  }
 }
 
 /* Мобильные устройства (до 768px) */
 @media (max-width: 768px) {
   .page {
-    padding: 0 16px 40px;
+    padding: 20px 16px 40px;
   }
 
   .titleContainer {
     margin-bottom: 20px;
-    padding-bottom: 12px;
-    margin-top: 20px;
   }
 
   .title {
-    font-size: 24px;
+    font-size: 28px;
   }
 
   .filterToggle {
     display: flex;
-    margin-top: 8px;
   }
 
   .container {
@@ -142,23 +154,16 @@
 /* Маленькие мобильные (до 480px) */
 @media (max-width: 480px) {
   .page {
-    padding: 0 12px 30px;
-  }
-
-  .titleContainer {
-    margin-bottom: 16px;
-    padding-bottom: 10px;
-    margin-top: 16px;
+    padding: 20px 12px 30px;
   }
 
   .title {
-    font-size: 20px;
+    font-size: 24px;
   }
 
   .filterToggle {
-    padding: 6px 12px;
-    font-size: 12px;
-    margin-top: 6px;
+    width: 100%;
+    justify-content: center;
   }
 
   .container {
@@ -174,15 +179,18 @@
   text-align: center;
   padding: 60px 0;
   font-size: 20px;
-  color: var(--color-primary-blue);
+  color: var(--navy);
   width: 100%;
+  font-family: var(--font-family-mono), serif;
 }
 
 .emptyState {
   text-align: center;
   padding: 60px 20px;
-  color: #999;
-  background: #F5F5FF;
-  border-radius: 15px;
-  border: 1px solid var(--color-primary-blue);
+  background: var(--color-background);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--lavand);
+  color: var(--navy);
+  font-family: var(--font-family-sans), serif;
+  font-size: 18px;
 }

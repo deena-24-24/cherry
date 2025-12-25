@@ -1,50 +1,54 @@
 .filter {
   width: 280px;
   min-height: 349px;
-  background: #F5F5FF;
-  border-radius: 15px;
+  background: var(--ui-bg-card);
+  border-radius: var(--radius-xl);
   border: 1px solid var(--lavand);
-  padding: 20px;
+  padding: 24px;
   position: relative;
   flex-shrink: 0;
+  box-shadow: var(--shadow-card);
 }
 
 .filterTitle {
-  color: var(--color-primary-blue);
+  color: var(--navy);
   font-size: 16px;
-  font-family: 'Anek Telugu', sans-serif;
-  font-weight: 600;
+  font-family: var(--font-family-title), sans-serif;
+  font-weight: 700;
   text-transform: uppercase;
   line-height: 17.6px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--lavand);
+  padding-bottom: 10px;
 }
 
 .filterGroup {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .filterLabel {
   display: block;
   margin-bottom: 8px;
-  color: var(--color-primary-blue);
+  color: var(--navy);
   font-size: 14px;
-  font-family: 'Anek Telugu', sans-serif;
+  font-family: var(--font-family-title), sans-serif;
   font-weight: 600;
-  text-transform: capitalize;
+  text-transform: uppercase;
   line-height: 15.4px;
 }
 
 .filterInput,
 .filterSelect {
   width: 100%;
-  height: 36px;
-  background: white;
-  border-radius: 8px;
+  height: 40px;
+  background: var(--ui-bg-input);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--lavand);
-  padding: 0 10px;
+  padding: 0 12px;
   color: var(--color-primary-blue);
   font-size: 14px;
-  font-family: 'Geist', sans-serif;
+  font-family: var(--font-family-sans), sans-serif;
   box-sizing: border-box;
   transition: all 0.2s;
 }
@@ -52,8 +56,12 @@
 .filterInput:focus,
 .filterSelect:focus {
   outline: none;
-  border-color: var(--color-primary-blue);
-  box-shadow: 0 0 0 2px rgba(8, 32, 96, 0.1);
+  border-color: var(--navy);
+  box-shadow: var(--shadow-focus);
+}
+
+.filterInput::placeholder {
+  color: var(--lavand);
 }
 
 .skillsInputContainer {
@@ -62,95 +70,100 @@
 }
 
 .addSkillButton {
-  width: 36px;
-  height: 36px;
-  background: var(--cloud);
-  border-radius: 7px;
-  border: 1px solid var(--lavand);
-  color: var(--color-primary-blue);
+  width: 40px;
+  height: 40px;
+  background: var(--navy);
+  border-radius: var(--radius-lg);
+  border: none;
+  color: var(--cloud);
   font-size: 20px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: opacity 0.2s;
+}
+
+.addSkillButton:hover {
+  opacity: 0.9;
 }
 
 .skillsList {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .skillChip {
-  background: var(--cloud);
-  border-radius: 7px;
-  border: 1px solid var(--lavand);
-  padding: 4px 8px;
-  color: var(--color-primary-blue);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--peach);
+  padding: 6px 10px;
+  color: var(--navy);
   font-size: 12px;
+  font-family: var(--font-family-mono), monospace;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .removeSkillButton {
   background: none;
   border: none;
-  color: var(--color-primary-blue);
-  font-size: 18px;
+  color: var(--maroon);
+  font-size: 16px;
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  display: flex;
+  align-items: center;
 }
 
 .sortSection {
   margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--lavand);
 }
 
 .sortTitle {
-  color: var(--color-primary-blue);
-  font-size: 16px;
-  font-family: 'Anek Telugu', sans-serif;
+  color: var(--navy);
+  font-size: 14px;
+  font-family: var(--font-family-title), sans-serif;
   font-weight: 600;
   text-transform: uppercase;
-  line-height: 17.6px;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .radioLabel {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   color: var(--color-primary-blue);
   font-size: 14px;
-  font-family: 'Anek Telugu', sans-serif;
-  font-weight: 600;
-  text-transform: capitalize;
-  line-height: 15.4px;
+  font-family: var(--font-family-sans), sans-serif;
+  font-weight: 500;
   cursor: pointer;
 }
 
 .radioInput {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  border: 1px solid var(--color-primary-blue);
+  border: 1px solid var(--navy);
   background: white;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   position: relative;
-  accent-color: var(--color-primary-blue);
 }
 
 .radioInput:checked {
-  background: var(--color-primary-blue);
-  border-color: var(--color-primary-blue);
+  background: var(--navy);
+  border-color: var(--navy);
 }
 
 .radioInput:checked::before {
@@ -159,8 +172,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: white;
 }
@@ -169,7 +182,7 @@
 @media (max-width: 1024px) {
   .filter {
     width: 100%;
-    padding: 18px;
+    padding: 20px;
   }
 
   .filterTitle {
@@ -177,7 +190,7 @@
   }
 
   .filterGroup {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
   }
 }
 
@@ -192,7 +205,7 @@
 
   .filterTitle {
     font-size: 14px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
   .filterGroup {
@@ -239,7 +252,7 @@
 
   .filterTitle {
     font-size: 13px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
 
   .filterGroup {
@@ -266,7 +279,7 @@
 
   .skillChip {
     font-size: 11px;
-    padding: 3px 6px;
+    padding: 4px 8px;
   }
 
   .sortSection {
@@ -284,7 +297,7 @@
   }
 
   .radioInput {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 }

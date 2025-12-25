@@ -141,7 +141,6 @@ const updateProfile = async (req, res) => {
       role: user.role
     };
 
-    console.log('Профиль обновлен:', profileData);
     res.json({ message: 'Профиль обновлен', profile: profileData });
   } catch (error) {
     console.error('Error updating profile:', error);

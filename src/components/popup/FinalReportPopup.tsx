@@ -21,14 +21,7 @@ export const FinalReportPopup: React.FC<FinalReportPopupProps> = ({
   isLoading = false
 }) => {
   // Убрали избыточное логирование - логи только при первой отрисовке
-  React.useEffect(() => {
-    if (report) {
-      console.log('🎪 FinalReportPopup mounted with report:', {
-        hasReport: !!report,
-        completionReason
-      })
-    }
-  }, [report, completionReason]) // Только при изменении отчета
+  React.useEffect(() => {}, [report, completionReason]) // Только при изменении отчета
 
   // Если идет загрузка, показываем лоадер
   if (isLoading || !report) {

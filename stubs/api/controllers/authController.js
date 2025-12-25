@@ -39,9 +39,6 @@ const registerCandidate = async (req, res) => {
 
     // 3. "Сохраняем" пользователя, добавляя его в массив
     users.push(newUser);
-    console.log('Новый кандидат зарегистрирован:', newUser);
-    console.log('Всего пользователей:', users.length);
-
 
     // 4. Генерируем токен и отправляем ответ
     const token = generateToken(newUser._id, newUser.role);
@@ -90,9 +87,6 @@ const registerHr = async (req, res) => {
     };
 
     users.push(newUser);
-    console.log('Новый HR зарегистрирован:', newUser);
-    console.log('Всего пользователей:', users.length);
-
 
     const token = generateToken(newUser._id, newUser.role);
     res.status(201).json({
@@ -133,7 +127,6 @@ const login = async (req, res) => {
 
     // 3. Генерируем токен и отправляем ответ
     const token = generateToken(user._id, user.role);
-    console.log('Пользователь вошел в систему:', user.email);
     
     // Возвращаем все актуальные данные пользователя из mockDB
     res.json({

@@ -39,9 +39,6 @@ const recognize = async (req, res) => {
   try {
     const audioData = req.body;
 
-    // Логируем размер входящих данных
-    console.log(`📥 Controller received audio data size: ${audioData ? audioData.length : 0} bytes`);
-
     if (!audioData || audioData.length === 0) {
       console.error('❌ Audio data is empty in controller');
       return res.status(400).json({ message: 'Audio data is required' });

@@ -104,6 +104,19 @@
     color: var(--lavand);
 }
 
+.burgerButton {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--color-primary-blue);
+    cursor: pointer;
+    margin-right: 10px;
+    padding: 5px;
+    align-items: center;
+    justify-content: center;
+}
+
 @media (max-width: 768px) {
     .hr-chat-layout {
         margin: var(--header-height) 0 0 0;
@@ -136,5 +149,9 @@
 
     .messages-list {
         padding: 1rem;
+    }
+
+    .burgerButton {
+        display: flex;
     }
 }

@@ -8,12 +8,27 @@ const getCandidates = async (req, res) => {
     // Берем все резюме
     const allResumes = mockDB.resumes;
 
-    // Обогащаем данными пользователя и рейтингом
     const enrichedCandidates = allResumes.map(resume => {
       const user = mockDB.users.find(u => u._id === resume.userId);
       
       // Вычисляем рейтинг (средний балл из интервью)
-      const candidateSessions = mockDB.sessions.filter(s => s.candidateId === resume.userId);
+      const candidateSessions = mockDB.sessions.filter(s => {
+        if (s.candidateId !== resume.userId) return false;
+        // 2. Проверка на соответствие позиции
+        const sessionPos = (s.position || '').toLowerCase().trim();
+        const resumePos = (resume.position || '').toLowerCase().trim();
+        const resumeTitle = (resume.title || '').toLowerCase().trim();
+
+        // Если в сессии или резюме не указана позиция, пропускаем
+        if (!sessionPos) return false;
+
+        // Логика совпадения: содержится ли название позиции сессии в названии резюме или наоборот
+        // Например: session="frontend", resume="Frontend Developer" -> true
+        return resumePos.includes(sessionPos) ||
+          resumeTitle.includes(sessionPos) ||
+          sessionPos.includes(resumePos);
+      });
+
       const sessionsWithScore = candidateSessions.filter(s =>
         typeof s.finalReport?.overall_assessment?.final_score === 'number'
       );

@@ -29,8 +29,6 @@ class ChatAgentService {
     this.isInitializing = true;
 
     try {
-      console.log("⚙️ Starting AI Agent Initialization...");
-
       // 1. Получаем модель
       // Убедитесь, что GIGA_AUTH корректен в .env
       // Используем общий sessionId для агента (можно улучшить, передавая sessionId извне)
@@ -87,8 +85,6 @@ class ChatAgentService {
         handleParsingErrors: true, // Позволяет агенту исправлять ошибки вызова инструментов
         maxIterations: 5, // Защита от бесконечных циклов
       });
-
-      console.log("🤖 Chat Agent Successfully Initialized with Tools");
     } catch (error) {
       console.error("❌ Agent Initialization Failed:", error);
       this.agentExecutor = null; // Сбрасываем, чтобы попробовать снова при запросе
@@ -120,8 +116,6 @@ class ChatAgentService {
         historyMessagesKey: "chat_history",
       });
 
-      console.log(`🏃‍♂️ Agent running for session: ${sessionId}`);
-
       const result = await agentWithHistory.invoke(
         { input: message },
         { configurable: { sessionId } }
@@ -142,7 +136,6 @@ class ChatAgentService {
    */
   async fallbackSimpleChat(sessionId, message) {
     try {
-      console.log("🔄 Fallback: Executing simple LLM request...");
       const llm = getModel({ provider: 'gigachat', streaming: false });
 
       const history = getMessageHistoryForSession(sessionId);

@@ -4,6 +4,7 @@ import { fetchFavorites, removeFromFavorites } from '../../../service/api/candid
 import { CandidateCard } from '../../candidatesPage/CandidateCard/CandidateCard'
 import { ResumeModal } from '../../candidatesPage/ResumeModal/ResumeModal'
 import * as styles from './FavoritesContent.module.css'
+import { SmallLoader } from '../../ui/Loader/SmallLoader'
 
 export const FavoritesContent: React.FC = () => {
   const [favorites, setFavorites] = useState<CandidateData[]>([])
@@ -39,7 +40,7 @@ export const FavoritesContent: React.FC = () => {
   }
 
   if (loading) {
-    return <div className={styles["loading"]}>Загрузка избранных кандидатов...</div>
+    return <SmallLoader />
   }
 
   if (favorites.length === 0) {

@@ -158,8 +158,6 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
         data = await authService.registerUser(requestData, userType)
       }
 
-      console.log('Auth response:', data)
-
       if (data && data.user && data.token) {
         if (activeTab === 'register') {
           const userWithFormData = {
