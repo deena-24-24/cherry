@@ -1,6 +1,6 @@
 {
     "name": "cherry",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "main": "./src/index.tsx",
     "scripts": {
         "test": "exit 0",

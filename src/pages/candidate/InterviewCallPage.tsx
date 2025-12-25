@@ -467,7 +467,7 @@ export const InterviewCallPage: React.FC = () => {
             <header className={styles['header']}>
               <span className={styles['status']}>
                 <i className={isConnected ? styles['online'] : styles['offline']} />
-                {isConnected ? <div className={styles['connection']}><div className={styles['dot']}></div>Подключено</div> : 'Нет подключения'}
+                {isConnected ? <div className={styles['connection']}>Подключено</div> : 'Нет подключения'}
               </span>
               {!isInterviewEnded && (isAISpeaking || isAIThinking) && (
                 <span className={styles['aiLive']}>

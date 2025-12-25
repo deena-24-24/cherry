@@ -37,7 +37,7 @@ export const Footer: React.FC = () => {
                     HR-Чат
                   </NavLink>
                   <NavLink to={ROUTES.RESUME} className={styles["link"]}>
-                  Профиль
+                    Профиль
                   </NavLink>
                 </div>
               ) : (

@@ -9,6 +9,13 @@ export class SaluteFrontendService {
   // Коллбэк, который вызывается, когда всё аудио доиграло
   private onPlaybackEnded: (() => void) | null = null
 
+  private currentVoice: string | null = null
+
+  // Метод для установки голоса
+  setVoice(voice: string) {
+    this.currentVoice = voice
+  }
+
   // Метод для регистрации слушателя
   setAudioEndListener(callback: () => void) {
     this.onPlaybackEnded = callback
@@ -66,7 +73,10 @@ export class SaluteFrontendService {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({
+          text,
+          voice: this.currentVoice
+        })
       })
 
       if (!response.ok) {

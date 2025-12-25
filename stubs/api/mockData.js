@@ -19,7 +19,7 @@ const mockDB = {
       firstName: 'Отдел',
       lastName: 'Кадров',
       companyName: 'Компания',
-      avatarUrl: 'https://i.pravatar.cc/150?img=1'
+      avatarUrl: 'https://i.pravatar.cc/150?img=4'
     },
     {
       _id: 'user_3',

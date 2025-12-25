@@ -72,13 +72,6 @@
     border-radius: 50%;
 }
 
-.dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #4cff4c;
-}
-
 @media (max-width: 640px) {
     .header-right {
         flex-direction: column;

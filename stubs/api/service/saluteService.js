@@ -58,9 +58,11 @@ class SaluteService {
     }
   }
 
-  async synthesize(text) {
+  async synthesize(text, voice = null) {
     const token = await this.getToken();
     const rquid = uuidv4();
+
+    const targetVoice = voice || 'Pon_24000';
 
     try {
       const response = await axios.post(
@@ -74,7 +76,7 @@ class SaluteService {
           },
           params: {
             format: 'opus',
-            voice: 'Pon_24000',
+            voice: targetVoice,
           },
           responseType: 'arraybuffer',
           httpsAgent

@@ -2,12 +2,12 @@ const saluteService = require('../service/saluteService');
 
 const synthesize = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, voice } = req.body;
     if (!text) {
       return res.status(400).json({ message: 'Text is required' });
     }
 
-    const audioBuffer = await saluteService.synthesize(text);
+    const audioBuffer = await saluteService.synthesize(text, voice);
 
     res.set({
       'Content-Type': 'audio/ogg; codecs=opus',

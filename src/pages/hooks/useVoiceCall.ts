@@ -3,6 +3,13 @@ import { saluteFrontendService } from '../../service/api/saluteFrontendService'
 import { interviewService } from '../../service/api/interviewService'
 import { socketService } from '../../service/realtime/socketService'
 
+const AVAILABLE_VOICES = [
+  'Nec_24000', 'Bys_24000',
+  'Tur_24000', 'Ost_24000',
+  'Pon_24000', 'Bin_24000',
+  'May_24000'
+]
+
 interface UseVoiceCallReturn {
   isRecording: boolean
   isAIThinking: boolean
@@ -35,6 +42,15 @@ export const useVoiceCall = (
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
   const audioChunksRef = useRef<Float32Array[]>([])
   const isCodeTaskActiveRef = useRef(isCodeTaskActive)
+
+  // Выбираем случайный голос один раз при инициализации хука
+  useEffect(() => {
+    const randomVoice = AVAILABLE_VOICES[Math.floor(Math.random() * AVAILABLE_VOICES.length)]
+    // Устанавливаем его в сервис
+    saluteFrontendService.setVoice(randomVoice)
+
+    console.log(`🎤 Выбран голос собеседника: ${randomVoice}`)
+  }, [])
 
   useEffect(() => {
     isCodeTaskActiveRef.current = isCodeTaskActive
