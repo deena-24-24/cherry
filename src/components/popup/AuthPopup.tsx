@@ -1,9 +1,9 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-import { Button } from '../ui/Button'
+import { Button } from '../ui/Button/Button'
 import { type User } from '../../types'
-import * as authService from '../../service/auth/authService'
+import * as authService from '../../service/api/authService'
 import * as styles from './AuthPopup.module.css'
 
 interface FormData {
@@ -14,7 +14,6 @@ interface FormData {
   lastName: string
   phone: string
   companyName: string
-  position: string
 }
 
 interface Errors {
@@ -59,8 +58,7 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
     firstName: '',
     lastName: '',
     phone: '',
-    companyName: '',
-    position: ''
+    companyName: ''
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Errors>({})
@@ -73,8 +71,7 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
       firstName: '',
       lastName: '',
       phone: '',
-      companyName: '',
-      position: ''
+      companyName: ''
     })
     setErrors({})
   }
@@ -111,7 +108,7 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
 
     if (activeTab === 'register') {
       if (!formData.confirmPassword) {
-        newErrors.confirmPassword = 'Подтверждение пароля обязательно'
+        newErrors.confirmPassword = 'Подтверждение обязательно'
       } else if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Пароли не совпадают'
       }
@@ -156,23 +153,17 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
               companyName: formData.companyName,
               firstName: formData.firstName,
               lastName: formData.lastName,
-              phone: formData.phone,
-              position: formData.position
+              phone: formData.phone
             }
         data = await authService.registerUser(requestData, userType)
       }
-      
-      console.log('Auth response:', data)
-      
+
       if (data && data.user && data.token) {
-        // Добавляем данные из формы регистрации в объект user
         if (activeTab === 'register') {
           const userWithFormData = {
             ...data.user,
             phone: formData.phone || data.user.phone || '',
-            ...(userType === 'hr' && {
-              position: formData.position || data.user.position || ''
-            })
+            ...(userType === 'hr' && {})
           }
           onLogin({ ...data, user: userWithFormData })
         } else {
@@ -215,12 +206,12 @@ const AuthPopup: React.FC<AuthPopupProps> = ({ isOpen, onClose, onLogin }) => {
           className={styles['authRoutes-popup']}
           onClick={(e) => e.stopPropagation()}
         >
-          <Button
+          <button
             className={styles['authRoutes-popup-close']}
             onClick={handleClose}
           >
             &times;
-          </Button>
+          </button>
           <div className={styles['authRoutes-popup-header']}>
             <h2>{activeTab === 'login' ? 'Вход в аккаунт' : 'Регистрация'}</h2>
           </div>
@@ -294,8 +285,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ formData, errors, loading, onInpu
 
     <Button
       type="submit"
-      className={styles['authRoutes-submit-btn']}
       disabled={loading}
+      styleProps={{ width: '100%', textColor: '#fffcf5' }}
     >
       {loading ? 'Вход...' : 'Войти'}
     </Button>
@@ -305,17 +296,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ formData, errors, loading, onInpu
       <div className={styles['register-buttons']}>
         <Button
           type="button"
-          className={styles['register-option-btn']}
+          variant="secondary"
           onClick={() => onSwitchToRegister('candidate')}
+          styleProps={{ width: '100%', borderColor: 'transparent' }}
         >
           Я соискатель
         </Button>
         <Button
           type="button"
-          className={styles['register-option-btn']}
+          variant="secondary"
           onClick={() => onSwitchToRegister('hr')}
+          styleProps={{ width: '100%', borderColor: 'transparent' }}
         >
-          Я HR
+          Я HR-агент
         </Button>
       </div>
     </div>
@@ -327,21 +320,25 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType, formData, errors,
     <div className={styles['user-type-selector']}>
       <Button
         type="button"
+        variant="secondary"
         className={`${styles['user-type-btn']} ${
           userType === 'candidate' ? styles['active'] : ''
         }`}
         onClick={() => onUserTypeChange('candidate')}
+        styleProps={{ width: '100%' }}
       >
         👤 Соискатель
       </Button>
       <Button
         type="button"
+        variant="secondary"
         className={`${styles['user-type-btn']} ${
           userType === 'hr' ? styles['active'] : ''
         }`}
         onClick={() => onUserTypeChange('hr')}
+        styleProps={{ width: '100%' }}
       >
-        💼 HR специалист
+        💼 HR-агент
       </Button>
     </div>
 
@@ -413,23 +410,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType, formData, errors,
             <span className={styles['error-text']}>{errors.companyName}</span>
           )}
         </div>
-
-        <div className={styles['form-group']}>
-          <label htmlFor="reg-position">Должность</label>
-          <input
-            id="reg-position"
-            type="text"
-            name="position"
-            value={formData.position}
-            onChange={onInputChange}
-            placeholder="HR менеджер"
-          />
-        </div>
       </>
     )}
 
     <div className={styles['form-group']}>
-      <label htmlFor="reg-phone">Телефон (необязательно)</label>
+      <label htmlFor="reg-phone">Телефон</label>
       <input
         id="reg-phone"
         type="tel"
@@ -482,8 +467,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType, formData, errors,
 
     <Button
       type="submit"
-      className={styles['authRoutes-submit-btn']}
       disabled={loading}
+      styleProps={{ width: '100%', textColor: '#fffcf5' }}
     >
       {loading ? 'Регистрация...' : 'Зарегистрироваться'}
     </Button>
@@ -491,13 +476,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ userType, formData, errors,
     <div className={styles['authRoutes-switch']}>
       <p>
         Уже есть аккаунт?{' '}
-        <Button
+        <button
           type="button"
           className={styles['switch-link']}
           onClick={onSwitchToLogin}
         >
           Войти
-        </Button>
+        </button>
       </p>
     </div>
   </form>

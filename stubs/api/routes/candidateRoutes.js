@@ -1,36 +1,18 @@
-// routes/candidateRoutes.js
 const express = require('express');
 const router = express.Router();
 const { auth, requireRole } = require('../middleware/authMiddleware');
+const resumeController = require('../controllers/resumeController');
+const { getProfile, updateProfile } = require('../controllers/profileController');
 
 // Получение профиля кандидата
-router.get('/profile', auth, requireRole(['candidate']), async (req, res) => {
-  try {
-    const profile = await CandidateRoutes.findOne({ user: req.user._id });
-    res.json(profile);
-  } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+router.get('/profile', auth, requireRole(['candidate']), getProfile);
 
 // Обновление профиля кандидата
-router.put('/profile', auth, requireRole(['candidate']), async (req, res) => {
-  try {
-    const profile = await CandidateRoutes.findOneAndUpdate(
-      { user: req.user._id },
-      { $set: req.body },
-      { new: true }
-    );
+router.put('/profile', auth, requireRole(['candidate']), updateProfile);
 
-    // Помечаем профиль как завершенный
-    if (!req.user.profileCompleted) {
-      await User.findByIdAndUpdate(req.user._id, { profileCompleted: true });
-    }
-
-    res.json({ message: 'Профиль обновлен', profile });
-  } catch (error) {
-    res.status(500).json({ message: 'Ошибка сервера', error: error.message });
-  }
-});
+router.get('/resumes', auth, requireRole(['candidate']), resumeController.getMyResumes);
+router.post('/resumes', auth, requireRole(['candidate']), resumeController.createResume);
+router.put('/resumes/:id', auth, requireRole(['candidate']), resumeController.updateResume);
+router.delete('/resumes/:id', auth, requireRole(['candidate']), resumeController.deleteResume);
 
 module.exports = router;

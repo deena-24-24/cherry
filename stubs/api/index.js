@@ -1,20 +1,29 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
 const codeRoutes = require('./routes/codeRoutes');
-const interviewAI = require('./service/interviewAI');
+const aiChatRoutes = require('./routes/aiChatRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const candidateRoutes = require('./routes/candidateRoutes');
 const hrRoutes = require('./routes/hrRoutes');
+const saluteRoutes = require('./routes/saluteRoutes');
 
-// Создаем экземпляр приложения Express
+// Импорт контроллера сокетов
+const initializeSocket = require('./controllers/socketController');
+// Импорт утилиты очистки (если нужна)
+const { cleanupOldSessions } = require('./utils/sessionCleanup');
+
 const app = express();
 const server = createServer(app);
+
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:8099';
+
+// Настройка Socket.io
 const io = new Server(server, {
   cors: {
     origin: FRONTEND_ORIGIN,
@@ -22,57 +31,34 @@ const io = new Server(server, {
   }
 });
 
+// Middleware
 app.use(cors({ origin: FRONTEND_ORIGIN }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
-// --- ОСНОВНЫЕ МАРШРУТЫ ПРИЛОЖЕНИЯ ---
+// Маршруты API
 app.use('/api/auth', authRoutes);
 app.use('/api/interview', interviewRoutes);
 app.use('/api/code', codeRoutes);
+app.use('/api/ai_chat', aiChatRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/candidate', candidateRoutes);
 app.use('/api/hr', hrRoutes);
+app.use('/api/salute', saluteRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Сервер CareerUp успешно запущен!');
+  res.send('CareerUp Backend is running');
 });
 
-// --- WebSocket ДЛЯ ИНТЕРВЬЮ ---
-io.on('connection', (socket) => {
-  console.log('User connected via WebSocket:', socket.id);
+// Инициализация логики сокетов
+initializeSocket(io);
 
-  socket.on('join-interview', (sessionId) => {
-    socket.join(sessionId);
-    console.log(`User ${socket.id} joined interview session ${sessionId}`);
-  });
+// Запуск задач по расписанию
+if (cleanupOldSessions) {
+  // setInterval(cleanupOldSessions, 6 * 60 * 60 * 1000);
+}
 
-  socket.on('user-transcript', async (data) => {
-    try {
-      const { sessionId, text, position } = data;
-      console.log(`Received transcript for session ${sessionId}: "${text}" (Position: ${position})`);
-
-      const responseText = await interviewAI.getAIResponse(text, position);
-
-      io.to(sessionId).emit('ai-audio-response', {
-        text: responseText,
-        timestamp: new Date().toISOString()
-      });
-
-    } catch (error) {
-      console.error('Error processing transcript:', error);
-      socket.emit('error', { message: 'Transcript processing failed' });
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-});
-
-// --- ЗАПУСК СЕРВЕРА ---
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
-  console.log(`🔊 WebSocket для интервью доступен на ws://localhost:${PORT}`);
 });
 
 module.exports = app;

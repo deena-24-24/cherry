@@ -12,17 +12,25 @@ export interface Education {
 }
 
 export interface Resume {
-  id?: string
-  fullName: string
-  jobTitle: string
-  email: string
-  phone: string
-  photoUrl?: string
-  videoUrl?: string
+  id: string;
+  userId?: string;
+  title: string;
+  position: string;
 
-  experience: Experience[]
-  education: Education[]
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+  city?: string;
 
-  updatedAt?: string
-  createdAt?: string
+  skills: string[];
+  experience: Experience[];
+  education: Education[];
+  about?: string;
+
+  resumeFileName?: string;
+  resumeFileData?: string;
+  // Рейтинг из интервью (средний балл)
+  rating?: number | null;
 }

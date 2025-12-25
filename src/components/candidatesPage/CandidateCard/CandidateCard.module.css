@@ -1,0 +1,392 @@
+.card {
+  width: 100%;
+  min-height: auto;
+  background: var(--ui-bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--lavand);
+  padding: 24px;
+  margin-bottom: 20px;
+  position: relative;
+
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: var(--shadow-soft);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+  border-color: var(--navy);
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.avatarContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  align-self: flex-start;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: var(--cloud);
+  border: 1px solid var(--lavand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rating {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  padding: 8px 12px;
+  background: var(--navy);
+  border-radius: var(--radius-lg);
+  color: var(--cloud);
+  font-weight: 600;
+}
+
+.position {
+  font-family: var(--font-family-title), sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--maroon);
+  text-transform: uppercase;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+
+.ratingValue {
+  font-size: 20px;
+  font-family: var(--font-family-title), sans-serif;
+  line-height: 1;
+}
+
+.ratingMax {
+  font-size: 14px;
+  font-family: var(--font-family-sans), sans-serif;
+  opacity: 0.8;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarPlaceholder {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--lavand);
+}
+
+.name {
+  font-family: var(--font-family-title), sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detailItem {
+  background: var(--cloud);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--peach);
+  padding: 4px 12px;
+  color: var(--maroon);
+  font-size: 14px;
+  font-family: var(--font-family-title), sans-serif;
+  font-weight: 500;
+  text-transform: capitalize;
+  line-height: 15.4px;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skillTag {
+  background: var(--cloud);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--lavand);
+  padding: 4px 12px;
+  color: var(--navy);
+  font-size: 14px;
+  font-family: var(--font-family-title), sans-serif;
+  font-weight: 500;
+  text-transform: capitalize;
+  line-height: 15.4px;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.viewButton {
+  flex: 1;
+  background-color: var(--navy);
+  color: var(--cloud);
+  text-transform: uppercase;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-family-mono), monospace;
+  font-weight: 500;
+}
+.viewButton:hover {
+  opacity: 0.9;
+  background-color: var(--navy);
+}
+
+.messageButton {
+  flex: 1;
+  background-color: transparent;
+  color: var(--navy);
+  border: 1px solid var(--navy);
+  text-transform: uppercase;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-family-mono), monospace;
+  font-weight: 500;
+}
+
+.messageButton:hover {
+  background-color: var(--cloud);
+}
+
+.favoriteButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--navy);
+  background: transparent;
+  color: var(--navy);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.favoriteButton:hover {
+  background-color: var(--cloud);
+}
+
+.favoriteButtonActive {
+  background: var(--navy);
+  color: var(--cloud);
+}
+
+.favoriteButtonActive:hover {
+  background: var(--navy);
+  opacity: 0.9;
+}
+
+/* Планшеты (768px - 1024px) */
+@media (max-width: 1024px) {
+  .card {
+    padding: 20px;
+  }
+
+  .cardContent {
+    gap: 14px;
+  }
+
+  .avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .avatarPlaceholder {
+    font-size: 28px;
+  }
+
+  .rating {
+    padding: 6px 10px;
+  }
+
+  .ratingValue {
+    font-size: 18px;
+  }
+
+  .ratingMax {
+    font-size: 12px;
+  }
+
+  .name .position {
+    font-size: 18px;
+    margin-top: 6px;
+  }
+}
+
+/* Мобильные устройства (до 768px) */
+@media (max-width: 768px) {
+  .card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .cardContent {
+    gap: 14px;
+  }
+
+  .avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .avatarPlaceholder {
+    font-size: 24px;
+  }
+
+  .rating {
+    padding: 6px 10px;
+  }
+
+  .ratingValue {
+    font-size: 16px;
+  }
+
+  .ratingMax {
+    font-size: 11px;
+  }
+
+  .name .position {
+    font-size: 18px;
+    margin-top: 6px;
+  }
+
+  .details {
+    gap: 8px;
+  }
+
+  .detailItem {
+    font-size: 12px;
+  }
+
+  .skills {
+    gap: 6px;
+  }
+
+  .skillTag {
+    font-size: 12px;
+    padding: 3px 10px;
+    height: 26px;
+  }
+
+  .actions {
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .favoriteButton {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+}
+
+/* Маленькие мобильные (до 480px) */
+@media (max-width: 480px) {
+  .card {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .cardContent {
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .avatarPlaceholder {
+    font-size: 20px;
+  }
+
+  .avatarContainer {
+    gap: 8px;
+  }
+
+  .rating {
+    padding: 4px 8px;
+  }
+
+  .ratingValue {
+    font-size: 14px;
+  }
+
+  .ratingMax {
+    font-size: 10px;
+  }
+
+  .name .position {
+    font-size: 16px;
+    margin-top: 4px;
+  }
+
+  .details {
+    gap: 6px;
+  }
+
+  .detailItem {
+    font-size: 11px;
+  }
+
+  .skillTag {
+    font-size: 11px;
+    padding: 2px 8px;
+    height: 24px;
+  }
+
+  .actions {
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .viewButton,
+  .messageButton {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .favoriteButton {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+}

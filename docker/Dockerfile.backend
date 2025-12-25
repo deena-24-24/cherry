@@ -1,0 +1,30 @@
+# docker/Dockerfile.backend
+FROM node:18-alpine
+
+# Устанавливаем системные зависимости для выполнения кода
+RUN apk update && apk add --no-cache \
+    python3 \
+    py3-pip \
+    openjdk11 \
+    g++ \
+    make \
+    gcc
+
+# Устанавливаем TypeScript и ts-node глобально для выполнения кода
+RUN npm install -g typescript ts-node
+
+WORKDIR /app
+
+# Копируем ВЕСЬ проект (и фронтенд и бэкенд)
+COPY ../ ./
+
+# Устанавливаем все зависимости
+RUN npm install
+
+# Создаем директорию для временных файлов выполнения кода
+RUN mkdir -p /tmp/code-execution && chmod 777 /tmp/code-execution
+
+EXPOSE 5000
+
+# Запускаем бэкенд сервер через npm script
+CMD ["npm", "run", "server"]

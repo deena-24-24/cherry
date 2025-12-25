@@ -1,0 +1,75 @@
+:root {
+  /* Colors */
+  --color-primary-blue: #082060;
+  --color-primary-red: #6B2229;
+  --color-error: #ff4444;
+  --color-background: #F4F6FC;
+
+  --cloud: #fffcf5;
+  --lavand: #bac5e2;
+  --peach: #dfaea1;
+  --maroon: #95525b;
+  --navy: #36447c;
+
+  --ui-bg-card: #FFFFFF;
+  --ui-bg-input: #FFFFFF;
+  --ui-bg-input-hover: #FAFBFF;
+  --ui-border-subtle: var(--lavand);
+
+  /* Shadows */
+  --shadow-soft: 0 4px 20px rgba(8, 32, 96, 0.03);
+  --shadow-card: 0 10px 30px rgba(8, 32, 96, 0.06);
+  --shadow-focus: 0 0 0 4px rgba(54, 68, 124, 0.15);
+
+  /* Typography */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 28px;
+  --font-size-3xl: 36px;
+  --font-size-4xl: 64px;
+
+  --font-family-sans: 'Geist', sans-serif;
+  --font-family-mono: 'Geist Mono', monospace;
+  --font-family-title: 'Anek Telugu', sans-serif;
+
+  --line-height-sm: 22px;
+  --line-height-base: 26.4px;
+  --line-height-lg: 39.6px;
+  --line-height-xl: 70.4px;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 10px;
+  --spacing-lg: 17px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 23px;
+  --spacing-3xl: 30px;
+  --spacing-4xl: 40px;
+  --spacing-5xl: 60px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 7.25px;
+  --radius-lg: 8px;
+  --radius-xl: 15px;
+  --radius-full: 9999px;
+
+  /* Sizes */
+  --height-input: 48px;
+  --height-button: 50px;
+  --height-avatar: 236px;
+  --width-button: 201px;
+  --width-avatar: 236px;
+
+  /* Transitions */
+  --transition-base: all 0.2s;
+
+  /* Layout sizes */
+  --header-height: 80px;
+  --footer-height: 238px;
+}

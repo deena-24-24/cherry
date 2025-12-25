@@ -18,7 +18,7 @@ interface ChatListProps {
 
 export const ChatList: React.FC<ChatListProps> = ({ conversations, activeChatId, onSelectChat }) => {
   return (
-    <aside className={styles['chat-list-sidebar']}>
+    <aside className={styles['chat-list-sidebar']} data-hidden={!!activeChatId}>
       <header className={styles['sidebar-header']}>
         <h2>Все чаты</h2>
       </header>
@@ -26,7 +26,7 @@ export const ChatList: React.FC<ChatListProps> = ({ conversations, activeChatId,
         {conversations.map((convo) => (
           <div
             key={convo.id}
-            className={`${styles['chat-item']} ${convo.id === activeChatId ? styles.active : ''}`}
+            className={`${styles['chat-item']} ${convo.id === activeChatId ? styles['active'] : ''}`}
             onClick={() => onSelectChat(convo.id)}
           >
             <img src={convo.avatarUrl} alt={convo.partnerName} className={styles['avatar']} />

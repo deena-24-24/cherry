@@ -1,0 +1,303 @@
+.filter {
+  width: 280px;
+  min-height: 349px;
+  background: var(--ui-bg-card);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--lavand);
+  padding: 24px;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-card);
+}
+
+.filterTitle {
+  color: var(--navy);
+  font-size: 16px;
+  font-family: var(--font-family-title), sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 17.6px;
+  margin-bottom: 20px;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--lavand);
+  padding-bottom: 10px;
+}
+
+.filterGroup {
+  margin-bottom: 24px;
+}
+
+.filterLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--navy);
+  font-size: 14px;
+  font-family: var(--font-family-title), sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 15.4px;
+}
+
+.filterInput,
+.filterSelect {
+  width: 100%;
+  height: 40px;
+  background: var(--ui-bg-input);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--lavand);
+  padding: 0 12px;
+  color: var(--color-primary-blue);
+  font-size: 14px;
+  font-family: var(--font-family-sans), sans-serif;
+  box-sizing: border-box;
+  transition: all 0.2s;
+}
+
+.filterInput:focus,
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: var(--shadow-focus);
+}
+
+.filterInput::placeholder {
+  color: var(--lavand);
+}
+
+.skillsInputContainer {
+  display: flex;
+  gap: 8px;
+}
+
+.addSkillButton {
+  width: 40px;
+  height: 40px;
+  background: var(--navy);
+  border-radius: var(--radius-lg);
+  border: none;
+  color: var(--cloud);
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+}
+
+.addSkillButton:hover {
+  opacity: 0.9;
+}
+
+.skillsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.skillChip {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--peach);
+  padding: 6px 10px;
+  color: var(--navy);
+  font-size: 12px;
+  font-family: var(--font-family-mono), monospace;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.removeSkillButton {
+  background: none;
+  border: none;
+  color: var(--maroon);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.sortSection {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--lavand);
+}
+
+.sortTitle {
+  color: var(--navy);
+  font-size: 14px;
+  font-family: var(--font-family-title), sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: var(--color-primary-blue);
+  font-size: 14px;
+  font-family: var(--font-family-sans), sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.radioInput {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--navy);
+  background: white;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
+}
+
+.radioInput:checked {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+
+.radioInput:checked::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+}
+
+/* Планшеты (768px - 1024px) */
+@media (max-width: 1024px) {
+  .filter {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .filterTitle {
+    font-size: 15px;
+  }
+
+  .filterGroup {
+    margin-bottom: 20px;
+  }
+}
+
+/* Мобильные устройства (до 768px) */
+@media (max-width: 768px) {
+  .filter {
+    width: 100%;
+    min-height: auto;
+    padding: 16px;
+    position: static;
+  }
+
+  .filterTitle {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .filterGroup {
+    margin-bottom: 16px;
+  }
+
+  .filterLabel {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .filterInput,
+  .filterSelect {
+    height: 40px;
+    font-size: 14px;
+    padding: 0 12px;
+  }
+
+  .addSkillButton {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sortSection {
+    margin-top: 20px;
+  }
+
+  .sortTitle {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .radioLabel {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+}
+
+/* Маленькие мобильные (до 480px) */
+@media (max-width: 480px) {
+  .filter {
+    padding: 12px;
+  }
+
+  .filterTitle {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .filterGroup {
+    margin-bottom: 14px;
+  }
+
+  .filterLabel {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+
+  .filterInput,
+  .filterSelect {
+    height: 38px;
+    font-size: 13px;
+    padding: 0 10px;
+  }
+
+  .addSkillButton {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+  }
+
+  .skillChip {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .sortSection {
+    margin-top: 16px;
+  }
+
+  .sortTitle {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+
+  .radioLabel {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .radioInput {
+    width: 16px;
+    height: 16px;
+  }
+}

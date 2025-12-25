@@ -1,5 +1,5 @@
-import React from "react";
-import * as styles from "./Button.module.css";
+import React from "react"
+import * as styles from "./Button.module.css"
 
 export interface ButtonStyleProps {
   width?: string;
@@ -31,13 +31,13 @@ export const Button: React.FC<ButtonProps> = ({
   const getVariantClass = () => {
     switch (variant) {
       case 'primary':
-        return styles["buttonPrimary"];
+        return styles["buttonPrimary"]
       case 'secondary':
-        return styles["buttonSecondary"];
+        return styles["buttonSecondary"]
       default:
-        return '';
+        return ''
     }
-  };
+  }
 
   const inlineStyles: React.CSSProperties = styleProps ? {
     width: styleProps.width,
@@ -50,7 +50,7 @@ export const Button: React.FC<ButtonProps> = ({
     fontFamily: styleProps.fontFamily,
     padding: styleProps.padding,
     gap: styleProps.gap,
-  } : {};
+  } : {}
 
   return (
     <button
@@ -62,6 +62,6 @@ export const Button: React.FC<ButtonProps> = ({
         {children}
       </div>
     </button>
-  );
-};
+  )
+}
 

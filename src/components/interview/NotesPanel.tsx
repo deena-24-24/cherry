@@ -1,30 +1,47 @@
 import React from 'react'
+import { useParams } from 'react-router-dom'
 import { useInterviewStore } from '../../store'
-import { interviewService } from '../../service/interview/InterviewService'
+import { interviewService } from '../../service/api/interviewService'
+import * as styles from './NotesPanel.module.css'
 
 export const NotesPanel: React.FC = () => {
   const { notes, updateNotes, currentSession } = useInterviewStore()
+  const { sessionId } = useParams<{ sessionId: string }>()
 
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newNotes = e.target.value
     updateNotes(newNotes)
 
-    // Автосохранение заметок
-    if (currentSession) {
-      interviewService.saveNotes(currentSession.id, newNotes)
+    // Автосохранение заметок - используем sessionId из URL или из currentSession
+    const targetSessionId = sessionId || currentSession?.id
+    if (targetSessionId) {
+      interviewService.saveNotes(newNotes, targetSessionId).catch(err => {
+        // Тихая обработка ошибок - не засоряем консоль
+        console.warn('⚠️ Failed to auto-save notes:', err)
+      })
+    } else {
+      console.warn('⚠️ Cannot save notes: no session ID available', { 
+        sessionId,
+        currentSessionId: currentSession?.id 
+      })
     }
   }
 
   return (
-    <div className="notes-panel bg-gray-900 rounded-xl h-full flex flex-col border border-gray-800 overflow-hidden">
-      <div className="px-4 py-3 flex items-center justify-between bg-gray-900/60 border-b border-gray-800">
-        <h3 className="font-medium text-base">Заметки</h3>
-        <span className="text-[10px] text-gray-400 bg-gray-800 px-2 py-1 rounded">Автосохранение</span>
+    <div className={styles.notesPanel}>
+      <div className={styles.notesHeader}>
+        <h3 className={styles.notesTitle}>
+          <span className={styles.notesIcon}>📝</span>
+          Заметки
+        </h3>
+        <span className={styles.autosaveBadge}>
+          Автосохранение
+        </span>
       </div>
       <textarea
         value={notes}
         onChange={handleNotesChange}
-        className="flex-1 w-full bg-transparent p-4 text-white resize-none focus:outline-none placeholder:text-gray-500"
+        className={styles.notesTextarea}
         placeholder="Записывайте важные моменты, вопросы и оценки кандидата…"
       />
     </div>

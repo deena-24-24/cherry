@@ -1,0 +1,251 @@
+import React, { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { fetchCandidates, fetchFavorites, addToFavorites, removeFromFavorites } from '../../service/api/candidatesService'
+import { chatService } from '../../service/api/chatService'
+import { useChatStore } from '../../store/useChatStore'
+import { CandidateCard } from '../../components/candidatesPage/CandidateCard/CandidateCard'
+import { CandidatesFilter, FilterState } from '../../components/candidatesPage/CandidatesFilter/CandidatesFilter'
+import { ResumeModal } from '../../components/candidatesPage/ResumeModal/ResumeModal'
+import * as styles from './HrCandidatesPage.module.css'
+import { Resume } from '../../types/resume'
+import { ROUTES } from '../../router/routes'
+import { CandidateData } from '../../service/api/candidateService'
+import { Loader } from '../../components/ui/Loader/Loader'
+
+export const HrCandidatesContent: React.FC<{ showTitle?: boolean }> = ({ showTitle = false }) => {
+  const navigate = useNavigate()
+  const { fetchChatById } = useChatStore()
+  const [candidates, setCandidates] = useState<Resume[]>([])
+  const [favorites, setFavorites] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedCandidate, setSelectedCandidate] = useState<Resume | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
+
+  const [filters, setFilters] = useState<FilterState>({
+    position: '', city: '', experience: '', skills: [], sortBy: 'rating',
+  })
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true)
+        const [allCandidates, favData] = await Promise.all([ fetchCandidates(), fetchFavorites() ])
+        setCandidates(allCandidates as unknown as Resume[])
+        setFavorites(favData.map(f => f.userId || '').filter(Boolean))
+      } catch (error) { console.error(error) } finally { setLoading(false) }
+    }
+    loadData()
+  }, [])
+
+  // На десктопе фильтры всегда видны
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 769) {
+        setShowFilters(true)
+      }
+    }
+    
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+
+  // Вычисление стажа на основе периодов работы
+  const calculateExperienceYears = (experience: Array<{ period: string }> | undefined): number => {
+    if (!experience || experience.length === 0) {
+      return 0
+    }
+
+    let totalMonths = 0
+    const currentYear = new Date().getFullYear()
+    const currentMonth = new Date().getMonth() + 1
+
+    experience.forEach(exp => {
+      const period = exp.period.trim()
+      // Парсим форматы: "2020 - 2023", "2020 - настоящее время", "2020 - н.в." и т.д.
+      const match = period.match(/(\d{4})\s*[-–—]\s*(\d{4}|настоящее\s+время|н\.в\.|по\s+настоящее\s+время)/i)
+      
+      if (match) {
+        const startYear = parseInt(match[1], 10)
+        const endStr = match[2].toLowerCase()
+        
+        let endYear: number
+        let endMonth = 12 // По умолчанию конец года
+        
+        if (endStr.includes('настоящее') || endStr.includes('н.в.') || endStr.includes('по настоящее')) {
+          endYear = currentYear
+          endMonth = currentMonth
+        } else {
+          endYear = parseInt(match[2], 10)
+        }
+
+        if (!isNaN(startYear) && !isNaN(endYear) && endYear >= startYear) {
+          // Вычисляем количество месяцев: (endYear - startYear) * 12 + (endMonth - 1)
+          // Предполагаем, что работа началась в начале startYear (месяц 0)
+          const months = (endYear - startYear) * 12 + endMonth
+          totalMonths += Math.max(0, months)
+        }
+      } else {
+        // Пробуем парсить только год начала, если формат не распознан
+        const yearMatch = period.match(/\b(\d{4})\b/)
+        if (yearMatch) {
+          const startYear = parseInt(yearMatch[1], 10)
+          if (!isNaN(startYear) && startYear <= currentYear) {
+            // Если указан только год начала, считаем до текущего момента
+            const months = (currentYear - startYear) * 12 + currentMonth
+            totalMonths += Math.max(0, months)
+          }
+        }
+      }
+    })
+
+    // Округляем до лет (месяцы / 12)
+    return Math.floor(totalMonths / 12)
+  }
+
+  // Фильтрация
+  const filteredCandidates = useMemo(() => {
+    let result = [...candidates]
+
+    if (filters.position) {
+      result = result.filter(c =>
+        c.position?.toLowerCase().includes(filters.position.toLowerCase()) ||
+        (c as unknown as CandidateData).jobTitle?.toLowerCase().includes(filters.position.toLowerCase())
+      )
+    }
+    if (filters.city) {
+      result = result.filter(c =>
+        c.city?.toLowerCase().includes(filters.city.toLowerCase())
+      )
+    }
+    if (filters.experience) {
+      const minExperience = parseInt(filters.experience, 10)
+      if (!isNaN(minExperience)) {
+        result = result.filter(c => {
+          const candidateExperience = calculateExperienceYears(c.experience)
+          return candidateExperience >= minExperience
+        })
+      }
+    }
+    if (filters.skills.length > 0) {
+      result = result.filter(c => {
+        const cSkills = (c.skills || []).map(s => s.toLowerCase())
+        return filters.skills.every(fs => cSkills.includes(fs.toLowerCase()))
+      })
+    }
+    if (filters.sortBy === 'experience') {
+      result.sort((a, b) => {
+        const expA = calculateExperienceYears(a.experience)
+        const expB = calculateExperienceYears(b.experience)
+        return expB - expA
+      })
+    } else if (filters.sortBy === 'rating') {
+      result.sort((a, b) => {
+        const ratingA = a.rating ?? 0
+        const ratingB = b.rating ?? 0
+        return ratingB - ratingA // Сортировка по убыванию (от большего к меньшему)
+      })
+    }
+
+    return result
+  }, [candidates, filters])
+
+  const availableSkills = useMemo(() => {
+    const s = new Set<string>()
+    candidates.forEach(c => c.skills?.forEach(sk => s.add(sk)))
+    return Array.from(s)
+  }, [candidates])
+
+  // Handlers
+  const handleAddToFavorites = async (userId: string) => {
+    try {
+      await addToFavorites(userId)
+      setFavorites(prev => [...prev, userId])
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleRemoveFromFavorites = async (userId: string) => {
+    try {
+      await removeFromFavorites(userId)
+      setFavorites(prev => prev.filter(id => id !== userId))
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleChatClick = async (targetUserId: string) => {
+    try {
+      const chatData = await chatService.startChat(targetUserId)
+
+      if (chatData && chatData.id) {
+        await fetchChatById(chatData.id)
+      }
+
+      navigate(ROUTES.CHAT)
+    } catch (error) {
+      console.error("Не удалось начать чат:", error)
+      alert("Ошибка при создании чата")
+    }
+  }
+
+  return (
+    <>
+      {showTitle && (
+        <div className={styles["titleContainer"]}>
+          <div className={styles["title"]}>КАНДИДАТЫ</div>
+          <button
+            className={styles["filterToggle"]}
+            onClick={() => setShowFilters(!showFilters)}
+            aria-label="Показать/скрыть фильтры"
+          >
+            {showFilters ? '✕' : '☰'} Фильтры
+          </button>
+        </div>
+      )}
+
+      <div className={styles["container"]}>
+        <div className={`${styles["filterContainer"]} ${showFilters ? styles["filterContainerOpen"] : ''}`}>
+          <CandidatesFilter filters={filters} onFiltersChange={setFilters} availableSkills={availableSkills} />
+        </div>
+
+        <div className={styles["candidatesList"]}>
+          {loading ? (
+            <Loader />
+          ) : filteredCandidates.length === 0 ? (
+            <div className={styles["emptyState"]}>Ничего не найдено</div>
+          ) : (
+            filteredCandidates.map(c => (
+              <CandidateCard
+                key={c.id}
+                candidate={c} // Удален as any, так как c имеет тип Resume
+                isFavorite={c.userId ? favorites.includes(c.userId) : false}
+                onAddToFavorites={handleAddToFavorites}
+                onRemoveFromFavorites={handleRemoveFromFavorites}
+                onViewResume={() => setSelectedCandidate(c)}
+                onChatClick={handleChatClick}
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      {selectedCandidate && (
+        <ResumeModal
+          candidate={selectedCandidate as unknown as CandidateData}
+          onClose={() => setSelectedCandidate(null)}
+        />
+      )}
+    </>
+  )
+}
+
+export const HrCandidatesPage: React.FC = () => {
+  return (
+    <div className={styles["page"]}>
+      <HrCandidatesContent showTitle={true} />
+    </div>
+  )
+}

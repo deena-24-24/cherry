@@ -1,75 +1,355 @@
-import React, { useState } from 'react'
-import { useInterviewStore } from '../../store'
-import { compilerService } from '../../service/interview/compilerService'
-import { Button } from '../ui/Button'
+import React, { useState, useEffect } from 'react'
+import { compilerService } from '../../service/api/compilerService'
+import Editor from 'react-simple-code-editor'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/atom-one-dark.css'
+import 'highlight.js/lib/languages/python'
+import 'highlight.js/lib/languages/javascript'
+import * as styles from './CodeConsole.module.css'
 
 interface CodeConsoleProps {
   sessionId: string;
+  isTaskMode?: boolean; // Режим практической задачи
+  timeRemaining?: number | null; // Оставшееся время в секундах
+  onTaskComplete?: (allTestsPassed: boolean) => void; // Колбэк при завершении задачи
 }
 
-export const CodeConsole: React.FC<CodeConsoleProps> = ({ sessionId }) => {
-  const [code, setCode] = useState('// Напишите ваш код здесь\nconsole.log("Hello World");')
-  const [output, setOutput] = useState('')
+interface TestResult {
+  testId: number;
+  input: string;
+  expected: string;
+  actual: string;
+  passed: boolean;
+  executionTime: number;
+  error?: string;
+}
+
+interface TaskDefinition {
+  id: string;
+  title: string;
+  description: string;
+  initialCode: string;
+  language: string;
+  tests: Array<{ id: number; input: string; expected: string }>
+}
+
+export const CodeConsole: React.FC<CodeConsoleProps> = ({
+  sessionId,
+  isTaskMode = false,
+  timeRemaining = null,
+  onTaskComplete
+}) => {
+  const [code, setCode] = useState('')
+  const [_output, setOutput] = useState('')
   const [isRunning, setIsRunning] = useState(false)
   const [language, setLanguage] = useState('javascript')
-  const { addCodeResult } = useInterviewStore()
+  const [testResults, setTestResults] = useState<TestResult[]>([])
+  const [taskCompleted, setTaskCompleted] = useState(false)
+
+  const codeTasks = [
+    {
+      id: 'js-sum',
+      title: 'Сумма двух чисел',
+      description: 'Напишите функцию sum(a, b), которая возвращает сумму двух чисел.',
+      initialCode: `function sum(a, b) {
+  // Ваш код здесь
+}`,
+      language: 'javascript',
+      tests: [
+        { id: 1, input: '2 3', expected: '5' },
+        { id: 2, input: '5 7', expected: '12' },
+        { id: 3, input: '-1 1', expected: '0' },
+        { id: 4, input: '0 0', expected: '0' },
+        { id: 5, input: '10 -5', expected: '5' }
+      ]
+    },
+    {
+      id: 'py-sum',
+      title: 'Сумма двух чисел',
+      description: 'Напишите функцию sum(a, b), которая возвращает сумму двух чисел.',
+      initialCode: `def sum(a, b):
+    # Ваш код здесь
+    pass`,
+      language: 'python',
+      tests: [
+        { id: 1, input: '2 3', expected: '5' },
+        { id: 2, input: '5 7', expected: '12' },
+        { id: 3, input: '-1 1', expected: '0' },
+        { id: 4, input: '0 0', expected: '0' },
+        { id: 5, input: '10 -5', expected: '5' }
+      ]
+    }
+  ]
+
+  useEffect(() => {
+    const defaultTask = codeTasks.find(task => task.language === 'javascript')
+    if (defaultTask) {
+      loadTask(defaultTask)
+    }
+  }, [])
+
+  const loadTask = (task: TaskDefinition) => {
+    setCode(task.initialCode)
+    setLanguage(task.language)
+    setOutput('')
+    setTestResults([])
+  }
 
   const handleRunCode = async () => {
+    if (!code.trim() || isRunning || (isTaskMode && taskCompleted)) return
+
     setIsRunning(true)
-    setOutput('Выполнение кода...')
+    setOutput('🔄 Выполнение кода...')
+    setTestResults([])
 
     try {
-      const result = await compilerService.executeCode(code, language, sessionId)
-      setOutput(result.output || result.error)
-      addCodeResult({ output: result.output, error: result.error, executionTime: result.executionTime })
+      const currentTask = codeTasks.find(task => task.language === language)
+      const testCases = currentTask?.tests.map(tc => ({
+        input: tc.input,
+        expected: tc.expected
+      })) || []
+
+      const result = await compilerService.executeCode(
+        code,
+        language,
+        sessionId,
+        testCases
+      )
+
+      setOutput(result.output)
+
+      if (result.testResults) {
+        setTestResults(result.testResults)
+
+        // В режиме задачи проверяем, все ли тесты прошли
+        if (isTaskMode && !taskCompleted) {
+          const allPassed = result.testResults.every(tr => tr.passed)
+          if (allPassed && result.testResults.length > 0) {
+            setTaskCompleted(true)
+            if (onTaskComplete) {
+              onTaskComplete(true)
+            }
+          }
+        }
+      }
+
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      setOutput(`Ошибка выполнения кода: ${errorMessage}`)
+      console.error('Execution error:', error)
+      setOutput(`❌ Ошибка: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsRunning(false)
     }
   }
 
+  // Отслеживаем истечение времени в режиме задачи
+  useEffect(() => {
+    if (isTaskMode && timeRemaining !== null && timeRemaining <= 0 && !taskCompleted) {
+      setTaskCompleted(true)
+      if (onTaskComplete) {
+        // Проверяем результаты перед завершением
+        const allPassed = testResults.length > 0 && testResults.every(tr => tr.passed)
+        onTaskComplete(allPassed)
+      }
+    }
+  }, [isTaskMode, timeRemaining, taskCompleted, onTaskComplete])
+
+  // Форматирование времени для отображения
+  const formatTime = (seconds: number | null): string => {
+    if (seconds === null) return ''
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage)
+    const filteredTasks = codeTasks.filter(task => task.language === newLanguage)
+    if (filteredTasks.length > 0) {
+      loadTask(filteredTasks[0])
+    }
+  }
+
+  const handleResetCode = () => {
+    const currentTask = codeTasks.find(task => task.language === language)
+    if (currentTask) {
+      setCode(currentTask.initialCode)
+    }
+  }
+
+  const passedTests = testResults.filter(r => r.passed).length
+  const totalTests = testResults.length
+
   return (
-    <div className="code-console bg-gray-900 rounded-xl h-full flex flex-col border border-gray-800 overflow-hidden">
-      <div className="px-4 py-3 flex items-center justify-between bg-gray-900/60 border-b border-gray-800">
-        <h3 className="font-medium text-base">Редактор кода</h3>
-        <div className="flex items-center gap-2">
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="bg-gray-800 text-white text-xs px-2 py-1 rounded border border-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="javascript">JavaScript</option>
-            <option value="typescript">TypeScript</option>
-            <option value="python">Python</option>
-          </select>
-          <Button
-            onClick={handleRunCode}
-            disabled={isRunning}
-          >
-            {isRunning ? 'Выполняется…' : 'Запустить'}
-          </Button>
-        </div>
+    <div className={styles.consoleContainer}>
+      <div className={styles.consoleHeader}>
+        <h1 className={styles.consoleTitle}>
+          {isTaskMode ? 'Практическая задача' : 'Консоль программирования'}
+        </h1>
+        {isTaskMode && timeRemaining !== null && (
+          <div className={`${styles.timer} ${
+            timeRemaining < 60 ? styles.timerDanger :
+              timeRemaining < 300 ? styles.timerWarning :
+                styles.timerNormal
+          }`}>
+            ⏱️ {formatTime(timeRemaining)}
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 grid grid-rows-[1fr_auto]">
-        <textarea
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          className="w-full h-full bg-gray-950 p-4 text-white font-mono text-sm resize-none focus:outline-none"
-          placeholder="// Напишите ваш код здесь…"
-        />
+      {isTaskMode && taskCompleted && (
+        <div className={`${styles.taskCompletedBanner} ${
+          testResults.length > 0 && testResults.every(tr => tr.passed)
+            ? styles.taskCompletedSuccess
+            : styles.taskCompletedFailed
+        }`}>
+          <h3 className={styles.taskResultTitle}>
+            {testResults.length > 0 && testResults.every(tr => tr.passed)
+              ? '✅ Задача выполнена! Все тесты прошли.'
+              : '❌ Время истекло или не все тесты прошли.'}
+          </h3>
+          <p className={styles.taskResultDescription}>
+            {testResults.length > 0 && testResults.every(tr => tr.passed)
+              ? 'Вы получили балл за практическую задачу.'
+              : 'Балл не начислен.'}
+          </p>
+        </div>
+      )}
 
-        <div className="border-t border-gray-800 bg-black/90">
-          <div className="px-4 py-2 text-xs text-gray-400">Консоль</div>
-          <div className="px-4 pb-3 max-h-40 overflow-y-auto">
-            <pre className="text-sm whitespace-pre-wrap text-gray-300">
-              {output || 'Результат выполнения появится здесь…'}
-            </pre>
+      <div className={styles.controlsRow}>
+        <div className={styles.controlsLeft}>
+          <div className={styles.controlGroup}>
+            <label htmlFor="language" className={styles.controlLabel}>
+              Язык программирования:
+            </label>
+            <select
+              id="language"
+              value={language}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              className={styles.languageSelect}
+            >
+              <option value="javascript">JavaScript</option>
+              <option value="python">Python</option>
+            </select>
+          </div>
+
+          <div className={styles.controlGroup}>
+            <label className={styles.controlLabel}>
+              Задача:
+            </label>
+            <div className={styles.taskButtons}>
+              {codeTasks
+                .filter(task => task.language === language)
+                .map(task => (
+                  <button
+                    key={task.id}
+                    onClick={() => loadTask(task)}
+                    className={`${styles.taskButton} ${
+                      language === task.language
+                        ? styles.taskButtonActive
+                        : styles.taskButtonInactive
+                    }`}
+                  >
+                    {task.title}
+                  </button>
+                ))}
+            </div>
           </div>
         </div>
+
+        <div className={styles.controlsRight}>
+          <button
+            onClick={handleResetCode}
+            className={`${styles.actionButton} ${styles.buttonSecondary}`}
+          >
+            Сбросить код
+          </button>
+          <button
+            onClick={handleRunCode}
+            disabled={isRunning || !code.trim() || (isTaskMode && taskCompleted)}
+            className={`${styles.actionButton} ${styles.buttonPrimary}`}
+          >
+            {isRunning ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '16px', height: '16px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                Выполняется...
+              </span>
+            ) : isTaskMode && taskCompleted ? (
+              'Задача завершена'
+            ) : (
+              'Запустить код'
+            )}
+          </button>
+        </div>
       </div>
+
+      <div className={styles.taskInfoBox}>
+        <h3 className={styles.taskTitle}>Сумма двух чисел</h3>
+        <p className={styles.taskDescription}>
+          Напишите функцию sum(a, b), которая возвращает сумму двух чисел.
+        </p>
+        {totalTests > 0 && (
+          <div className={styles.taskStats}>
+            Тесты: <span style={{ fontWeight: 600, color: '#f5f5ff' }}>{passedTests}/{totalTests}</span> пройдено
+          </div>
+        )}
+      </div>
+
+      <div className={styles.codeSection}>
+        <div className={styles.sectionHeader}>
+          <label className={styles.sectionLabel}>Код:</label>
+          <span className={styles.badge}>{code.length} символов</span>
+        </div>
+        <div className={styles.codeEditorWrapper}>
+          <Editor
+            value={code}
+            onValueChange={setCode}
+            highlight={(code) => hljs.highlight(code, { language }).value}
+            padding={16}
+            style={{
+              fontFamily: '"Fira Code", "Cascadia Code", monospace',
+              fontSize: 14,
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              color: '#f5f5ff',
+              minHeight: '300px',
+            }}
+            className="w-full focus:outline-none"
+          />
+        </div>
+      </div>
+
+      {testResults.length > 0 && (
+        <div className={styles.testResultsContainer}>
+          <div className={`${styles.testResultBox} ${
+            testResults.every(tr => tr.passed)
+              ? styles.testResultSuccess
+              : styles.testResultFailed
+          }`}>
+            {testResults.every(tr => tr.passed) ? (
+              <>
+                <div className={styles.testResultHeader}>
+                  <span className={styles.testResultIcon}>✅</span>
+                  <h3 className={`${styles.testResultTitle} ${styles.testResultTitleSuccess}`}>
+                    Все тесты пройдены
+                  </h3>
+                </div>
+                <p className={`${styles.testResultDescription} ${styles.testResultDescriptionSuccess}`}>
+                  Все {testResults.length} тестов выполнены успешно
+                </p>
+              </>
+            ) : (
+              <>
+                <div className={styles.testResultHeader}>
+                  <span className={styles.testResultIcon}>❌</span>
+                  <h3 className={`${styles.testResultTitle} ${styles.testResultTitleFailed}`}>
+                    Тесты не пройдены
+                  </h3>
+                </div>
+
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
