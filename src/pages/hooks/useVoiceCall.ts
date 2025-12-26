@@ -24,7 +24,8 @@ interface UseVoiceCallReturn {
 export const useVoiceCall = (
   sessionId: string,
   position: string,
-  isCodeTaskActive: boolean
+  isCodeTaskActive: boolean,
+  isInterviewEnded: boolean
 ): UseVoiceCallReturn => {
   const [isRecording, setIsRecording] = useState(false)
   const [isAIThinking, setIsAIThinking] = useState(false)
@@ -34,7 +35,7 @@ export const useVoiceCall = (
   const [error, setError] = useState<string | null>(null)
 
   // Блокируем микрофон, если ИИ думает или говорит
-  const isMicrophoneBlocked = isAIThinking || isAISpeaking
+  const isMicrophoneBlocked = isAIThinking || isAISpeaking || isInterviewEnded
 
   const audioContextRef = useRef<AudioContext | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
@@ -52,30 +53,29 @@ export const useVoiceCall = (
     console.log(`🎤 Выбран голос собеседника: ${randomVoice}`)
   }, [])
 
+  // Если началась задача или интервью завершено - останавливаем запись
   useEffect(() => {
     isCodeTaskActiveRef.current = isCodeTaskActive
-    // Если задача началась, принудительно останавливаем запись
-    if (isCodeTaskActive && isRecording) {
+    if ((isCodeTaskActive || isInterviewEnded) && isRecording) {
       stopRecording()
     }
-  }, [isCodeTaskActive])
+  }, [isCodeTaskActive, isInterviewEnded])
 
   // Эффект для подписки на события Аудио-сервиса
   useEffect(() => {
-    // Когда аудио-сервис говорит "я всё", мы снимаем флаг говорения
     saluteFrontendService.setAudioEndListener(() => {
       setIsAISpeaking(false)
     })
 
     return () => {
-      // Очистка при размонтировании
       saluteFrontendService.setAudioEndListener(() => {})
     }
   }, [])
+
   const startRecording = useCallback(async () => {
     // Строгая блокировка
     if (isMicrophoneBlocked) {
-      console.warn('Микрофон заблокирован, пока ИИ активен')
+      console.warn('Микрофон заблокирован')
       return
     }
 
@@ -110,7 +110,11 @@ export const useVoiceCall = (
   const stopRecording = useCallback(async () => {
     if (!isRecording) return
     setIsRecording(false)
-    setIsAIThinking(true) // Блокируем микрофон, переходим в режим ожидания
+
+    // Если интервью завершено, не переходим в режим "думает"
+    if (!isInterviewEnded) {
+      setIsAIThinking(true)
+    }
 
     const buffers = audioChunksRef.current
     const totalLength = buffers.reduce((acc, b) => acc + b.length, 0)
@@ -132,42 +136,42 @@ export const useVoiceCall = (
         socketService.sendTranscript(sessionId, text, position)
         // isAIThinking остается true -> микрофон заблокирован до ответа
       } else {
-        setIsAIThinking(false) // Если не распознали, разблокируем
+        setIsAIThinking(false)
       }
     } catch(e) {
       console.error(e)
-      setIsAIThinking(false) // При ошибке разблокируем
+      setIsAIThinking(false)
       setError('Ошибка распознавания речи')
     }
-  }, [isRecording, sessionId, position])
+  }, [isRecording, sessionId, position, isInterviewEnded])
 
   // Автоматическое включение микрофона после завершения речи ИИ
   useEffect(() => {
     // Если ИИ закончил говорить и думать, и микрофон не записывает, включаем его автоматически
     if (
-      !isAISpeaking && 
-      !isAIThinking && 
-      !isRecording && 
-      sessionId && 
+      !isAISpeaking &&
+      !isAIThinking &&
+      !isRecording &&
+      !isInterviewEnded &&
+      sessionId &&
       position &&
       socketService.getConnectionState() === 'connected'
     ) {
-      // Небольшая задержка, чтобы дать время системе обработать завершение аудио
       const autoStartTimeout = setTimeout(() => {
-        // Проверяем еще раз перед включением
         if (
-          !isAISpeaking && 
-          !isAIThinking && 
-          !isRecording && 
+          !isAISpeaking &&
+          !isAIThinking &&
+          !isRecording &&
+          !isInterviewEnded &&
           socketService.getConnectionState() === 'connected'
         ) {
           startRecording()
         }
-      }, 500) // 500ms задержка
+      }, 500)
 
       return () => clearTimeout(autoStartTimeout)
     }
-  }, [isAISpeaking, isAIThinking, isRecording, sessionId, position, startRecording])
+  }, [isAISpeaking, isAIThinking, isRecording, sessionId, position, startRecording, isInterviewEnded])
 
   useEffect(() => {
     if (!sessionId || !position) return
@@ -182,15 +186,15 @@ export const useVoiceCall = (
         socketService.onMessage(async (data) => {
           setIsAIThinking(false)
           setAiResponse(data.text)
-          setIsAISpeaking(true) // Блокируем микрофон
+          setIsAISpeaking(true)
           await saluteFrontendService.playAudioFromText(data.text)
         })
 
         // --- STREAMING HANDLERS ---
 
         socketService.onStreamStart(() => {
-          setIsAIThinking(false) // Больше не думает
-          setIsAISpeaking(true)  // Теперь говорит (блокируем микрофон)
+          setIsAIThinking(false)
+          setIsAISpeaking(true)
           setAiResponse("")
         })
 
@@ -200,9 +204,7 @@ export const useVoiceCall = (
         })
 
         socketService.onStreamEnd(() => {
-          // Стрим закончился, но мы НЕ разблокируем микрофон здесь.
-          // Мы ждем, пока saluteFrontendService.onPlaybackEnded вызовет setIsAISpeaking(false)
-          // Это произойдет, когда доиграет последний кусочек из очереди.
+          // Stream ended
         })
       } catch (error) {
         setError(`Ошибка подключения к серверу: ${error}`)

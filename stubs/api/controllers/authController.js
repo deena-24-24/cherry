@@ -140,7 +140,7 @@ const login = async (req, res) => {
         phone: user.phone || '',
         city: user.city || '',
         about: user.about || '',
-        avatar: user.avatar || '',
+        avatar: user.avatar || user.avatarUrl || '',
         companyName: user.companyName || '', // Будет пустым для кандидата
       },
     });
@@ -165,6 +165,11 @@ const getMe = async (req, res) => {
 
   // Отправляем данные без пароля
   const { password, ...userToSend } = currentUser;
+
+  if (!userToSend.avatar && userToSend.avatarUrl) {
+    userToSend.avatar = userToSend.avatarUrl;
+  }
+
   res.json(userToSend);
 };
 

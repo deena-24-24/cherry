@@ -7,7 +7,7 @@ const mockDB = {
       role: 'candidate',
       firstName: 'Кандидат',
       lastName: 'Кандидатов',
-      avatarUrl: 'https://i.pravatar.cc/150?u=user_1',
+      avatarUrl: 'https://i.pravatar.cc/150?img=5',
       phone: '+7-999-000-00-00',
       companyName: ''
     },

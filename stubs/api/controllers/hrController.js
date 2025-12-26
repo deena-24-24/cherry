@@ -29,7 +29,7 @@ class HrController {
           phone: user.phone || '',
           city: user.city || '',
           about: user.about || '',
-          avatar: user.avatar || '',
+          avatar: user.avatar || user.avatarUrl || '',
           // HR-специфичные поля
           companyName: user.companyName || '',
           favoriteCandidateIds: [],
@@ -51,7 +51,7 @@ class HrController {
         hr.phone = user.phone || hr.phone || '';
         hr.city = user.city || hr.city || '';
         hr.about = user.about || hr.about || '';
-        hr.avatar = user.avatar || hr.avatar || '';
+        hr.avatar = user.avatar || user.avatarUrl || hr.avatar || '';
         hr.companyName = user.companyName || hr.companyName || '';
         // Инициализируем favoriteCandidateIds если его нет
         if (!hr.favoriteCandidateIds) {
@@ -110,6 +110,7 @@ class HrController {
       }
       if (updateData.avatar !== undefined) {
         user.avatar = updateData.avatar;
+        user.avatarUrl = updateData.avatar;
       }
       if (updateData.companyName !== undefined) {
         user.companyName = updateData.companyName;
@@ -126,7 +127,7 @@ class HrController {
         phone: user.phone || '',
         city: user.city || '',
         about: user.about || '',
-        avatar: user.avatar || '',
+        avatar: user.avatar || user.avatarUrl || '',
         // HR-специфичные поля
         companyName: user.companyName || '',
         updatedAt: new Date().toISOString()
@@ -168,7 +169,7 @@ class HrController {
           partnerCompany: hr?.companyName || 'Неизвестная компания',
           lastMessage: convo.lastMessage,
           timestamp: convo.timestamp,
-          avatarUrl: hr?.avatarUrl || '',
+          avatarUrl: hr?.avatarUrl || hr?.avatar || '',
         };
       });
 
@@ -205,7 +206,7 @@ class HrController {
         hrInfo: {
           name: `${hr.firstName} ${hr.lastName}`,
           company: hr.companyName,
-          avatarUrl: hr.avatarUrl
+          avatarUrl: hr.avatarUrl || hr.avatar || ''
         }
       }
 

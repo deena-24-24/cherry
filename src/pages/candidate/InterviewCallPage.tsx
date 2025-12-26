@@ -110,7 +110,8 @@ export const InterviewCallPage: React.FC = () => {
   } = useVoiceCall(
     shouldInitVoice ? sessionId! : '',
     shouldInitVoice ? interviewPosition! : '',
-    isCodeTaskActive
+    isCodeTaskActive,
+    isInterviewEnded
   )
 
   // === ЛОГИКА ПРАКТИЧЕСКОЙ ЗАДАЧИ ===
